@@ -63,6 +63,12 @@ export function StudentForm({
     if (!dataToSave.planName) {
       dataToSave.planName = 'Personalizado'
     }
+
+    // Auto-complete profile if all required fields are present
+    if (dataToSave.weight && dataToSave.height && dataToSave.objective) {
+      dataToSave.profileStatus = 'complete'
+    }
+
     onSave(dataToSave)
   }
 

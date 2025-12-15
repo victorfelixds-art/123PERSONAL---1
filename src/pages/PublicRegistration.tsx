@@ -43,7 +43,14 @@ const PublicRegistration = () => {
       weight: formData.weight ? parseFloat(formData.weight) : undefined,
       height: formData.height ? parseFloat(formData.height) : undefined,
       objective: formData.objective,
-      avatar: `https://img.usecurling.com/ppl/medium?gender=male&seed=${Math.random()}`,
+      // Avatar removed as per User Story
+      linkActive: true, // Default to true for new public registrations
+      profileStatus: 'incomplete', // Will be incomplete until trainer reviews or full data is set
+    }
+
+    // Check completeness for new registration
+    if (newClient.weight && newClient.height && newClient.objective) {
+      newClient.profileStatus = 'complete'
     }
 
     addClient(newClient)

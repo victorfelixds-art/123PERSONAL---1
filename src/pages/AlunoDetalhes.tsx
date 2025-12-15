@@ -23,7 +23,7 @@ import {
   User,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { useState, useEffect } from 'react'
@@ -298,6 +298,9 @@ const AlunoDetalhes = () => {
           <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
         </Button>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsEditingProfile(true)}>
+            <Edit className="mr-2 h-4 w-4" /> Editar Perfil
+          </Button>
           {client.status === 'active' ? (
             <Button
               variant="outline"
@@ -326,8 +329,9 @@ const AlunoDetalhes = () => {
         <Card className="md:w-1/3 h-fit">
           <CardHeader className="flex flex-col items-center">
             <Avatar className="h-24 w-24 mb-4">
-              <AvatarImage src={client.avatar} />
-              <AvatarFallback>{client.name[0]}</AvatarFallback>
+              <AvatarFallback className="text-2xl">
+                {client.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <CardTitle className="text-xl text-center">{client.name}</CardTitle>
             <div className="flex flex-col items-center gap-2 mt-2">
@@ -405,6 +409,7 @@ const AlunoDetalhes = () => {
           >
             <TabsList className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="dados">Dados</TabsTrigger>
+              <TabsTrigger value="plano">Plano</TabsTrigger>
               <TabsTrigger value="treinos">Treinos</TabsTrigger>
               <TabsTrigger value="dietas">Dietas</TabsTrigger>
               <TabsTrigger value="agenda">Agenda</TabsTrigger>
@@ -422,10 +427,19 @@ const AlunoDetalhes = () => {
                         Perfil incompleto
                       </p>
                       <p className="text-xs text-yellow-700">
-                        Envie o link para o aluno preencher os dados.
+                        Envie o link para o aluno preencher os dados ou edite
+                        manualmente.
                       </p>
                     </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-yellow-200 bg-white hover:bg-yellow-50 text-yellow-900"
+                    onClick={() => setIsEditingProfile(true)}
+                  >
+                    Editar Manualmente
+                  </Button>
                 </div>
               )}
 
@@ -494,7 +508,10 @@ const AlunoDetalhes = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
 
+            {/* Plano Tab */}
+            <TabsContent value="plano" className="space-y-4 mt-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Informações do Plano</CardTitle>

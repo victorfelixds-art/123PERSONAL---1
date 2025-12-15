@@ -13,7 +13,7 @@ export interface Client {
   status: 'active' | 'inactive'
   profileStatus: 'complete' | 'incomplete'
   since: string
-  avatar?: string
+  // Avatar removed as per User Story
   planId?: string
   planName: string
   planValue: number

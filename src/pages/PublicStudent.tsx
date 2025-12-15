@@ -48,13 +48,8 @@ const PublicStudent = () => {
   const handleNext = () => {
     if (step === 1) {
       if (!formData.email && !formData.phone) {
-        // Allow skipping if at least one contact is preferred, but user story doesn't specify required.
-        // Let's assume contact info is important but not blocking if they really want to skip (though usually required).
-        // For better UX, let's require at least one.
-        if (!formData.email && !formData.phone) {
-          toast.error('Por favor, preencha pelo menos um contato.')
-          return
-        }
+        toast.error('Por favor, preencha pelo menos um contato.')
+        return
       }
     }
     setStep(step + 1)
@@ -134,15 +129,7 @@ const PublicStudent = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            {client.avatar ? (
-              <img
-                src={client.avatar}
-                alt={client.name}
-                className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-white shadow-md"
-              />
-            ) : (
-              <UserCircle2 className="w-20 h-20 mx-auto text-gray-300" />
-            )}
+            <UserCircle2 className="w-20 h-20 mx-auto text-gray-300" />
           </div>
           <CardTitle>Preencha seu Perfil</CardTitle>
           <CardDescription>Passo {step} de 3</CardDescription>

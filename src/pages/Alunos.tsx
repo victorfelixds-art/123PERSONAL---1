@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { isBefore, addDays } from 'date-fns'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const Alunos = () => {
   const { clients, addClient, workouts, diets, events, transactions } =
@@ -108,7 +109,6 @@ const Alunos = () => {
       since: new Date().toISOString().split('T')[0],
       planName: 'Indefinido',
       planValue: 0,
-      avatar: `https://img.usecurling.com/ppl/medium?gender=${Math.random() > 0.5 ? 'male' : 'female'}&seed=${Math.random()}`,
     }
 
     addClient(newClient)
@@ -197,13 +197,11 @@ const Alunos = () => {
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full relative overflow-hidden group">
               <CardContent className="p-6 flex items-center space-x-4">
                 <div className="relative">
-                  <div className="h-12 w-12 rounded-full overflow-hidden bg-muted">
-                    <img
-                      src={client.avatar}
-                      alt={client.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+                  <Avatar className="h-12 w-12 bg-muted">
+                    <AvatarFallback className="text-lg">
+                      {client.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   {checkAttention(client.id) && (
                     <div className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 border-2 border-background animate-pulse">
                       <AlertCircle className="h-3 w-3" />
