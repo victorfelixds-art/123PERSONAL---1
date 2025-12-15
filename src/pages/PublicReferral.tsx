@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -15,10 +15,14 @@ import { Check, MessageCircle, Star } from 'lucide-react'
 const PublicReferral = () => {
   const { profile, incrementReferralViews, incrementReferralConversions } =
     useAppStore()
+  const viewRecorded = useRef(false)
 
   useEffect(() => {
-    incrementReferralViews()
-  }, []) // Run once on mount
+    if (!viewRecorded.current) {
+      incrementReferralViews()
+      viewRecorded.current = true
+    }
+  }, [incrementReferralViews])
 
   const handleWhatsAppClick = () => {
     incrementReferralConversions()
