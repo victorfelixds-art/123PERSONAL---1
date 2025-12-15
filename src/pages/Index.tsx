@@ -18,6 +18,7 @@ import {
   addMonths,
   parseISO,
   differenceInDays,
+  isSameDay,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -71,17 +72,27 @@ const Index = () => {
         planName: plan.name,
       }
     })
-    .filter((item) => item !== null && item.daysLeft <= 5 && item.daysLeft >= 0)
+    .filter((item) => item !== null && item.daysLeft <= 5)
 
   const upcomingEvents = events
     .filter((e) => e.date > new Date())
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3)
 
+  // Agenda items near (today) or overdue
+  const agendaAlerts = events.filter((e) => {
+    const eventDate = new Date(e.date)
+    const today = new Date()
+    return (
+      e.studentId && (isSameDay(eventDate, today) || isBefore(eventDate, today))
+    )
+  })
+
+  // Deduplicate alerts logic if needed, but separate categories are fine
   const requiredActions = [
     ...expiringPlans.map((p) => ({
       type: 'expiring_plan',
-      title: `Plano Vencendo: ${p?.planName}`,
+      title: `Plano Vencendo/Vencido: ${p?.planName}`,
       client: p?.client.name,
       id: p?.client.id,
       date: p?.expirationDate,
@@ -98,14 +109,17 @@ const Index = () => {
       client: d.clientName,
       id: d.clientId,
     })),
-    ...upcomingEvents.slice(0, 3).map((e) => ({
-      type: 'event',
-      title: e.title,
-      client: clients.find((c) => c.id === e.studentId)?.name || 'Geral',
+    ...agendaAlerts.map((e) => ({
+      type: 'agenda_alert',
+      title: `Agenda: ${e.title}`,
+      client: clients.find((c) => c.id === e.studentId)?.name || 'Aluno',
       id: e.studentId,
       date: e.date,
+      isOverdue:
+        isBefore(new Date(e.date), new Date()) &&
+        !isSameDay(new Date(e.date), new Date()),
     })),
-  ].slice(0, 5)
+  ].slice(0, 10) // Limit display
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in">
@@ -144,11 +158,7 @@ const Index = () => {
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {expiringWorkouts.length +
-                expiringPlans.length +
-                expiredDiets.length}
-            </div>
+            <div className="text-2xl font-bold">{requiredActions.length}</div>
             <p className="text-xs text-muted-foreground">Pendências e avisos</p>
           </CardContent>
         </Card>
@@ -170,7 +180,7 @@ const Index = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="h-full">
           <CardHeader>
-            <CardTitle>Ações Necessárias</CardTitle>
+            <CardTitle>Ações Necessárias (Alunos)</CardTitle>
           </CardHeader>
           <CardContent>
             {requiredActions.length === 0 ? (
@@ -189,7 +199,9 @@ const Index = () => {
                         className={cn(
                           'p-2 rounded-full',
                           action.type.includes('expired') ||
-                            action.type.includes('expiring')
+                            action.type.includes('expiring') ||
+                            // @ts-expect-error - dynamic check
+                            action.isOverdue
                             ? 'bg-red-100 text-red-600'
                             : 'bg-blue-100 text-blue-600',
                         )}
@@ -210,7 +222,7 @@ const Index = () => {
                           {action.client}
                           {'date' in action &&
                             action.date &&
-                            ` - ${format(action.date as Date, 'dd/MM')}`}
+                            ` - ${format(new Date(action.date as Date), 'dd/MM HH:mm')}`}
                         </p>
                       </div>
                     </div>

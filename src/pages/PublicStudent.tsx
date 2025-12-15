@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { CheckCircle2, UserCircle2 } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
 const PublicStudent = () => {
   const { linkId } = useParams()
@@ -143,7 +144,7 @@ const PublicStudent = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="objective">Objetivo</Label>
-              <Input
+              <Textarea
                 id="objective"
                 placeholder="Ex: Emagrecer, Hipertrofia..."
                 value={formData.objective}

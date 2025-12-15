@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import useAppStore from '@/stores/useAppStore'
+import { Textarea } from '@/components/ui/textarea'
 
 interface StudentFormProps {
   initialData?: Client
@@ -28,6 +29,9 @@ export function StudentForm({
     name: '',
     email: '',
     phone: '',
+    weight: undefined,
+    height: undefined,
+    objective: '',
     planName: '',
     planValue: 0,
     status: 'active',
@@ -89,12 +93,51 @@ export function StudentForm({
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="phone">Telefone</Label>
+        <Label htmlFor="phone">Telefone (WhatsApp)</Label>
         <Input
           id="phone"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          placeholder="Ex: 11999999999"
           required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="weight">Peso (kg)</Label>
+          <Input
+            id="weight"
+            type="number"
+            value={formData.weight || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, weight: Number(e.target.value) })
+            }
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="height">Altura (m)</Label>
+          <Input
+            id="height"
+            type="number"
+            step="0.01"
+            value={formData.height || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, height: Number(e.target.value) })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="objective">Objetivo</Label>
+        <Textarea
+          id="objective"
+          value={formData.objective}
+          onChange={(e) =>
+            setFormData({ ...formData, objective: e.target.value })
+          }
+          placeholder="Ex: Hipertrofia"
         />
       </div>
 

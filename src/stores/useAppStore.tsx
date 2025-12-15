@@ -118,8 +118,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addClient = (client: Client) => setClients((prev) => [...prev, client])
   const updateClient = (updated: Client) =>
     setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
-  const removeClient = (id: string) =>
+
+  const removeClient = (id: string) => {
     setClients((prev) => prev.filter((c) => c.id !== id))
+    // Cascade delete: Remove associated Workouts, Diets and Events
+    setWorkouts((prev) => prev.filter((w) => w.clientId !== id))
+    setDiets((prev) => prev.filter((d) => d.clientId !== id))
+    setEvents((prev) => prev.filter((e) => e.studentId !== id))
+  }
 
   const addWorkout = (workout: Workout) =>
     setWorkouts((prev) => [...prev, workout])
