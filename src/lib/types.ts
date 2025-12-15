@@ -47,13 +47,34 @@ export interface Workout {
   isLifetime: boolean
 }
 
+export interface FoodItem {
+  id: string
+  name: string
+  quantity: string
+  unit: string
+  notes?: string
+}
+
+export interface Meal {
+  id: string
+  name: string
+  items: FoodItem[]
+  time?: string
+  notes?: string
+}
+
 export interface Diet {
   id: string
   title: string
+  objective: string
+  type: string
+  observations?: string
   clientId?: string
   clientName?: string
-  calories: number
-  meals: { name: string; items: string[] }[]
+  calories?: number
+  meals: Meal[]
+  createdAt: string
+  startDate?: string | null
   expirationDate?: string | null
   isLifetime: boolean
 }

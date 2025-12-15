@@ -56,6 +56,13 @@ interface AppContextType {
   updateDiet: (diet: Diet) => void
   duplicateDiet: (id: string) => void
   removeDiet: (id: string) => void
+  assignDiet: (
+    dietId: string,
+    studentIds: string[],
+    startDate: string,
+    expirationDate: string | null,
+    isLifetime: boolean,
+  ) => void
   addEvent: (event: CalendarEvent) => void
   updateEvent: (event: CalendarEvent) => void
   removeEvent: (id: string) => void
@@ -168,15 +175,68 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const duplicateDiet = (id: string) => {
     const diet = diets.find((d) => d.id === id)
     if (diet) {
+      // Deep copy meals
+      const mealsCopy = diet.meals.map((meal) => ({
+        ...meal,
+        id: Math.random().toString(36).substr(2, 9),
+        items: meal.items.map((item) => ({
+          ...item,
+          id: Math.random().toString(36).substr(2, 9),
+        })),
+      }))
+
       addDiet({
         ...diet,
         id: Math.random().toString(36).substr(2, 9),
         title: `${diet.title} (Cópia)`,
+        meals: mealsCopy,
+        clientId: undefined,
+        clientName: undefined,
+        startDate: undefined,
+        createdAt: new Date().toISOString(),
       })
     }
   }
   const removeDiet = (id: string) =>
     setDiets((prev) => prev.filter((d) => d.id !== id))
+
+  const assignDiet = (
+    dietId: string,
+    studentIds: string[],
+    startDate: string,
+    expirationDate: string | null,
+    isLifetime: boolean,
+  ) => {
+    const diet = diets.find((d) => d.id === dietId)
+    if (!diet) return
+
+    const newDiets: Diet[] = studentIds.map((studentId) => {
+      const student = clients.find((c) => c.id === studentId)
+      // Deep copy meals for assigned diet
+      const mealsCopy = diet.meals.map((meal) => ({
+        ...meal,
+        id: Math.random().toString(36).substr(2, 9),
+        items: meal.items.map((item) => ({
+          ...item,
+          id: Math.random().toString(36).substr(2, 9),
+        })),
+      }))
+
+      return {
+        ...diet,
+        id: Math.random().toString(36).substr(2, 9),
+        clientId: studentId,
+        clientName: student?.name,
+        startDate,
+        expirationDate,
+        isLifetime,
+        createdAt: new Date().toISOString(),
+        meals: mealsCopy,
+      }
+    })
+
+    setDiets((prev) => [...prev, ...newDiets])
+  }
 
   const addEvent = (event: CalendarEvent) =>
     setEvents((prev) => [...prev, event])
@@ -233,6 +293,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateDiet,
         duplicateDiet,
         removeDiet,
+        assignDiet,
         addEvent,
         updateEvent,
         removeEvent,

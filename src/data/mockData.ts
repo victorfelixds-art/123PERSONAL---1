@@ -157,14 +157,52 @@ export const mockDiets: Diet[] = [
   {
     id: '1',
     title: 'Perda de Peso',
+    objective: 'Emagrecimento',
+    type: 'Low Carb',
+    observations: 'Beber 3L de água por dia.',
     clientId: '2',
     clientName: 'Maria Souza',
     calories: 1500,
+    createdAt: '2024-03-10',
     meals: [
-      { name: 'Café da Manhã', items: ['Ovos mexidos', 'Fruta', 'Café preto'] },
       {
+        id: 'm1',
+        name: 'Café da Manhã',
+        items: [
+          {
+            id: 'i1',
+            name: 'Ovos',
+            quantity: '2',
+            unit: 'unid',
+            notes: 'Mexidos',
+          },
+          {
+            id: 'i2',
+            name: 'Café preto',
+            quantity: '1',
+            unit: 'xícara',
+            notes: 'Sem açúcar',
+          },
+        ],
+      },
+      {
+        id: 'm2',
         name: 'Almoço',
-        items: ['Frango grelhado', 'Salada', 'Arroz integral'],
+        items: [
+          {
+            id: 'i3',
+            name: 'Frango grelhado',
+            quantity: '150',
+            unit: 'g',
+          },
+          {
+            id: 'i4',
+            name: 'Salada Verde',
+            quantity: '1',
+            unit: 'prato',
+            notes: 'À vontade',
+          },
+        ],
       },
     ],
     isLifetime: false,

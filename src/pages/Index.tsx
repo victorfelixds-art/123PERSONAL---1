@@ -145,7 +145,9 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {expiringWorkouts.length + expiringPlans.length}
+              {expiringWorkouts.length +
+                expiringPlans.length +
+                expiredDiets.length}
             </div>
             <p className="text-xs text-muted-foreground">Pendências e avisos</p>
           </CardContent>
@@ -252,6 +254,16 @@ const Index = () => {
               <Link to="/treinos">
                 <Dumbbell className="mr-2 h-5 w-5 text-primary" />
                 Criar Novo Treino
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="w-full justify-start h-12"
+              variant="outline"
+            >
+              <Link to="/dieta">
+                <Utensils className="mr-2 h-5 w-5 text-primary" />
+                Criar Nova Dieta
               </Link>
             </Button>
             <Button
