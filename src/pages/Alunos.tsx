@@ -32,6 +32,8 @@ const Alunos = () => {
     if (client.status === 'inactive') return 'inactive'
 
     // Check for nearing expiration (Attention)
+    // Only check if planEndDate exists, otherwise inactive or just active without plan?
+    // If status is active but no plan, it's just 'active' (e.g. newly created).
     if (client.planEndDate) {
       const endDate = parseISO(client.planEndDate)
       const today = new Date()

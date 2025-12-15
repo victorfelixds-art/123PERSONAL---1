@@ -25,8 +25,7 @@ import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 const Index = () => {
-  const { clients, workouts, events, profile, diets, transactions } =
-    useAppStore()
+  const { clients, workouts, events, profile, transactions } = useAppStore()
 
   const activeClients = clients.filter((c) => c.status === 'active').length
   const inactiveClients = clients.filter((c) => c.status === 'inactive').length
@@ -40,9 +39,9 @@ const Index = () => {
       w.clientId,
   )
 
-  // Plan Expiry Logic
+  // Plan Expiry Logic - Only for clients with ACTIVE plans
   const plansExpiring = clients
-    .filter((c) => c.status === 'active' && c.planEndDate)
+    .filter((c) => c.status === 'active' && c.planEndDate && c.planName) // Ensure planName exists (not concluded/cancelled)
     .map((c) => {
       const endDate = parseISO(c.planEndDate!)
       const daysLeft = differenceInDays(endDate, new Date())
@@ -56,13 +55,6 @@ const Index = () => {
     (t) =>
       t.status === 'overdue' ||
       (t.status === 'pending' && isBefore(new Date(t.dueDate), new Date())),
-  )
-
-  const dueSoonPayments = transactions.filter(
-    (t) =>
-      t.status === 'pending' &&
-      isBefore(new Date(t.dueDate), addDays(new Date(), 5)) &&
-      !isBefore(new Date(t.dueDate), new Date()),
   )
 
   const overdueEvents = events
@@ -362,5 +354,3 @@ const Index = () => {
     </div>
   )
 }
-
-export default Index

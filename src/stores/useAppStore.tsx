@@ -38,7 +38,6 @@ import {
   addDays,
   isBefore,
   isAfter,
-  subDays,
 } from 'date-fns'
 
 interface AppContextType {
@@ -75,6 +74,8 @@ interface AppContextType {
       durationInMonths: number
     },
   ) => void
+  concludePlan: (clientId: string) => void
+  cancelPlan: (clientId: string) => void
   generateStudentLink: (clientId: string) => void
   regenerateStudentLink: (clientId: string) => void
   deactivateStudentLink: (clientId: string) => void
@@ -159,7 +160,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (isBefore(endDate, today)) {
           return { ...client, status: 'inactive' }
         } else if (client.status === 'inactive' && isAfter(endDate, today)) {
-          // Reactivate if date is valid (though rare case without manual intervention)
+          // Reactivate if date is valid
           return { ...client, status: 'active' }
         }
         return client
@@ -214,7 +215,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       category: 'Planos',
       studentId: client.id,
       studentName: client.name,
-      planId: planData.id, // Can be undefined for custom plans
+      planId: planData.id,
       planName: planData.name,
       status: 'paid', // Automatically Paid
       dueDate: planData.startDate,
@@ -228,7 +229,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       prev.map((c) => {
         if (c.id === clientId) {
           // Archive old plan if exists
-          const history = c.planHistory ? [...c.planHistory] : []
+          const history: PlanHistoryItem[] = c.planHistory
+            ? [...c.planHistory]
+            : []
           if (c.planName && c.planStartDate && c.planEndDate) {
             history.push({
               id: Math.random().toString(36).substr(2, 9),
@@ -237,6 +240,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               startDate: c.planStartDate,
               endDate: c.planEndDate,
               paymentStatus: 'paid', // Assuming past was paid
+              status: 'renewed', // Implicit renewal or change
             })
           }
 
@@ -290,11 +294,107 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })
   }
 
+  const concludePlan = (clientId: string) => {
+    const client = clients.find((c) => c.id === clientId)
+    if (!client) return
+
+    setClients((prev) =>
+      prev.map((c) => {
+        if (c.id === clientId) {
+          // Archive
+          const history: PlanHistoryItem[] = c.planHistory
+            ? [...c.planHistory]
+            : []
+          if (c.planName && c.planStartDate && c.planEndDate) {
+            history.push({
+              id: Math.random().toString(36).substr(2, 9),
+              name: c.planName,
+              value: c.planValue || 0,
+              startDate: c.planStartDate,
+              endDate: format(new Date(), 'yyyy-MM-dd'), // End date is now
+              paymentStatus: 'paid',
+              status: 'completed',
+            })
+          }
+
+          return {
+            ...c,
+            planId: undefined,
+            planName: undefined,
+            planValue: undefined,
+            planStartDate: undefined,
+            planEndDate: undefined,
+            planDuration: undefined,
+            status: 'inactive', // Student becomes inactive
+            planHistory: history,
+          }
+        }
+        return c
+      }),
+    )
+  }
+
+  const cancelPlan = (clientId: string) => {
+    const client = clients.find((c) => c.id === clientId)
+    if (!client) return
+
+    // Create Refund Transaction
+    if (client.planValue) {
+      const refundTransaction: Transaction = {
+        id: Math.random().toString(36).substr(2, 9),
+        description: `Estorno - ${client.planName} - ${client.name}`,
+        amount: -Math.abs(client.planValue), // Negative for refund
+        type: 'income', // Keeping it in income stream as negative to balance revenue
+        category: 'Estorno',
+        studentId: client.id,
+        studentName: client.name,
+        planName: client.planName,
+        status: 'paid', // Refund processed
+        dueDate: format(new Date(), 'yyyy-MM-dd'),
+        paidAt: format(new Date(), 'yyyy-MM-dd'),
+      }
+      setTransactions((prev) => [...prev, refundTransaction])
+    }
+
+    setClients((prev) =>
+      prev.map((c) => {
+        if (c.id === clientId) {
+          // Archive
+          const history: PlanHistoryItem[] = c.planHistory
+            ? [...c.planHistory]
+            : []
+          if (c.planName && c.planStartDate && c.planEndDate) {
+            history.push({
+              id: Math.random().toString(36).substr(2, 9),
+              name: c.planName,
+              value: c.planValue || 0,
+              startDate: c.planStartDate,
+              endDate: format(new Date(), 'yyyy-MM-dd'),
+              paymentStatus: 'refunded',
+              status: 'cancelled',
+            })
+          }
+
+          return {
+            ...c,
+            planId: undefined,
+            planName: undefined,
+            planValue: undefined,
+            planStartDate: undefined,
+            planEndDate: undefined,
+            planDuration: undefined,
+            status: 'inactive', // Student becomes inactive
+            planHistory: history,
+          }
+        }
+        return c
+      }),
+    )
+  }
+
   const addClient = (client: Client) => {
     // Logic to handle if initial plan is provided
     if (client.planName && client.planValue && client.planStartDate) {
-      // We will delegate to assignPlan logic implicitly by creating transaction
-      // But assignPlan is cleaner. Let's create the transaction here manually to respect the "One Response" rule properly without complex calls
       const duration = client.planDuration || 1
       const startDate = parseISO(client.planStartDate)
       const endDate = addMonths(startDate, duration)
@@ -622,6 +722,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         removeClient,
         assignPlan,
         renewPlan,
+        concludePlan,
+        cancelPlan,
         generateStudentLink,
         regenerateStudentLink,
         deactivateStudentLink,

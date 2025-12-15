@@ -18,7 +18,8 @@ export interface PlanHistoryItem {
   value: number
   startDate: string
   endDate: string
-  paymentStatus: 'paid' | 'pending'
+  paymentStatus: 'paid' | 'pending' | 'refunded'
+  status?: 'active' | 'completed' | 'cancelled' | 'expired' | 'renewed'
 }
 
 export interface Client {
@@ -38,6 +39,10 @@ export interface Client {
   planEndDate?: string
   planDuration?: number // in months
   planHistory?: PlanHistoryItem[]
+
+  // New field to explicitly track current plan status if needed,
+  // though presence of plan fields usually implies 'active'.
+  // We will rely on presence of plan fields + client.status for current state.
 
   weight?: number // Current weight
   initialWeight?: number

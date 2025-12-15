@@ -491,8 +491,6 @@ const AlunoDetalhes = () => {
 
         {/* TREINOS TAB */}
         <TabsContent value="treinos" className="space-y-6 animate-fade-in-up">
-          {/* ... existing workout tab content ... */}
-          {/* Keeping logic same as reference for brevity, but ensuring it renders */}
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
@@ -568,7 +566,6 @@ const AlunoDetalhes = () => {
 
         {/* DIETAS TAB */}
         <TabsContent value="dietas" className="space-y-6 animate-fade-in-up">
-          {/* ... existing diet tab content ... */}
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
@@ -644,7 +641,6 @@ const AlunoDetalhes = () => {
 
         {/* AGENDA TAB */}
         <TabsContent value="agenda" className="space-y-6 animate-fade-in-up">
-          {/* ... existing agenda tab content ... */}
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
