@@ -11,6 +11,7 @@ export interface Client {
   email: string
   phone: string
   status: 'active' | 'inactive'
+  profileStatus: 'complete' | 'incomplete'
   since: string
   avatar?: string
   planId?: string
@@ -20,7 +21,8 @@ export interface Client {
   weight?: number
   height?: number
   objective?: string
-  linkId: string
+  linkId?: string
+  linkActive: boolean
 }
 
 export interface Exercise {

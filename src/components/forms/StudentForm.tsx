@@ -35,7 +35,6 @@ export function StudentForm({
     planName: '',
     planValue: 0,
     status: 'active',
-    linkId: '',
     planStartDate: new Date().toISOString().split('T')[0],
   })
 
@@ -59,11 +58,7 @@ export function StudentForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Generate linkId if it's a new client or missing
     const dataToSave = { ...formData }
-    if (!dataToSave.linkId && !initialData?.linkId) {
-      dataToSave.linkId = Math.random().toString(36).substr(2, 9)
-    }
     // Fallback if user somehow didn't select a plan ID but typed a name (legacy support)
     if (!dataToSave.planName) {
       dataToSave.planName = 'Personalizado'
@@ -74,7 +69,7 @@ export function StudentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-2">
-        <Label htmlFor="name">Nome</Label>
+        <Label htmlFor="name">Nome *</Label>
         <Input
           id="name"
           value={formData.name}
@@ -89,7 +84,6 @@ export function StudentForm({
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
         />
       </div>
       <div className="grid gap-2">
@@ -99,7 +93,6 @@ export function StudentForm({
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           placeholder="Ex: 11999999999"
-          required
         />
       </div>
 
@@ -167,7 +160,6 @@ export function StudentForm({
             onChange={(e) =>
               setFormData({ ...formData, planValue: Number(e.target.value) })
             }
-            required
           />
         </div>
         <div className="grid gap-2">

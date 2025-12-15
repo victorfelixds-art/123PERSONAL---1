@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +16,11 @@ import {
   Plus,
   Clock,
   CheckCircle2,
+  Link as LinkIcon,
+  Copy,
+  RefreshCw,
+  PowerOff,
+  User,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -78,6 +83,9 @@ const AlunoDetalhes = () => {
     addEvent,
     updateEvent,
     removeEvent,
+    generateStudentLink,
+    regenerateStudentLink,
+    deactivateStudentLink,
   } = useAppStore()
 
   const [isEditingProfile, setIsEditingProfile] = useState(false)
@@ -145,6 +153,26 @@ const AlunoDetalhes = () => {
       .replace('{studentName}', client.name)
       .replace('{personalName}', profile.name)
 
+    const encodedMessage = encodeURIComponent(message)
+    const phone = client.phone.replace(/\D/g, '')
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank')
+  }
+
+  // Link Management
+  const studentLink = client.linkId
+    ? `${window.location.origin}/p/${client.linkId}`
+    : ''
+
+  const copyLink = () => {
+    if (studentLink) {
+      navigator.clipboard.writeText(studentLink)
+      toast.success('Link copiado!')
+    }
+  }
+
+  const sendLinkWhatsApp = () => {
+    if (!studentLink) return
+    const message = `Olá ${client.name}, aqui está o link para você preencher seus dados: ${studentLink}`
     const encodedMessage = encodeURIComponent(message)
     const phone = client.phone.replace(/\D/g, '')
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank')
@@ -302,17 +330,34 @@ const AlunoDetalhes = () => {
               <AvatarFallback>{client.name[0]}</AvatarFallback>
             </Avatar>
             <CardTitle className="text-xl text-center">{client.name}</CardTitle>
-            <Badge
-              variant={client.status === 'active' ? 'default' : 'secondary'}
-              className="mt-2"
-            >
-              {client.status.toUpperCase()}
-            </Badge>
+            <div className="flex flex-col items-center gap-2 mt-2">
+              <Badge
+                variant={client.status === 'active' ? 'default' : 'secondary'}
+              >
+                {client.status.toUpperCase()}
+              </Badge>
+              {client.profileStatus === 'incomplete' ? (
+                <Badge
+                  variant="outline"
+                  className="text-yellow-600 border-yellow-200 bg-yellow-50"
+                >
+                  Perfil Incompleto
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="text-green-600 border-green-200 bg-green-50"
+                >
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> Perfil Completo
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button
               className="w-full bg-green-600 hover:bg-green-700"
               onClick={handleWhatsApp}
+              disabled={!client.phone}
             >
               <MessageCircle className="mr-2 h-4 w-4" /> Chamar no WhatsApp
             </Button>
@@ -320,11 +365,11 @@ const AlunoDetalhes = () => {
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{client.email}</span>
+                <span>{client.email || '-'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{client.phone}</span>
+                <span>{client.phone || '-'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -367,6 +412,89 @@ const AlunoDetalhes = () => {
 
             {/* Dados Tab */}
             <TabsContent value="dados" className="space-y-4 mt-4">
+              {/* Profile Completion Warning */}
+              {client.profileStatus === 'incomplete' && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-yellow-900">
+                        Perfil incompleto
+                      </p>
+                      <p className="text-xs text-yellow-700">
+                        Envie o link para o aluno preencher os dados.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Link Management Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <LinkIcon className="h-5 w-5" /> Link de Preenchimento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {!client.linkActive ? (
+                    <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed">
+                      <User className="h-10 w-10 mx-auto text-muted-foreground mb-2 opacity-50" />
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Gere um link único para o aluno preencher o perfil.
+                      </p>
+                      <Button onClick={() => generateStudentLink(client.id)}>
+                        Gerar Link de Preenchimento
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 bg-muted p-3 rounded border">
+                        <code className="text-xs flex-1 truncate">
+                          {studentLink}
+                        </code>
+                        <Button variant="ghost" size="icon" onClick={copyLink}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={sendLinkWhatsApp}
+                        >
+                          <MessageCircle className="mr-2 h-4 w-4" /> Enviar pelo
+                          WhatsApp
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={copyLink}
+                        >
+                          <Copy className="mr-2 h-4 w-4" /> Copiar Link
+                        </Button>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => regenerateStudentLink(client.id)}
+                        >
+                          <RefreshCw className="mr-2 h-3 w-3" /> Regenerar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => deactivateStudentLink(client.id)}
+                        >
+                          <PowerOff className="mr-2 h-3 w-3" /> Desativar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Informações do Plano</CardTitle>

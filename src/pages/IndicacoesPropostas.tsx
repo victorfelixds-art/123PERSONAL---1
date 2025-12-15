@@ -14,7 +14,6 @@ import {
   Copy,
   Share2,
   FileText,
-  Users,
   Eye,
   MessageCircle,
   Download,
@@ -40,7 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 
 const IndicacoesPropostas = () => {
@@ -61,7 +59,6 @@ const IndicacoesPropostas = () => {
   // Mock trainer ID for now (in a real app this would be profile.id)
   const trainerId = 'trainer-123'
 
-  const studentRegistrationLink = `${baseUrl}/register`
   const referralLink = `${baseUrl}/ref/${trainerId}`
 
   const copyToClipboard = (text: string) => {
@@ -114,47 +111,8 @@ const IndicacoesPropostas = () => {
         {/* INDICAÇÕES TAB */}
         <TabsContent value="indicacoes" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Student Registration Link Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Cadastro de Alunos
-                </CardTitle>
-                <CardDescription>
-                  Envie este link para novos alunos se cadastrarem. Os dados
-                  aparecerão na sua lista de alunos.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-muted rounded-md border text-sm break-all font-mono">
-                  {studentRegistrationLink}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => copyToClipboard(studentRegistrationLink)}
-                  >
-                    <Copy className="mr-2 h-4 w-4" /> Copiar
-                  </Button>
-                  <Button
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                    onClick={() =>
-                      shareViaWhatsApp(
-                        studentRegistrationLink,
-                        'Olá! Faça seu cadastro inicial aqui:',
-                      )
-                    }
-                  >
-                    <Share2 className="mr-2 h-4 w-4" /> WhatsApp
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Referral Link Card */}
-            <Card>
+            <Card className="col-span-2 md:col-span-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Share2 className="h-5 w-5 text-primary" />

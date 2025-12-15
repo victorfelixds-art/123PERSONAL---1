@@ -47,6 +47,9 @@ interface AppContextType {
   addClient: (client: Client) => void
   updateClient: (client: Client) => void
   removeClient: (id: string) => void
+  generateStudentLink: (clientId: string) => void
+  regenerateStudentLink: (clientId: string) => void
+  deactivateStudentLink: (clientId: string) => void
   addWorkout: (workout: Workout) => void
   updateWorkout: (workout: Workout) => void
   duplicateWorkout: (id: string) => void
@@ -206,6 +209,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setTransactions((prev) => prev.filter((t) => t.studentId !== id))
   }
 
+  const generateStudentLink = (clientId: string) => {
+    const linkId = Math.random().toString(36).substr(2, 9)
+    setClients((prev) =>
+      prev.map((c) =>
+        c.id === clientId ? { ...c, linkId: linkId, linkActive: true } : c,
+      ),
+    )
+  }
+
+  const regenerateStudentLink = (clientId: string) => {
+    generateStudentLink(clientId)
+  }
+
+  const deactivateStudentLink = (clientId: string) => {
+    setClients((prev) =>
+      prev.map((c) => (c.id === clientId ? { ...c, linkActive: false } : c)),
+    )
+  }
+
   const addWorkout = (workout: Workout) =>
     setWorkouts((prev) => [...prev, workout])
   const updateWorkout = (updated: Workout) =>
@@ -279,6 +301,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         clientName: undefined,
         startDate: undefined,
         createdAt: new Date().toISOString(),
+        meals: mealsCopy,
       })
     }
   }
@@ -402,6 +425,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addClient,
         updateClient,
         removeClient,
+        generateStudentLink,
+        regenerateStudentLink,
+        deactivateStudentLink,
         addWorkout,
         updateWorkout,
         duplicateWorkout,

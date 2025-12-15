@@ -4,49 +4,29 @@ import { Client } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-  Plus,
-  Search,
-  User,
-  ChevronRight,
-  AlertCircle,
-  Copy,
-  ExternalLink,
-} from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Plus, Search, User, ChevronRight, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { StudentForm } from '@/components/forms/StudentForm'
 import { isBefore, addDays } from 'date-fns'
 
 const Alunos = () => {
-  const {
-    clients,
-    addClient,
-    updateClient,
-    workouts,
-    diets,
-    events,
-    transactions,
-  } = useAppStore()
+  const { clients, addClient, workouts, diets, events, transactions } =
+    useAppStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filterType, setFilterType] = useState<
     'todos' | 'ativos' | 'inativos' | 'atencao'
   >('todos')
-  const [editingClient, setEditingClient] = useState<Client | undefined>(
-    undefined,
-  )
-  const [generatedLinkClient, setGeneratedLinkClient] = useState<
-    Client | undefined
-  >(undefined)
+  const [newClientName, setNewClientName] = useState('')
 
   const checkAttention = (clientId: string) => {
     const client = clients.find((c) => c.id === clientId)
@@ -111,40 +91,30 @@ const Alunos = () => {
     return matchesSearch && matchesStatus
   })
 
-  const handleSave = (data: Partial<Client>) => {
-    if (editingClient) {
-      updateClient({ ...editingClient, ...data } as Client)
-      toast.success('Aluno atualizado!')
-    } else {
-      addClient({
-        id: Math.random().toString(36).substr(2, 9),
-        ...data,
-        status: 'active',
-        since: new Date().toISOString().split('T')[0],
-        avatar: `https://img.usecurling.com/ppl/medium?gender=${Math.random() > 0.5 ? 'male' : 'female'}&seed=${Math.random()}`,
-      } as Client)
-      toast.success('Aluno adicionado!')
+  const handleCreateClient = () => {
+    if (!newClientName.trim()) {
+      toast.error('Nome é obrigatório')
+      return
     }
-    setIsDialogOpen(false)
-    setEditingClient(undefined)
-  }
 
-  const generateLink = () => {
     const newClient: Client = {
       id: Math.random().toString(36).substr(2, 9),
-      name: 'Novo Aluno (Link)',
-      email: 'pendente@email.com',
+      name: newClientName,
+      email: '',
       phone: '',
       status: 'active',
+      profileStatus: 'incomplete',
+      linkActive: false,
       since: new Date().toISOString().split('T')[0],
-      linkId: Math.random().toString(36).substr(2, 9),
       planName: 'Indefinido',
       planValue: 0,
-      avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=new',
+      avatar: `https://img.usecurling.com/ppl/medium?gender=${Math.random() > 0.5 ? 'male' : 'female'}&seed=${Math.random()}`,
     }
+
     addClient(newClient)
-    setGeneratedLinkClient(newClient)
-    toast.success('Link gerado e aluno provisório criado!')
+    toast.success('Aluno adicionado com sucesso!')
+    setNewClientName('')
+    setIsDialogOpen(false)
   }
 
   return (
@@ -153,8 +123,7 @@ const Alunos = () => {
         <h1 className="text-3xl font-bold tracking-tight">Alunos</h1>
         <Button
           onClick={() => {
-            setEditingClient(undefined)
-            setGeneratedLinkClient(undefined)
+            setNewClientName('')
             setIsDialogOpen(true)
           }}
         >
@@ -191,93 +160,34 @@ const Alunos = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>
-              {editingClient ? 'Editar Aluno' : 'Novo Aluno'}
-            </DialogTitle>
+            <DialogTitle>Novo Aluno</DialogTitle>
           </DialogHeader>
 
-          {editingClient ? (
-            <StudentForm
-              initialData={editingClient}
-              onSave={handleSave}
-              onCancel={() => setIsDialogOpen(false)}
-            />
-          ) : (
-            <Tabs defaultValue="manual">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual">Manual</TabsTrigger>
-                <TabsTrigger value="link">Link de Cadastro</TabsTrigger>
-              </TabsList>
-              <TabsContent value="manual">
-                <StudentForm
-                  initialData={undefined}
-                  onSave={handleSave}
-                  onCancel={() => setIsDialogOpen(false)}
-                />
-              </TabsContent>
-              <TabsContent value="link" className="space-y-4 py-4">
-                {!generatedLinkClient ? (
-                  <div className="text-center space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Gere um link único para enviar ao seu aluno. Ele poderá
-                      preencher os dados iniciais (Peso, Altura, Objetivo).
-                    </p>
-                    <Button onClick={generateLink} className="w-full">
-                      Gerar Link Único
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-muted rounded-lg space-y-2">
-                      <p className="text-sm font-medium">Link gerado:</p>
-                      <div className="flex items-center gap-2 bg-background p-2 rounded border">
-                        <code className="text-xs flex-1 truncate">
-                          {window.location.origin}/p/
-                          {generatedLinkClient.linkId}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              `${window.location.origin}/p/${generatedLinkClient.linkId}`,
-                            )
-                            toast.success('Copiado!')
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" asChild>
-                          <a
-                            href={`/p/${generatedLinkClient.linkId}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>
-                        O aluno "Novo Aluno (Link)" foi criado na sua lista.
-                        Você pode editá-lo posteriormente.
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
-                      className="w-full"
-                    >
-                      Fechar
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          )}
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nome do Aluno</Label>
+              <Input
+                id="name"
+                value={newClientName}
+                onChange={(e) => setNewClientName(e.target.value)}
+                placeholder="Ex: João Silva"
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateClient()}
+              />
+              <p className="text-xs text-muted-foreground">
+                Você poderá preencher o restante dos dados depois ou enviar o
+                link para o aluno.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateClient}>Criar Aluno</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -306,28 +216,27 @@ const Alunos = () => {
                       {client.name}
                     </p>
                   </div>
-                  <span
-                    className={cn(
-                      'inline-flex items-center mt-1 px-2 py-0.5 rounded text-xs font-medium',
-                      client.status === 'active'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-                    )}
-                  >
-                    {client.status === 'active' ? 'Ativo' : 'Inativo'}
-                  </span>
+                  <div className="flex gap-2 mt-1">
+                    <span
+                      className={cn(
+                        'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase',
+                        client.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800',
+                      )}
+                    >
+                      {client.status === 'active' ? 'Ativo' : 'Inativo'}
+                    </span>
+                    {client.profileStatus === 'incomplete' &&
+                      client.status === 'active' && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase bg-yellow-100 text-yellow-800">
+                          Incompleto
+                        </span>
+                      )}
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setEditingClient(client)
-                      setIsDialogOpen(true)
-                    }}
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>

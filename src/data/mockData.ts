@@ -10,7 +10,7 @@ import {
   Plan,
   Proposal,
 } from '@/lib/types'
-import { addDays, addMonths, subMonths, format } from 'date-fns'
+import { addDays, subMonths, format } from 'date-fns'
 
 export const mockPlans: Plan[] = [
   { id: '1', name: 'Mensal', value: 200, durationInMonths: 1 },
@@ -26,6 +26,8 @@ export const mockClients: Client[] = [
     email: 'joao@example.com',
     phone: '5511999991234',
     status: 'active',
+    profileStatus: 'complete',
+    linkActive: true,
     since: '2024-01-15',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=1',
     planId: '1',
@@ -43,6 +45,8 @@ export const mockClients: Client[] = [
     email: 'maria@example.com',
     phone: '5511988885678',
     status: 'active',
+    profileStatus: 'complete',
+    linkActive: false,
     since: '2024-02-01',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=female&seed=2',
     planId: '2',
@@ -60,6 +64,8 @@ export const mockClients: Client[] = [
     email: 'pedro@example.com',
     phone: '5511977779012',
     status: 'inactive',
+    profileStatus: 'incomplete',
+    linkActive: true,
     since: '2023-11-20',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=3',
     planName: 'Mensal',
