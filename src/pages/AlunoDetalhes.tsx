@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Share2,
   MessageCircle,
+  AlertTriangle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -25,6 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { StudentForm } from '@/components/forms/StudentForm'
+import { isBefore, parseISO } from 'date-fns'
 
 const AlunoDetalhes = () => {
   const { id } = useParams()
@@ -74,10 +76,17 @@ const AlunoDetalhes = () => {
       .replace('{personalName}', profile.name)
 
     const encodedMessage = encodeURIComponent(message)
-    const phone = client.phone.replace(/\D/g, '') // Remove non-digits
+    const phone = client.phone.replace(/\D/g, '')
 
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank')
   }
+
+  const hasExpiredWorkout = clientWorkouts.some(
+    (w) =>
+      !w.isLifetime &&
+      w.expirationDate &&
+      isBefore(parseISO(w.expirationDate), new Date()),
+  )
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-6 animate-slide-up">
@@ -90,7 +99,15 @@ const AlunoDetalhes = () => {
       </Button>
 
       <div className="flex flex-col md:flex-row gap-6">
-        <Card className="md:w-1/3 h-fit">
+        <Card className="md:w-1/3 h-fit relative">
+          {hasExpiredWorkout && (
+            <div className="absolute top-4 right-4 animate-pulse">
+              <AlertTriangle
+                className="h-6 w-6 text-red-500"
+                title="Treino Vencido"
+              />
+            </div>
+          )}
           <CardHeader className="flex flex-col items-center">
             <Avatar className="h-24 w-24 mb-4">
               <AvatarImage src={client.avatar} />
@@ -214,14 +231,28 @@ const AlunoDetalhes = () => {
               <CardContent>
                 {clientWorkouts.length > 0 ? (
                   <ul className="space-y-2">
-                    {clientWorkouts.map((w) => (
-                      <li
-                        key={w.id}
-                        className="text-sm border-b pb-2 flex justify-between items-center"
-                      >
-                        <span className="font-medium">{w.title}</span>
-                      </li>
-                    ))}
+                    {clientWorkouts.map((w) => {
+                      const isExpired =
+                        !w.isLifetime &&
+                        w.expirationDate &&
+                        isBefore(parseISO(w.expirationDate), new Date())
+                      return (
+                        <li
+                          key={w.id}
+                          className="text-sm border-b pb-2 flex justify-between items-center"
+                        >
+                          <span className="font-medium">{w.title}</span>
+                          {isExpired && (
+                            <Badge
+                              variant="destructive"
+                              className="text-[10px] h-5"
+                            >
+                              Vencido
+                            </Badge>
+                          )}
+                        </li>
+                      )
+                    })}
                   </ul>
                 ) : (
                   <p className="text-sm text-muted-foreground">Nenhum treino</p>

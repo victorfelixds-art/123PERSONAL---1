@@ -70,28 +70,86 @@ export const mockWorkouts: Workout[] = [
   {
     id: '1',
     title: 'Hipertrofia A',
+    objective: 'Ganho de Massa Muscular',
+    level: 'Intermediário',
+    observations: 'Focar na fase excêntrica do movimento.',
     clientId: '1',
     clientName: 'João Silva',
     createdAt: '2024-03-10',
     exercises: [
-      { name: 'Supino Reto', sets: 4, reps: '8-10' },
-      { name: 'Crucifixo', sets: 3, reps: '12' },
-      { name: 'Tríceps Corda', sets: 3, reps: '12-15' },
+      {
+        name: 'Supino Reto',
+        sets: 4,
+        reps: '8-10',
+        weight: '60kg',
+        rest: '90s',
+      },
+      {
+        name: 'Crucifixo',
+        sets: 3,
+        reps: '12',
+        weight: '14kg',
+        rest: '60s',
+      },
+      {
+        name: 'Tríceps Corda',
+        sets: 3,
+        reps: '12-15',
+        weight: '20kg',
+        rest: '45s',
+      },
     ],
     isLifetime: true,
   },
   {
     id: '2',
     title: 'Cardio + Abs',
+    objective: 'Queima de Gordura e Resistência',
+    level: 'Iniciante',
+    observations: 'Manter hidratação constante.',
     clientId: '2',
     clientName: 'Maria Souza',
     createdAt: '2024-03-12',
     exercises: [
-      { name: 'Esteira', sets: 1, reps: '30 min' },
-      { name: 'Abdominal Supra', sets: 4, reps: '20' },
+      {
+        name: 'Esteira',
+        sets: 1,
+        reps: '30 min',
+        notes: 'Intensidade moderada',
+      },
+      {
+        name: 'Abdominal Supra',
+        sets: 4,
+        reps: '20',
+        rest: '30s',
+      },
     ],
     isLifetime: false,
     expirationDate: '2024-04-12',
+    startDate: '2024-03-12',
+  },
+  {
+    id: '3',
+    title: 'Treino de Pernas (Modelo)',
+    objective: 'Força e Hipertrofia',
+    level: 'Avançado',
+    observations: 'Treino base para alunos avançados.',
+    createdAt: '2024-03-01',
+    exercises: [
+      {
+        name: 'Agachamento Livre',
+        sets: 5,
+        reps: '5-8',
+        rest: '120s',
+      },
+      {
+        name: 'Leg Press 45',
+        sets: 4,
+        reps: '10-12',
+        rest: '90s',
+      },
+    ],
+    isLifetime: true,
   },
 ]
 
@@ -179,5 +237,5 @@ export const mockSettings: AppSettings = {
     messages: false,
   },
   whatsappMessageTemplate:
-    'Olá {studentName}! Aqui é o {personalName}. Como está o foco nos treinos?',
+    'Olá {studentName}! Aqui é o {personalName}. Segue o link do seu treino: {link}',
 }

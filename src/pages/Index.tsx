@@ -33,21 +33,24 @@ const Index = () => {
       !w.isLifetime &&
       w.expirationDate &&
       isBefore(new Date(w.expirationDate), addDays(new Date(), 7)) &&
-      !isBefore(new Date(w.expirationDate), new Date()),
+      !isBefore(new Date(w.expirationDate), new Date()) &&
+      w.clientId, // Only count assigned workouts
   )
 
   const expiredWorkouts = workouts.filter(
     (w) =>
       !w.isLifetime &&
       w.expirationDate &&
-      isBefore(new Date(w.expirationDate), new Date()),
+      isBefore(new Date(w.expirationDate), new Date()) &&
+      w.clientId, // Only count assigned workouts
   )
 
   const expiredDiets = diets.filter(
     (d) =>
       !d.isLifetime &&
       d.expirationDate &&
-      isBefore(new Date(d.expirationDate), new Date()),
+      isBefore(new Date(d.expirationDate), new Date()) &&
+      d.clientId,
   )
 
   // Calculate Plan Expiration Alerts (<= 5 days)

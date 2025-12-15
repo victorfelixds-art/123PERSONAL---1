@@ -7,7 +7,13 @@ TREINO: ${workout.title}
 Aluno: ${workout.clientName || 'N/A'}
 Personal: ${personalName}
 Data de Criação: ${new Date(workout.createdAt).toLocaleDateString()}
-Validade: ${workout.isLifetime ? 'Vitalício' : workout.expirationDate}
+Objetivo: ${workout.objective || 'N/A'}
+Nível: ${workout.level || 'N/A'}
+Início: ${workout.startDate ? new Date(workout.startDate).toLocaleDateString() : 'N/A'}
+Validade: ${workout.isLifetime ? 'Vitalício' : workout.expirationDate ? new Date(workout.expirationDate).toLocaleDateString() : 'N/A'}
+
+Observações Gerais:
+${workout.observations || 'Nenhuma'}
 ----------------------------------------
 
 EXERCÍCIOS:
@@ -15,7 +21,10 @@ EXERCÍCIOS:
 ${workout.exercises
   .map(
     (ex, index) =>
-      `${index + 1}. ${ex.name}\n   Séries: ${ex.sets} | Repetições: ${ex.reps}`,
+      `${index + 1}. ${ex.name}
+   Séries: ${ex.sets} | Repetições: ${ex.reps}
+   ${ex.weight ? `Carga: ${ex.weight}` : ''} ${ex.rest ? `| Descanso: ${ex.rest}` : ''}
+   ${ex.notes ? `Obs: ${ex.notes}` : ''}`,
   )
   .join('\n\n')}
 

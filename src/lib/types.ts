@@ -23,13 +23,26 @@ export interface Client {
   linkId: string
 }
 
+export interface Exercise {
+  name: string
+  sets: number
+  reps: string
+  weight?: string
+  rest?: string
+  notes?: string
+}
+
 export interface Workout {
   id: string
   title: string
+  objective?: string
+  level?: 'Iniciante' | 'Intermediário' | 'Avançado'
+  observations?: string
   clientId?: string
   clientName?: string
-  exercises: { name: string; sets: number; reps: string }[]
+  exercises: Exercise[]
   createdAt: string
+  startDate?: string | null
   expirationDate?: string | null
   isLifetime: boolean
 }

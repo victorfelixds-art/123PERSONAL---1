@@ -45,6 +45,13 @@ interface AppContextType {
   updateWorkout: (workout: Workout) => void
   duplicateWorkout: (id: string) => void
   removeWorkout: (id: string) => void
+  assignWorkout: (
+    workoutId: string,
+    studentIds: string[],
+    startDate: string,
+    expirationDate: string | null,
+    isLifetime: boolean,
+  ) => void
   addDiet: (diet: Diet) => void
   updateDiet: (diet: Diet) => void
   duplicateDiet: (id: string) => void
@@ -119,11 +126,41 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         id: Math.random().toString(36).substr(2, 9),
         title: `${workout.title} (Cópia)`,
         createdAt: new Date().toISOString().split('T')[0],
+        clientId: undefined, // Reset client when duplicating as template
+        clientName: undefined,
+        startDate: undefined,
       })
     }
   }
   const removeWorkout = (id: string) =>
     setWorkouts((prev) => prev.filter((w) => w.id !== id))
+
+  const assignWorkout = (
+    workoutId: string,
+    studentIds: string[],
+    startDate: string,
+    expirationDate: string | null,
+    isLifetime: boolean,
+  ) => {
+    const workout = workouts.find((w) => w.id === workoutId)
+    if (!workout) return
+
+    const newWorkouts: Workout[] = studentIds.map((studentId) => {
+      const student = clients.find((c) => c.id === studentId)
+      return {
+        ...workout,
+        id: Math.random().toString(36).substr(2, 9),
+        clientId: studentId,
+        clientName: student?.name,
+        startDate,
+        expirationDate,
+        isLifetime,
+        createdAt: new Date().toISOString(),
+      }
+    })
+
+    setWorkouts((prev) => [...prev, ...newWorkouts])
+  }
 
   const addDiet = (diet: Diet) => setDiets((prev) => [...prev, diet])
   const updateDiet = (updated: Diet) =>
@@ -191,6 +228,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateWorkout,
         duplicateWorkout,
         removeWorkout,
+        assignWorkout,
         addDiet,
         updateDiet,
         duplicateDiet,
