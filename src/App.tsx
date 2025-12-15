@@ -16,6 +16,7 @@ import Financeiro from '@/pages/Financeiro'
 import Links from '@/pages/Links'
 import Perfil from '@/pages/Perfil'
 import Configuracoes from '@/pages/Configuracoes'
+import PublicStudent from '@/pages/PublicStudent'
 import NotFound from '@/pages/NotFound'
 
 const App = () => (
@@ -39,6 +40,8 @@ const App = () => (
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
           </Route>
+          {/* Public Route outside Layout */}
+          <Route path="/p/:linkId" element={<PublicStudent />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

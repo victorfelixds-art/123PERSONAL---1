@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Trash2, Copy, Edit, Clock } from 'lucide-react'
+import { Plus, Trash2, Copy, Edit, Clock, Download } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -28,10 +28,18 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import { generateDietPDF } from '@/lib/pdfGenerator'
 
 const Dieta = () => {
-  const { diets, clients, addDiet, updateDiet, removeDiet, duplicateDiet } =
-    useAppStore()
+  const {
+    diets,
+    clients,
+    addDiet,
+    updateDiet,
+    removeDiet,
+    duplicateDiet,
+    profile,
+  } = useAppStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Diet>>({
@@ -95,6 +103,11 @@ const Dieta = () => {
       toast.success('Dieta criada')
     }
     setIsDialogOpen(false)
+  }
+
+  const handleDownload = (diet: Diet) => {
+    generateDietPDF(diet, profile.name)
+    toast.success('PDF da dieta gerado!')
   }
 
   return (
@@ -199,6 +212,14 @@ const Dieta = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Baixar PDF"
+                onClick={() => handleDownload(diet)}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"

@@ -16,9 +16,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 
 const Configuracoes = () => {
   const { settings, updateSettings, updateTheme } = useAppStore()
+  const [msgTemplate, setMsgTemplate] = useState(
+    settings.whatsappMessageTemplate || '',
+  )
 
   const handleToggle = (key: keyof typeof settings.notifications) => {
     updateSettings({
@@ -29,6 +35,14 @@ const Configuracoes = () => {
       },
     })
     toast.success('Configuração atualizada')
+  }
+
+  const handleSaveMsg = () => {
+    updateSettings({
+      ...settings,
+      whatsappMessageTemplate: msgTemplate,
+    })
+    toast.success('Modelo de mensagem salvo!')
   }
 
   return (
@@ -122,6 +136,30 @@ const Configuracoes = () => {
                 onCheckedChange={() => handleToggle('messages')}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Comunicação (WhatsApp)</CardTitle>
+            <CardDescription>
+              Configure a mensagem padrão para seus alunos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Modelo de Mensagem</Label>
+              <Textarea
+                value={msgTemplate}
+                onChange={(e) => setMsgTemplate(e.target.value)}
+                placeholder="Digite sua mensagem padrão..."
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                Variáveis disponíveis: {'{studentName}'}, {'{personalName}'}
+              </p>
+            </div>
+            <Button onClick={handleSaveMsg}>Salvar Modelo</Button>
           </CardContent>
         </Card>
 

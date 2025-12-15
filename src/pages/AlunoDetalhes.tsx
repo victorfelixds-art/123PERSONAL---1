@@ -2,7 +2,17 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Mail, Phone, Calendar, Trash2, Edit } from 'lucide-react'
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Calendar,
+  Trash2,
+  Edit,
+  ExternalLink,
+  Share2,
+  MessageCircle,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
@@ -19,7 +29,15 @@ import { StudentForm } from '@/components/forms/StudentForm'
 const AlunoDetalhes = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { clients, removeClient, updateClient, workouts, diets } = useAppStore()
+  const {
+    clients,
+    removeClient,
+    updateClient,
+    workouts,
+    diets,
+    settings,
+    profile,
+  } = useAppStore()
   const [isEditing, setIsEditing] = useState(false)
 
   const client = clients.find((c) => c.id === id)
@@ -41,6 +59,24 @@ const AlunoDetalhes = () => {
       toast.success('Aluno removido com sucesso')
       navigate('/alunos')
     }
+  }
+
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/p/${client.linkId}`
+    navigator.clipboard.writeText(link)
+    toast.success('Link copiado para a área de transferência!')
+  }
+
+  const handleWhatsApp = () => {
+    const template = settings.whatsappMessageTemplate || 'Olá {studentName}!'
+    const message = template
+      .replace('{studentName}', client.name)
+      .replace('{personalName}', profile.name)
+
+    const encodedMessage = encodeURIComponent(message)
+    const phone = client.phone.replace(/\D/g, '') // Remove non-digits
+
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank')
   }
 
   return (
@@ -69,6 +105,65 @@ const AlunoDetalhes = () => {
             </Badge>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex gap-2 justify-center pb-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleWhatsApp}
+                className="w-full"
+              >
+                <MessageCircle className="mr-2 h-4 w-4 text-green-600" />{' '}
+                WhatsApp
+              </Button>
+            </div>
+
+            <div className="p-3 bg-secondary/50 rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground uppercase">
+                  Link do Aluno
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={handleCopyLink}
+                >
+                  <Share2 className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2 text-xs truncate bg-background p-2 rounded border">
+                <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">
+                  {window.location.origin}/p/{client.linkId}
+                </span>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground">Peso</p>
+                <p className="font-semibold">
+                  {client.weight ? `${client.weight} kg` : '-'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Altura</p>
+                <p className="font-semibold">
+                  {client.height ? `${client.height} m` : '-'}
+                </p>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">Objetivo</p>
+              <p className="font-medium">
+                {client.objective || 'Não definido'}
+              </p>
+            </div>
+
+            <Separator />
+
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
@@ -114,7 +209,10 @@ const AlunoDetalhes = () => {
                 {clientWorkouts.length > 0 ? (
                   <ul className="space-y-2">
                     {clientWorkouts.map((w) => (
-                      <li key={w.id} className="text-sm border-b pb-2">
+                      <li
+                        key={w.id}
+                        className="text-sm border-b pb-2 flex justify-between items-center"
+                      >
                         <span className="font-medium">{w.title}</span>
                       </li>
                     ))}
@@ -136,7 +234,10 @@ const AlunoDetalhes = () => {
                 {clientDiets.length > 0 ? (
                   <ul className="space-y-2">
                     {clientDiets.map((d) => (
-                      <li key={d.id} className="text-sm border-b pb-2">
+                      <li
+                        key={d.id}
+                        className="text-sm border-b pb-2 flex justify-between items-center"
+                      >
                         <span className="font-medium">{d.title}</span>
                       </li>
                     ))}

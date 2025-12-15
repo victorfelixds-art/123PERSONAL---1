@@ -29,6 +29,7 @@ export function StudentForm({
     planType: 'mensal',
     planValue: 0,
     status: 'active',
+    linkId: '', // linkId will be generated on save if not present, but good to init
   })
 
   useEffect(() => {
@@ -39,7 +40,12 @@ export function StudentForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    // Generate linkId if it's a new client or missing
+    const dataToSave = { ...formData }
+    if (!dataToSave.linkId && !initialData?.linkId) {
+      dataToSave.linkId = Math.random().toString(36).substr(2, 9)
+    }
+    onSave(dataToSave)
   }
 
   return (

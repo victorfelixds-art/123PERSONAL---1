@@ -12,7 +12,15 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Dumbbell, Trash2, Copy, Edit, Clock } from 'lucide-react'
+import {
+  Plus,
+  Dumbbell,
+  Trash2,
+  Copy,
+  Edit,
+  Clock,
+  Download,
+} from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -29,6 +37,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import { generateWorkoutPDF } from '@/lib/pdfGenerator'
 
 const Treinos = () => {
   const {
@@ -38,6 +47,7 @@ const Treinos = () => {
     updateWorkout,
     removeWorkout,
     duplicateWorkout,
+    profile,
   } = useAppStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -102,6 +112,11 @@ const Treinos = () => {
       toast.success('Treino criado')
     }
     setIsDialogOpen(false)
+  }
+
+  const handleDownload = (workout: Workout) => {
+    generateWorkoutPDF(workout, profile.name)
+    toast.success('PDF do treino gerado!')
   }
 
   return (
@@ -196,6 +211,14 @@ const Treinos = () => {
               </p>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Baixar PDF"
+                onClick={() => handleDownload(workout)}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"

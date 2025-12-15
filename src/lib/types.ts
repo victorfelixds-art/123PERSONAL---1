@@ -8,6 +8,10 @@ export interface Client {
   avatar?: string
   planType: 'mensal' | 'trimestral' | 'semestral' | 'anual'
   planValue: number
+  weight?: number
+  height?: number
+  objective?: string
+  linkId: string
 }
 
 export interface Workout {
@@ -73,4 +77,5 @@ export interface AppSettings {
     payments: boolean
     messages: boolean
   }
+  whatsappMessageTemplate: string
 }
