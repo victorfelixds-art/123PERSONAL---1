@@ -107,6 +107,11 @@ const Configuracoes = () => {
       label: 'Performance Blue (Tech)',
       previewClass: 'bg-[#0E1625] border-[#1C2740]',
     },
+    {
+      id: 'white',
+      label: 'White (Clean)',
+      previewClass: 'bg-[#F9FAFB] border-[#E5E7EB]',
+    },
   ]
 
   return (
@@ -132,7 +137,7 @@ const Configuracoes = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
@@ -160,7 +165,9 @@ const Configuracoes = () => {
                         </div>
                       )}
                     </div>
-                    <span className="text-sm font-bold">{theme.label}</span>
+                    <span className="text-sm font-bold text-center">
+                      {theme.label}
+                    </span>
                   </button>
                 ))}
               </div>

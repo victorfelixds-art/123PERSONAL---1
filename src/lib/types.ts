@@ -184,6 +184,7 @@ export type AppTheme =
   | 'dark-performance'
   | 'light-performance'
   | 'performance-blue'
+  | 'white'
 
 export interface AppSettings {
   theme: AppTheme
