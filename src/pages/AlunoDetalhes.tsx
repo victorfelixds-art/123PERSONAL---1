@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -42,19 +36,19 @@ import {
   Phone,
   Dumbbell,
   Utensils,
-  CreditCard,
   Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { StudentForm } from '@/components/forms/StudentForm'
 import { StudentSummary } from '@/components/student/StudentSummary'
 import { DeliverablesTab } from '@/components/student/DeliverablesTab'
+import { PlanTab } from '@/components/student/PlanTab'
 import { cn } from '@/lib/utils'
 import { WorkoutForm } from '@/components/forms/WorkoutForm'
 import { DietForm } from '@/components/forms/DietForm'
 import { EventForm } from '@/components/forms/EventForm'
 import { Workout, Diet, CalendarEvent } from '@/lib/types'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, isBefore, addDays } from 'date-fns'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,6 +127,19 @@ const AlunoDetalhes = () => {
       </div>
     )
   }
+
+  // Derived Status Logic for Display
+  const getDisplayStatus = () => {
+    if (client.status === 'inactive') return 'Inativo'
+    if (client.planEndDate) {
+      const endDate = parseISO(client.planEndDate)
+      const today = new Date()
+      if (isBefore(endDate, today)) return 'Inativo' // Should be handled by store but safe check
+      if (isBefore(endDate, addDays(today, 5))) return 'Atenção'
+    }
+    return 'Ativo'
+  }
+  const displayStatus = getDisplayStatus()
 
   // Actions
   const handleWhatsApp = () => {
@@ -244,9 +251,13 @@ const AlunoDetalhes = () => {
               <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
                 {client.name}
               </h1>
-              {client.status === 'active' ? (
+              {displayStatus === 'Ativo' ? (
                 <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-none">
                   Ativo
+                </Badge>
+              ) : displayStatus === 'Atenção' ? (
+                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-none">
+                  Atenção
                 </Badge>
               ) : (
                 <Badge variant="secondary">Inativo</Badge>
@@ -348,6 +359,12 @@ const AlunoDetalhes = () => {
               Visão Geral
             </TabsTrigger>
             <TabsTrigger
+              value="plano"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
+            >
+              Plano
+            </TabsTrigger>
+            <TabsTrigger
               value="treinos"
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
             >
@@ -364,12 +381,6 @@ const AlunoDetalhes = () => {
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
             >
               Agenda
-            </TabsTrigger>
-            <TabsTrigger
-              value="plano"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
-            >
-              Plano
             </TabsTrigger>
             <TabsTrigger
               value="entregaveis"
@@ -431,27 +442,42 @@ const AlunoDetalhes = () => {
                 <CardTitle className="text-base">Resumo do Plano</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-primary">
-                      Plano Atual
-                    </p>
-                    <p className="text-xl font-bold">{client.planName}</p>
+                {client.planName ? (
+                  <>
+                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-primary">
+                          Plano Atual
+                        </p>
+                        <p className="text-xl font-bold">{client.planName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Valor
+                        </p>
+                        <p className="text-lg font-bold">
+                          R$ {client.planValue?.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    {client.planEndDate && (
+                      <p className="text-xs text-muted-foreground mt-3 text-center">
+                        Vence em{' '}
+                        {format(parseISO(client.planEndDate), 'dd/MM/yyyy')}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>Sem plano ativo.</p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => setActiveTab('plano')}
+                    >
+                      Adicionar agora
+                    </Button>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Valor
-                    </p>
-                    <p className="text-lg font-bold">
-                      R$ {client.planValue?.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-                {client.planStartDate && (
-                  <p className="text-xs text-muted-foreground mt-3 text-center">
-                    Início em{' '}
-                    {format(parseISO(client.planStartDate), 'dd/MM/yyyy')}
-                  </p>
                 )}
               </CardContent>
             </Card>
@@ -460,68 +486,13 @@ const AlunoDetalhes = () => {
 
         {/* PLANO TAB */}
         <TabsContent value="plano" className="animate-fade-in-up">
-          <Card className="max-w-2xl">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg text-green-700">
-                  <CreditCard className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>Detalhes da Assinatura</CardTitle>
-                  <CardDescription>
-                    Gerencie o plano financeiro do aluno
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-6 p-6 bg-muted/20 rounded-xl border">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Nome do Plano
-                  </p>
-                  <p className="text-2xl font-bold tracking-tight">
-                    {client.planName}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Valor Mensal
-                  </p>
-                  <p className="text-2xl font-bold tracking-tight text-green-600">
-                    R$ {client.planValue?.toFixed(2)}
-                  </p>
-                </div>
-                <div className="col-span-2 border-t pt-4 mt-2">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Data de Início
-                  </p>
-                  <p className="font-medium flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4" />
-                    {client.planStartDate
-                      ? format(
-                          parseISO(client.planStartDate),
-                          'dd de MMMM de yyyy',
-                        )
-                      : '-'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditingProfile(true)}
-                >
-                  Alterar Plano
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <PlanTab client={client} />
         </TabsContent>
 
         {/* TREINOS TAB */}
         <TabsContent value="treinos" className="space-y-6 animate-fade-in-up">
+          {/* ... existing workout tab content ... */}
+          {/* Keeping logic same as reference for brevity, but ensuring it renders */}
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
@@ -597,6 +568,7 @@ const AlunoDetalhes = () => {
 
         {/* DIETAS TAB */}
         <TabsContent value="dietas" className="space-y-6 animate-fade-in-up">
+          {/* ... existing diet tab content ... */}
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold tracking-tight">
@@ -672,6 +644,7 @@ const AlunoDetalhes = () => {
 
         {/* AGENDA TAB */}
         <TabsContent value="agenda" className="space-y-6 animate-fade-in-up">
+          {/* ... existing agenda tab content ... */}
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold tracking-tight">

@@ -10,9 +10,17 @@ import {
   Utensils,
   Wallet,
   Clock,
+  CreditCard,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { format, isBefore, addDays, isSameDay } from 'date-fns'
+import {
+  format,
+  isBefore,
+  addDays,
+  isSameDay,
+  parseISO,
+  differenceInDays,
+} from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
@@ -29,24 +37,19 @@ const Index = () => {
       w.expirationDate &&
       isBefore(new Date(w.expirationDate), addDays(new Date(), 7)) &&
       !isBefore(new Date(w.expirationDate), new Date()) &&
-      w.clientId, // Only count assigned workouts
+      w.clientId,
   )
 
-  const expiredWorkouts = workouts.filter(
-    (w) =>
-      !w.isLifetime &&
-      w.expirationDate &&
-      isBefore(new Date(w.expirationDate), new Date()) &&
-      w.clientId, // Only count assigned workouts
-  )
-
-  const expiredDiets = diets.filter(
-    (d) =>
-      !d.isLifetime &&
-      d.expirationDate &&
-      isBefore(new Date(d.expirationDate), new Date()) &&
-      d.clientId,
-  )
+  // Plan Expiry Logic
+  const plansExpiring = clients
+    .filter((c) => c.status === 'active' && c.planEndDate)
+    .map((c) => {
+      const endDate = parseISO(c.planEndDate!)
+      const daysLeft = differenceInDays(endDate, new Date())
+      return { ...c, daysLeft, endDate }
+    })
+    .filter((item) => item.daysLeft <= 5 && item.daysLeft >= 0)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
 
   // Payment Alerts
   const overduePayments = transactions.filter(
@@ -62,12 +65,6 @@ const Index = () => {
       !isBefore(new Date(t.dueDate), new Date()),
   )
 
-  // Dashboard Sync: "Today" events
-  const todayEvents = events
-    .filter((e) => !e.completed && isSameDay(new Date(e.date), new Date()))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
-  // Dashboard Sync: "Overdue" events
   const overdueEvents = events
     .filter(
       (e) =>
@@ -77,19 +74,22 @@ const Index = () => {
     )
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
+  const todayEvents = events
+    .filter((e) => !e.completed && isSameDay(new Date(e.date), new Date()))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
   // Deduplicate alerts logic
   const requiredActions = [
+    ...plansExpiring.map((p) => ({
+      type: 'expiring_plan',
+      title: `Plano Vencendo (${p.daysLeft === 0 ? 'Hoje' : `${p.daysLeft} dias`})`,
+      client: p.name,
+      id: p.id,
+      link: `/alunos/${p.id}?tab=plano`,
+    })),
     ...overduePayments.map((p) => ({
       type: 'overdue_payment',
       title: `Pagamento Atrasado: R$ ${p.amount.toFixed(2)}`,
-      client: p.studentName,
-      id: p.studentId,
-      date: p.dueDate,
-      link: '/financeiro',
-    })),
-    ...dueSoonPayments.map((p) => ({
-      type: 'due_soon_payment',
-      title: `Pagamento Vencendo: R$ ${p.amount.toFixed(2)}`,
       client: p.studentName,
       id: p.studentId,
       date: p.dueDate,
@@ -103,21 +103,7 @@ const Index = () => {
       date: e.date,
       link: '/agenda',
     })),
-    ...expiredWorkouts.map((w) => ({
-      type: 'expired_workout',
-      title: `Treino Vencido: ${w.title}`,
-      client: w.clientName,
-      id: w.clientId,
-      link: `/alunos/${w.clientId}?tab=treinos`,
-    })),
-    ...expiredDiets.map((d) => ({
-      type: 'expired_diet',
-      title: `Dieta Vencida: ${d.title}`,
-      client: d.clientName,
-      id: d.clientId,
-      link: `/alunos/${d.clientId}?tab=dietas`,
-    })),
-  ].slice(0, 10) // Limit display
+  ].slice(0, 10)
 
   const alertsCount = requiredActions.length
 
@@ -179,6 +165,41 @@ const Index = () => {
         </Card>
       </div>
 
+      {plansExpiring.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2 text-yellow-800">
+              <CreditCard className="h-5 w-5" /> Planos Vencendo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {plansExpiring.map((client) => (
+                <div
+                  key={client.id}
+                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-yellow-100 shadow-sm"
+                >
+                  <div>
+                    <p className="font-semibold text-sm">{client.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Vence em {format(client.endDate, 'dd/MM')}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    asChild
+                  >
+                    <Link to={`/alunos/${client.id}?tab=plano`}>Ver</Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="h-full">
           <CardHeader>
@@ -200,15 +221,15 @@ const Index = () => {
                       <div
                         className={cn(
                           'p-2 rounded-full shrink-0',
-                          action.type.includes('overdue')
-                            ? 'bg-red-100 text-red-600'
-                            : 'bg-orange-100 text-orange-600',
+                          action.type.includes('expiring')
+                            ? 'bg-yellow-100 text-yellow-600'
+                            : action.type.includes('overdue')
+                              ? 'bg-red-100 text-red-600'
+                              : 'bg-orange-100 text-orange-600',
                         )}
                       >
-                        {action.type.includes('workout') ? (
-                          <Dumbbell className="h-4 w-4" />
-                        ) : action.type.includes('diet') ? (
-                          <Utensils className="h-4 w-4" />
+                        {action.type.includes('expiring') ? (
+                          <CreditCard className="h-4 w-4" />
                         ) : action.type.includes('payment') ? (
                           <Wallet className="h-4 w-4" />
                         ) : (

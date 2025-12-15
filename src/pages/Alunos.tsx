@@ -16,12 +16,11 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { isBefore, addDays } from 'date-fns'
+import { isBefore, addDays, parseISO } from 'date-fns'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const Alunos = () => {
-  const { clients, addClient, workouts, diets, events, transactions } =
-    useAppStore()
+  const { clients, addClient } = useAppStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filterType, setFilterType] = useState<
@@ -29,65 +28,33 @@ const Alunos = () => {
   >('todos')
   const [newClientName, setNewClientName] = useState('')
 
-  const checkAttention = (clientId: string) => {
-    const client = clients.find((c) => c.id === clientId)
-    if (client?.status === 'inactive') return false
+  const getClientStatus = (client: Client) => {
+    if (client.status === 'inactive') return 'inactive'
 
-    // 1. Payment Attention (Overdue or Due Soon)
-    const hasPaymentAttention = transactions.some(
-      (t) =>
-        t.studentId === clientId &&
-        ((t.status === 'pending' &&
-          isBefore(new Date(t.dueDate), addDays(new Date(), 5))) ||
-          t.status === 'overdue'),
-    )
-
-    // 2. Workout Expired
-    const hasExpiredWorkout = workouts.some(
-      (w) =>
-        w.clientId === clientId &&
-        !w.isLifetime &&
-        w.expirationDate &&
-        isBefore(new Date(w.expirationDate), new Date()),
-    )
-
-    // 3. Diet Expired
-    const hasExpiredDiet = diets.some(
-      (d) =>
-        d.clientId === clientId &&
-        !d.isLifetime &&
-        d.expirationDate &&
-        isBefore(new Date(d.expirationDate), new Date()),
-    )
-
-    // 4. Agenda Event Today or Overdue
-    const hasEventAttention = events.some(
-      (e) =>
-        e.studentId === clientId &&
-        (isBefore(e.date, new Date()) ||
-          new Date(e.date).toDateString() === new Date().toDateString()),
-    )
-
-    return (
-      hasPaymentAttention ||
-      hasExpiredWorkout ||
-      hasExpiredDiet ||
-      hasEventAttention
-    )
+    // Check for nearing expiration (Attention)
+    if (client.planEndDate) {
+      const endDate = parseISO(client.planEndDate)
+      const today = new Date()
+      if (isBefore(endDate, today)) return 'inactive' // Expired
+      if (isBefore(endDate, addDays(today, 5))) return 'attention'
+    }
+    return 'active'
   }
 
   const filteredClients = clients.filter((client) => {
+    const status = getClientStatus(client)
     const matchesSearch = client.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
+
     const matchesStatus =
       filterType === 'todos'
         ? true
         : filterType === 'atencao'
-          ? checkAttention(client.id)
+          ? status === 'attention'
           : filterType === 'ativos'
-            ? client.status === 'active'
-            : client.status === 'inactive'
+            ? status === 'active'
+            : status === 'inactive'
 
     return matchesSearch && matchesStatus
   })
@@ -107,8 +74,7 @@ const Alunos = () => {
       profileStatus: 'incomplete',
       linkActive: false,
       since: new Date().toISOString().split('T')[0],
-      planName: 'Indefinido',
-      planValue: 0,
+      // No plan initially
     }
 
     addClient(newClient)
@@ -151,7 +117,7 @@ const Alunos = () => {
                   onClick={() => setFilterType(type)}
                   className="capitalize whitespace-nowrap"
                 >
-                  {type === 'atencao' ? 'Com Atenção' : type}
+                  {type === 'atencao' ? 'Atenção' : type}
                 </Button>
               ),
             )}
@@ -192,56 +158,65 @@ const Alunos = () => {
       </Dialog>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredClients.map((client) => (
-          <Link key={client.id} to={`/alunos/${client.id}`}>
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full relative overflow-hidden group">
-              <CardContent className="p-6 flex items-center space-x-4">
-                <div className="relative">
-                  <Avatar className="h-12 w-12 bg-muted">
-                    <AvatarFallback className="text-lg">
-                      {client.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {checkAttention(client.id) && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 border-2 border-background animate-pulse">
-                      <AlertCircle className="h-3 w-3" />
+        {filteredClients.map((client) => {
+          const status = getClientStatus(client)
+          return (
+            <Link key={client.id} to={`/alunos/${client.id}`}>
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full relative overflow-hidden group">
+                <CardContent className="p-6 flex items-center space-x-4">
+                  <div className="relative">
+                    <Avatar className="h-12 w-12 bg-muted">
+                      <AvatarFallback className="text-lg">
+                        {client.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {status === 'attention' && (
+                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-white rounded-full p-0.5 border-2 border-background animate-pulse">
+                        <AlertCircle className="h-3 w-3" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {client.name}
+                      </p>
                     </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {client.name}
-                    </p>
+                    <div className="flex gap-2 mt-1">
+                      <span
+                        className={cn(
+                          'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase',
+                          status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : status === 'attention'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800',
+                        )}
+                      >
+                        {status === 'active'
+                          ? 'Ativo'
+                          : status === 'attention'
+                            ? 'Atenção'
+                            : 'Inativo'}
+                      </span>
+                      {client.profileStatus === 'incomplete' &&
+                        status !== 'inactive' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase bg-blue-100 text-blue-800">
+                            Incompleto
+                          </span>
+                        )}
+                    </div>
                   </div>
-                  <div className="flex gap-2 mt-1">
-                    <span
-                      className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase',
-                        client.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800',
-                      )}
-                    >
-                      {client.status === 'active' ? 'Ativo' : 'Inativo'}
-                    </span>
-                    {client.profileStatus === 'incomplete' &&
-                      client.status === 'active' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase bg-yellow-100 text-yellow-800">
-                          Incompleto
-                        </span>
-                      )}
+                  <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
-                <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
       {filteredClients.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">

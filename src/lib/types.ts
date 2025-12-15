@@ -12,6 +12,15 @@ export interface WeightEntry {
   observations?: string
 }
 
+export interface PlanHistoryItem {
+  id: string
+  name: string
+  value: number
+  startDate: string
+  endDate: string
+  paymentStatus: 'paid' | 'pending'
+}
+
 export interface Client {
   id: string
   name: string
@@ -20,10 +29,16 @@ export interface Client {
   status: 'active' | 'inactive'
   profileStatus: 'complete' | 'incomplete'
   since: string
+
+  // Plan Data
   planId?: string
-  planName: string
-  planValue: number
+  planName?: string
+  planValue?: number
   planStartDate?: string
+  planEndDate?: string
+  planDuration?: number // in months
+  planHistory?: PlanHistoryItem[]
+
   weight?: number // Current weight
   initialWeight?: number
   targetWeight?: number // Meta de peso

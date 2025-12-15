@@ -5,17 +5,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -78,15 +70,16 @@ const Configuracoes = () => {
       return
     }
 
+    // Plans here are templates only - no financial entry created
     if (editingPlan.id) {
       updatePlan(editingPlan as Plan)
-      toast.success('Plano atualizado')
+      toast.success('Modelo de plano atualizado')
     } else {
       addPlan({
         ...editingPlan,
         id: Math.random().toString(36).substr(2, 9),
       } as Plan)
-      toast.success('Plano criado')
+      toast.success('Modelo de plano criado')
     }
     setIsPlanDialogOpen(false)
   }
@@ -115,7 +108,7 @@ const Configuracoes = () => {
       <Tabs defaultValue="geral" className="space-y-4">
         <TabsList>
           <TabsTrigger value="geral">Geral</TabsTrigger>
-          <TabsTrigger value="planos">Planos</TabsTrigger>
+          <TabsTrigger value="planos">Modelos de Planos</TabsTrigger>
           <TabsTrigger value="mensagens">Mensagens</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
         </TabsList>
@@ -173,52 +166,60 @@ const Configuracoes = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Gerenciar Planos</CardTitle>
+                <CardTitle>Modelos de Planos</CardTitle>
                 <CardDescription>
-                  Defina os planos disponíveis para seus alunos.
+                  Defina os modelos de planos para agilizar a atribuição aos
+                  alunos. (Apenas Templates)
                 </CardDescription>
               </div>
               <Button onClick={() => openPlanDialog()}>
-                <Plus className="mr-2 h-4 w-4" /> Novo Plano
+                <Plus className="mr-2 h-4 w-4" /> Novo Modelo
               </Button>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {plans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/5 transition-colors"
-                  >
-                    <div>
-                      <p className="font-semibold">{plan.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {plan.durationInMonths} meses • R$ {plan.value}
-                      </p>
+                {plans.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">
+                    Nenhum modelo cadastrado.
+                  </p>
+                ) : (
+                  plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/5 transition-colors"
+                    >
+                      <div>
+                        <p className="font-semibold">{plan.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {plan.durationInMonths} meses • R$ {plan.value}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openPlanDialog(plan)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => removePlan(plan.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openPlanDialog(plan)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => removePlan(plan.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* ... messages and notifications tabs same as before ... */}
         <TabsContent value="mensagens">
           <Card>
             <CardHeader>
@@ -296,12 +297,12 @@ const Configuracoes = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingPlan.id ? 'Editar Plano' : 'Novo Plano'}
+              {editingPlan.id ? 'Editar Modelo' : 'Novo Modelo'}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>Nome do Plano</Label>
+              <Label>Nome do Modelo</Label>
               <Input
                 value={editingPlan.name || ''}
                 onChange={(e) =>
@@ -312,7 +313,7 @@ const Configuracoes = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Valor (R$)</Label>
+                <Label>Valor Sugerido (R$)</Label>
                 <Input
                   type="number"
                   value={editingPlan.value || ''}
@@ -339,7 +340,7 @@ const Configuracoes = () => {
               </div>
             </div>
             <Button onClick={handleSavePlan} className="w-full">
-              Salvar Plano
+              Salvar Modelo
             </Button>
           </div>
         </DialogContent>

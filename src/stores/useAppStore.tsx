@@ -17,6 +17,7 @@ import {
   Plan,
   Proposal,
   WeightEntry,
+  PlanHistoryItem,
 } from '@/lib/types'
 import {
   mockClients,
@@ -30,7 +31,15 @@ import {
   mockPlans,
   mockProposals,
 } from '@/data/mockData'
-import { addMonths, format, parseISO, addDays } from 'date-fns'
+import {
+  addMonths,
+  format,
+  parseISO,
+  addDays,
+  isBefore,
+  isAfter,
+  subDays,
+} from 'date-fns'
 
 interface AppContextType {
   clients: Client[]
@@ -48,6 +57,24 @@ interface AppContextType {
   addClient: (client: Client) => void
   updateClient: (client: Client) => void
   removeClient: (id: string) => void
+  assignPlan: (
+    clientId: string,
+    planData: {
+      id?: string
+      name: string
+      value: number
+      durationInMonths: number
+      startDate: string
+    },
+  ) => void
+  renewPlan: (
+    clientId: string,
+    keepConditions: boolean,
+    newConditions?: {
+      value: number
+      durationInMonths: number
+    },
+  ) => void
   generateStudentLink: (clientId: string) => void
   regenerateStudentLink: (clientId: string) => void
   deactivateStudentLink: (clientId: string) => void
@@ -120,6 +147,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [referralViews, setReferralViews] = useState(15)
   const [referralConversions, setReferralConversions] = useState(3)
 
+  // Status Check Effect
+  useEffect(() => {
+    // Check for expired plans and update status automatically
+    const today = new Date()
+    setClients((prev) =>
+      prev.map((client) => {
+        if (!client.planEndDate || client.status === 'inactive') return client
+
+        const endDate = parseISO(client.planEndDate)
+        if (isBefore(endDate, today)) {
+          return { ...client, status: 'inactive' }
+        } else if (client.status === 'inactive' && isAfter(endDate, today)) {
+          // Reactivate if date is valid (though rare case without manual intervention)
+          return { ...client, status: 'active' }
+        }
+        return client
+      }),
+    )
+  }, []) // Run once on mount
+
   // Apply Theme Effect
   useEffect(() => {
     // Mode
@@ -141,40 +188,144 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [settings.theme, settings.themeColor])
 
-  // Helper to generate financial cycle
-  const generateTransactionsForClient = (client: Client) => {
-    if (!client.planId || !client.planStartDate) return []
+  const assignPlan = (
+    clientId: string,
+    planData: {
+      id?: string
+      name: string
+      value: number
+      durationInMonths: number
+      startDate: string
+    },
+  ) => {
+    const client = clients.find((c) => c.id === clientId)
+    if (!client) return
 
-    const plan = plans.find((p) => p.id === client.planId)
-    if (!plan) return []
+    const startDate = parseISO(planData.startDate)
+    const endDate = addMonths(startDate, planData.durationInMonths)
+    const endDateStr = format(endDate, 'yyyy-MM-dd')
 
-    const newTransactions: Transaction[] = []
-    const monthlyAmount = plan.value / plan.durationInMonths
-    const startDate = parseISO(client.planStartDate)
-
-    for (let i = 0; i < plan.durationInMonths; i++) {
-      const dueDate = addMonths(startDate, i)
-      newTransactions.push({
-        id: Math.random().toString(36).substr(2, 9),
-        description: `Mensalidade ${plan.name} (${i + 1}/${plan.durationInMonths})`,
-        amount: monthlyAmount,
-        type: 'income',
-        category: 'Mensalidade',
-        studentId: client.id,
-        studentName: client.name,
-        planId: plan.id,
-        planName: plan.name,
-        status: 'pending',
-        dueDate: format(dueDate, 'yyyy-MM-dd'),
-      })
+    // Create Transaction (One-time payment for the plan period)
+    const newTransaction: Transaction = {
+      id: Math.random().toString(36).substr(2, 9),
+      description: `Plano ${planData.name} - ${client.name}`,
+      amount: planData.value,
+      type: 'income',
+      category: 'Planos',
+      studentId: client.id,
+      studentName: client.name,
+      planId: planData.id, // Can be undefined for custom plans
+      planName: planData.name,
+      status: 'paid', // Automatically Paid
+      dueDate: planData.startDate,
+      paidAt: planData.startDate,
     }
-    return newTransactions
+
+    setTransactions((prev) => [...prev, newTransaction])
+
+    // Update Client
+    setClients((prev) =>
+      prev.map((c) => {
+        if (c.id === clientId) {
+          // Archive old plan if exists
+          const history = c.planHistory ? [...c.planHistory] : []
+          if (c.planName && c.planStartDate && c.planEndDate) {
+            history.push({
+              id: Math.random().toString(36).substr(2, 9),
+              name: c.planName,
+              value: c.planValue || 0,
+              startDate: c.planStartDate,
+              endDate: c.planEndDate,
+              paymentStatus: 'paid', // Assuming past was paid
+            })
+          }
+
+          return {
+            ...c,
+            planId: planData.id,
+            planName: planData.name,
+            planValue: planData.value,
+            planStartDate: planData.startDate,
+            planDuration: planData.durationInMonths,
+            planEndDate: endDateStr,
+            planHistory: history,
+            status: 'active', // Automatically Active
+          }
+        }
+        return c
+      }),
+    )
+  }
+
+  const renewPlan = (
+    clientId: string,
+    keepConditions: boolean,
+    newConditions?: {
+      value: number
+      durationInMonths: number
+    },
+  ) => {
+    const client = clients.find((c) => c.id === clientId)
+    if (!client || !client.planEndDate) return
+
+    const oldEndDate = parseISO(client.planEndDate)
+    const newStartDate = addDays(oldEndDate, 1)
+    const newStartDateStr = format(newStartDate, 'yyyy-MM-dd')
+
+    const duration = keepConditions
+      ? client.planDuration || 1
+      : newConditions?.durationInMonths || 1
+    const value = keepConditions
+      ? client.planValue || 0
+      : newConditions?.value || 0
+    const name = client.planName || 'Plano'
+    const planId = client.planId
+
+    assignPlan(clientId, {
+      id: planId,
+      name,
+      value,
+      durationInMonths: duration,
+      startDate: newStartDateStr,
+    })
   }
 
   const addClient = (client: Client) => {
-    setClients((prev) => [...prev, client])
-    const newTransactions = generateTransactionsForClient(client)
-    setTransactions((prev) => [...prev, ...newTransactions])
+    // Logic to handle if initial plan is provided
+    if (client.planName && client.planValue && client.planStartDate) {
+      // We will delegate to assignPlan logic implicitly by creating transaction
+      // But assignPlan is cleaner. Let's create the transaction here manually to respect the "One Response" rule properly without complex calls
+      const duration = client.planDuration || 1
+      const startDate = parseISO(client.planStartDate)
+      const endDate = addMonths(startDate, duration)
+      const endDateStr = format(endDate, 'yyyy-MM-dd')
+
+      const clientWithPlanDates = {
+        ...client,
+        planEndDate: endDateStr,
+        planDuration: duration,
+      }
+
+      setClients((prev) => [...prev, clientWithPlanDates])
+
+      const newTransaction: Transaction = {
+        id: Math.random().toString(36).substr(2, 9),
+        description: `Plano ${client.planName} - ${client.name}`,
+        amount: client.planValue,
+        type: 'income',
+        category: 'Planos',
+        studentId: client.id,
+        studentName: client.name,
+        planId: client.planId,
+        planName: client.planName,
+        status: 'paid', // Auto paid
+        dueDate: client.planStartDate,
+        paidAt: client.planStartDate,
+      }
+      setTransactions((prev) => [...prev, newTransaction])
+    } else {
+      setClients((prev) => [...prev, client])
+    }
 
     // Create recurring weight update event
     if (client.status === 'active') {
@@ -193,30 +344,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const updateClient = (updated: Client) => {
-    const oldClient = clients.find((c) => c.id === updated.id)
-    let newTransactions: Transaction[] = []
-    let filteredTransactions = transactions
-
-    if (
-      oldClient &&
-      (oldClient.planId !== updated.planId ||
-        oldClient.planStartDate !== updated.planStartDate)
-    ) {
-      filteredTransactions = transactions.filter((t) => {
-        if (
-          t.studentId === updated.id &&
-          t.status === 'pending' &&
-          new Date(t.dueDate) > new Date()
-        ) {
-          return false
-        }
-        return true
-      })
-      newTransactions = generateTransactionsForClient(updated)
-    }
-
     setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
-    setTransactions([...filteredTransactions, ...newTransactions])
   }
 
   const removeClient = (id: string) => {
@@ -492,6 +620,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addClient,
         updateClient,
         removeClient,
+        assignPlan,
+        renewPlan,
         generateStudentLink,
         regenerateStudentLink,
         deactivateStudentLink,
