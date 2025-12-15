@@ -40,10 +40,6 @@ export interface Client {
   planDuration?: number // in months
   planHistory?: PlanHistoryItem[]
 
-  // New field to explicitly track current plan status if needed,
-  // though presence of plan fields usually implies 'active'.
-  // We will rely on presence of plan fields + client.status for current state.
-
   weight?: number // Current weight
   initialWeight?: number
   targetWeight?: number // Meta de peso
@@ -184,9 +180,10 @@ export interface UserProfile {
   avatar: string
 }
 
+export type AppTheme = 'dark-performance' | 'light-clean' | 'performance-blue'
+
 export interface AppSettings {
-  theme: 'light' | 'dark'
-  themeColor: 'blue' | 'green' | 'orange' | 'purple' | 'red'
+  theme: AppTheme
   notifications: {
     workouts: boolean
     payments: boolean

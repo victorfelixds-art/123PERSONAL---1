@@ -32,9 +32,9 @@ export function Sidebar() {
   const location = useLocation()
 
   return (
-    <div className="hidden md:flex h-screen w-64 flex-col fixed inset-y-0 left-0 bg-sidebar border-r border-sidebar-border z-30">
+    <div className="hidden md:flex h-screen w-64 flex-col fixed inset-y-0 left-0 bg-sidebar border-r border-sidebar-border z-30 shadow-xl transition-colors duration-300">
       <div className="p-6 flex items-center justify-center">
-        <h1 className="text-2xl font-bold text-primary tracking-tight">
+        <h1 className="text-2xl font-bold text-sidebar-primary tracking-tight">
           Meu Personal
         </h1>
       </div>
@@ -49,17 +49,17 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-200 group',
+                'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md'
                   : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
               )}
             >
               <item.icon
                 className={cn(
-                  'mr-3 h-5 w-5',
+                  'mr-3 h-5 w-5 transition-colors',
                   isActive
-                    ? 'text-primary-foreground'
+                    ? 'text-sidebar-primary-foreground'
                     : 'text-muted-foreground group-hover:text-sidebar-accent-foreground',
                 )}
               />
@@ -70,8 +70,9 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center px-4 py-2 text-sm text-muted-foreground">
-          <span className="text-xs">v0.0.1 © 2024</span>
+        <div className="flex items-center justify-between px-2 py-2 text-sm text-muted-foreground">
+          <span className="text-xs font-medium">v0.0.30</span>
+          <span className="text-[10px] opacity-60">© 2024</span>
         </div>
       </div>
     </div>

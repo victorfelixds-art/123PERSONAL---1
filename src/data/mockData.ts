@@ -371,8 +371,7 @@ export const mockProfile: UserProfile = {
 }
 
 export const mockSettings: AppSettings = {
-  theme: 'light',
-  themeColor: 'blue',
+  theme: 'dark-performance',
   notifications: {
     workouts: true,
     payments: true,

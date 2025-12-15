@@ -18,6 +18,7 @@ import {
   Proposal,
   WeightEntry,
   PlanHistoryItem,
+  AppTheme,
 } from '@/lib/types'
 import {
   mockClients,
@@ -117,10 +118,7 @@ interface AppContextType {
   removeLink: (id: string) => void
   updateProfile: (profile: UserProfile) => void
   updateSettings: (settings: AppSettings) => void
-  updateTheme: (theme: 'light' | 'dark') => void
-  updateThemeColor: (
-    color: 'blue' | 'green' | 'orange' | 'purple' | 'red',
-  ) => void
+  updateTheme: (theme: AppTheme) => void
   addPlan: (plan: Plan) => void
   updatePlan: (plan: Plan) => void
   removePlan: (id: string) => void
@@ -150,7 +148,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Status Check Effect
   useEffect(() => {
-    // Check for expired plans and update status automatically
     const today = new Date()
     setClients((prev) =>
       prev.map((client) => {
@@ -160,34 +157,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (isBefore(endDate, today)) {
           return { ...client, status: 'inactive' }
         } else if (client.status === 'inactive' && isAfter(endDate, today)) {
-          // Reactivate if date is valid
           return { ...client, status: 'active' }
         }
         return client
       }),
     )
-  }, []) // Run once on mount
+  }, [])
 
   // Apply Theme Effect
   useEffect(() => {
-    // Mode
-    if (settings.theme === 'dark')
-      document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
+    const root = document.documentElement
+    const theme = settings.theme
 
-    // Color
-    const themes = [
-      'theme-blue',
-      'theme-green',
-      'theme-orange',
-      'theme-purple',
-      'theme-red',
-    ]
-    document.documentElement.classList.remove(...themes)
-    if (settings.themeColor) {
-      document.documentElement.classList.add(`theme-${settings.themeColor}`)
+    // Remove old classes
+    root.classList.remove(
+      'dark',
+      'theme-dark-performance',
+      'theme-light-clean',
+      'theme-performance-blue',
+    )
+
+    // Add new classes
+    root.classList.add(`theme-${theme}`)
+
+    // Handle .dark class for compatibility with some Tailwind utilities if needed
+    if (theme === 'dark-performance' || theme === 'performance-blue') {
+      root.classList.add('dark')
     }
-  }, [settings.theme, settings.themeColor])
+  }, [settings.theme])
 
   const assignPlan = (
     clientId: string,
@@ -206,7 +203,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const endDate = addMonths(startDate, planData.durationInMonths)
     const endDateStr = format(endDate, 'yyyy-MM-dd')
 
-    // Create Transaction (One-time payment for the plan period)
     const newTransaction: Transaction = {
       id: Math.random().toString(36).substr(2, 9),
       description: `Plano ${planData.name} - ${client.name}`,
@@ -217,18 +213,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       studentName: client.name,
       planId: planData.id,
       planName: planData.name,
-      status: 'paid', // Automatically Paid
+      status: 'paid',
       dueDate: planData.startDate,
       paidAt: planData.startDate,
     }
 
     setTransactions((prev) => [...prev, newTransaction])
 
-    // Update Client
     setClients((prev) =>
       prev.map((c) => {
         if (c.id === clientId) {
-          // Archive old plan if exists
           const history: PlanHistoryItem[] = c.planHistory
             ? [...c.planHistory]
             : []
@@ -239,8 +233,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               value: c.planValue || 0,
               startDate: c.planStartDate,
               endDate: c.planEndDate,
-              paymentStatus: 'paid', // Assuming past was paid
-              status: 'renewed', // Implicit renewal or change
+              paymentStatus: 'paid',
+              status: 'renewed',
             })
           }
 
@@ -253,7 +247,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             planDuration: planData.durationInMonths,
             planEndDate: endDateStr,
             planHistory: history,
-            status: 'active', // Automatically Active
+            status: 'active',
           }
         }
         return c
@@ -301,7 +295,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setClients((prev) =>
       prev.map((c) => {
         if (c.id === clientId) {
-          // Archive
           const history: PlanHistoryItem[] = c.planHistory
             ? [...c.planHistory]
             : []
@@ -311,7 +304,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               name: c.planName,
               value: c.planValue || 0,
               startDate: c.planStartDate,
-              endDate: format(new Date(), 'yyyy-MM-dd'), // End date is now
+              endDate: format(new Date(), 'yyyy-MM-dd'),
               paymentStatus: 'paid',
               status: 'completed',
             })
@@ -325,7 +318,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             planStartDate: undefined,
             planEndDate: undefined,
             planDuration: undefined,
-            status: 'inactive', // Student becomes inactive
+            status: 'inactive',
             planHistory: history,
           }
         }
@@ -338,18 +331,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const client = clients.find((c) => c.id === clientId)
     if (!client) return
 
-    // Create Refund Transaction
     if (client.planValue) {
       const refundTransaction: Transaction = {
         id: Math.random().toString(36).substr(2, 9),
         description: `Estorno - ${client.planName} - ${client.name}`,
-        amount: -Math.abs(client.planValue), // Negative for refund
-        type: 'income', // Keeping it in income stream as negative to balance revenue
+        amount: -Math.abs(client.planValue),
+        type: 'income',
         category: 'Estorno',
         studentId: client.id,
         studentName: client.name,
         planName: client.planName,
-        status: 'paid', // Refund processed
+        status: 'paid',
         dueDate: format(new Date(), 'yyyy-MM-dd'),
         paidAt: format(new Date(), 'yyyy-MM-dd'),
       }
@@ -359,7 +351,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setClients((prev) =>
       prev.map((c) => {
         if (c.id === clientId) {
-          // Archive
           const history: PlanHistoryItem[] = c.planHistory
             ? [...c.planHistory]
             : []
@@ -383,7 +374,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             planStartDate: undefined,
             planEndDate: undefined,
             planDuration: undefined,
-            status: 'inactive', // Student becomes inactive
+            status: 'inactive',
             planHistory: history,
           }
         }
@@ -393,7 +384,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const addClient = (client: Client) => {
-    // Logic to handle if initial plan is provided
     if (client.planName && client.planValue && client.planStartDate) {
       const duration = client.planDuration || 1
       const startDate = parseISO(client.planStartDate)
@@ -418,7 +408,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         studentName: client.name,
         planId: client.planId,
         planName: client.planName,
-        status: 'paid', // Auto paid
+        status: 'paid',
         dueDate: client.planStartDate,
         paidAt: client.planStartDate,
       }
@@ -427,7 +417,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setClients((prev) => [...prev, client])
     }
 
-    // Create recurring weight update event
     if (client.status === 'active') {
       addEvent({
         id: Math.random().toString(36).substr(2, 9),
@@ -491,14 +480,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           }
           const history = c.weightHistory ? [...c.weightHistory] : []
           history.push(newEntry)
-          // Sort history by date descending
           history.sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
           )
 
           return {
             ...c,
-            weight: weight, // Update current weight
+            weight: weight,
             weightHistory: history,
           }
         }
@@ -627,10 +615,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setEvents((prev) => [...prev, event])
 
   const updateEvent = (updated: CalendarEvent) => {
-    // Logic for recurring event completion
     if (updated.completed && updated.isRecurring && updated.frequency) {
       const previousEvent = events.find((e) => e.id === updated.id)
-      // Only trigger recurrence if it wasn't already completed
       if (previousEvent && !previousEvent.completed) {
         const nextDate = addDays(new Date(), updated.frequency)
         addEvent({
@@ -676,13 +662,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateProfile = (newProfile: UserProfile) => setProfile(newProfile)
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings)
-  const updateTheme = (theme: 'light' | 'dark') => {
+  const updateTheme = (theme: AppTheme) => {
     setSettings((prev) => ({ ...prev, theme }))
-  }
-  const updateThemeColor = (
-    color: 'blue' | 'green' | 'orange' | 'purple' | 'red',
-  ) => {
-    setSettings((prev) => ({ ...prev, themeColor: color }))
   }
 
   const addPlan = (plan: Plan) => setPlans((prev) => [...prev, plan])
@@ -749,7 +730,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateProfile,
         updateSettings,
         updateTheme,
-        updateThemeColor,
         addPlan,
         updatePlan,
         removePlan,

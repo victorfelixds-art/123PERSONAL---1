@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
-import { Plan } from '@/lib/types'
+import { Plan, AppTheme } from '@/lib/types'
 import { Trash2, Edit, Plus, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -29,7 +29,6 @@ const Configuracoes = () => {
     settings,
     updateSettings,
     updateTheme,
-    updateThemeColor,
     plans,
     addPlan,
     updatePlan,
@@ -70,7 +69,6 @@ const Configuracoes = () => {
       return
     }
 
-    // Plans here are templates only - no financial entry created
     if (editingPlan.id) {
       updatePlan(editingPlan as Plan)
       toast.success('Modelo de plano atualizado')
@@ -93,13 +91,23 @@ const Configuracoes = () => {
     setIsPlanDialogOpen(true)
   }
 
-  const colors = [
-    { name: 'blue', label: 'Azul', class: 'bg-blue-600' },
-    { name: 'green', label: 'Verde', class: 'bg-emerald-600' },
-    { name: 'orange', label: 'Laranja', class: 'bg-orange-500' },
-    { name: 'purple', label: 'Roxo', class: 'bg-violet-600' },
-    { name: 'red', label: 'Vermelho', class: 'bg-red-600' },
-  ] as const
+  const themes: { id: AppTheme; label: string; previewClass: string }[] = [
+    {
+      id: 'dark-performance',
+      label: 'Dark Performance',
+      previewClass: 'bg-[#0E1116] border-[#2A3441]',
+    },
+    {
+      id: 'light-clean',
+      label: 'Light Clean',
+      previewClass: 'bg-[#F9FAFB] border-[#E5E7EB]',
+    },
+    {
+      id: 'performance-blue',
+      label: 'Performance Blue',
+      previewClass: 'bg-[#0B1220] border-[#334155]',
+    },
+  ]
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
@@ -120,40 +128,33 @@ const Configuracoes = () => {
               <CardDescription>Personalize o tema do app.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Modo Escuro</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Alternar entre claro e escuro.
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.theme === 'dark'}
-                  onCheckedChange={(checked) =>
-                    updateTheme(checked ? 'dark' : 'light')
-                  }
-                />
-              </div>
-
               <div className="space-y-3">
-                <Label>Cor do Tema</Label>
-                <div className="flex gap-3">
-                  {colors.map((color) => (
+                <Label>Tema Selecionado</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {themes.map((theme) => (
                     <button
-                      key={color.name}
-                      onClick={() => updateThemeColor(color.name)}
+                      key={theme.id}
+                      onClick={() => updateTheme(theme.id)}
                       className={cn(
-                        'w-8 h-8 rounded-full transition-all flex items-center justify-center ring-offset-2 ring-offset-background',
-                        color.class,
-                        settings.themeColor === color.name
-                          ? 'ring-2 ring-primary scale-110'
-                          : 'hover:scale-105 opacity-80 hover:opacity-100',
+                        'relative flex flex-col items-center gap-2 p-1 rounded-xl border-2 transition-all',
+                        settings.theme === theme.id
+                          ? 'border-primary ring-2 ring-primary/20'
+                          : 'border-transparent hover:border-muted-foreground/20',
                       )}
-                      title={color.label}
                     >
-                      {settings.themeColor === color.name && (
-                        <Check className="w-4 h-4 text-white" />
-                      )}
+                      <div
+                        className={cn(
+                          'w-full h-24 rounded-lg shadow-sm flex items-center justify-center',
+                          theme.previewClass,
+                        )}
+                      >
+                        {settings.theme === theme.id && (
+                          <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
+                            <Check className="w-5 h-5" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium">{theme.label}</span>
                     </button>
                   ))}
                 </div>
@@ -219,7 +220,6 @@ const Configuracoes = () => {
           </Card>
         </TabsContent>
 
-        {/* ... messages and notifications tabs same as before ... */}
         <TabsContent value="mensagens">
           <Card>
             <CardHeader>

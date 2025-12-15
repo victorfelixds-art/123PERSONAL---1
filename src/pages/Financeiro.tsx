@@ -14,7 +14,6 @@ import {
   Filter,
   CheckCircle2,
   Calendar,
-  AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,6 +37,7 @@ import {
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
+  ChartConfig,
 } from '@/components/ui/chart'
 import {
   Bar,
@@ -45,11 +45,9 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Tooltip,
 } from 'recharts'
 import {
   format,
@@ -59,7 +57,6 @@ import {
   isWithinInterval,
   parseISO,
   isBefore,
-  addDays,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -183,6 +180,26 @@ const Financeiro = () => {
     }
   }, [filteredTransactions, clients, plans])
 
+  // Chart Config
+  const chartConfig = {
+    revenue: {
+      label: 'Receita',
+      color: 'hsl(var(--primary))',
+    },
+    paid: {
+      label: 'Pago',
+      color: 'hsl(var(--success))',
+    },
+    pending: {
+      label: 'Pendente',
+      color: 'hsl(var(--muted-foreground))',
+    },
+    overdue: {
+      label: 'Vencido',
+      color: 'hsl(var(--destructive))',
+    },
+  } satisfies ChartConfig
+
   // Charts Data
   const revenueData = useMemo(() => {
     const grouped = filteredTransactions
@@ -227,9 +244,9 @@ const Financeiro = () => {
     })
 
     return [
-      { name: 'Pago', value: counts.paid, fill: '#166534' }, // green-800
-      { name: 'Pendente', value: counts.pending, fill: '#9ca3af' }, // gray-400
-      { name: 'Vencido', value: counts.overdue, fill: '#991b1b' }, // red-800
+      { name: 'paid', value: counts.paid, fill: 'var(--color-paid)' },
+      { name: 'pending', value: counts.pending, fill: 'var(--color-pending)' },
+      { name: 'overdue', value: counts.overdue, fill: 'var(--color-overdue)' },
     ]
   }, [filteredTransactions])
 
@@ -244,7 +261,7 @@ const Financeiro = () => {
     generateFinancialPDF(
       filteredTransactions,
       profile,
-      settings.themeColor,
+      settings.theme,
       periodLabel,
       metrics,
     )
@@ -414,7 +431,7 @@ const Financeiro = () => {
             <CardDescription>Valores pagos por mês</CardDescription>
           </CardHeader>
           <CardContent className="pl-0">
-            <ChartContainer config={{}} className="h-[250px] w-full">
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
               <BarChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
@@ -433,7 +450,7 @@ const Financeiro = () => {
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar
                   dataKey="value"
-                  fill="hsl(var(--primary))"
+                  fill="var(--color-revenue)"
                   radius={[4, 4, 0, 0]}
                   name="Receita"
                 />
@@ -448,7 +465,7 @@ const Financeiro = () => {
             <CardDescription>Distribuição por status</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[250px] w-full">
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
               <PieChart>
                 <Pie
                   data={statusData}
@@ -477,7 +494,7 @@ const Financeiro = () => {
             <CardDescription>Receita gerada por tipo de plano</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[250px] w-full">
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
               <BarChart data={planData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" hide />
@@ -492,7 +509,7 @@ const Financeiro = () => {
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar
                   dataKey="value"
-                  fill="hsl(var(--primary))"
+                  fill="var(--color-revenue)"
                   radius={[0, 4, 4, 0]}
                   name="Receita"
                   barSize={20}
@@ -548,7 +565,7 @@ const Financeiro = () => {
                       <TableCell>
                         {format(parseISO(t.dueDate), 'dd/MM/yyyy')}
                         {isOverdue && t.status !== 'paid' && (
-                          <span className="ml-2 text-xs text-red-600 font-bold">
+                          <span className="ml-2 text-xs text-destructive font-bold">
                             !
                           </span>
                         )}
@@ -558,10 +575,10 @@ const Financeiro = () => {
                           className={cn(
                             'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase',
                             t.status === 'paid'
-                              ? 'bg-green-100 text-green-800'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                               : isOverdue
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-gray-100 text-gray-800',
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
                           )}
                         >
                           {t.status === 'paid'

@@ -27,32 +27,31 @@ interface ProposalFormProps {
 const DEFAULT_SERVICES: ProposalService[] = [
   {
     id: '1',
-    title: '🧠 AVALIAÇÃO FÍSICA',
+    title: 'AVALIAÇÃO FÍSICA',
     description:
       'Análise completa da composição corporal, postura e mobilidade para definir o ponto de partida.',
   },
   {
     id: '2',
-    title: '🏋️ PRESCRIÇÃO DO TREINO',
+    title: 'PRESCRIÇÃO DO TREINO',
     description:
       'Planilha de treino personalizada, ajustada para sua rotina, local de treino e nível de experiência.',
   },
   {
     id: '3',
-    title: '🔄 ACOMPANHAMENTO E AJUSTES',
+    title: 'ACOMPANHAMENTO E AJUSTES',
     description:
       'Monitoramento constante da evolução com ajustes na intensidade e volume sempre que necessário.',
   },
   {
     id: '4',
-    title: '🥗 AVALIAÇÃO ALIMENTAR (opcional)',
+    title: 'AVALIAÇÃO ALIMENTAR (opcional)',
     description:
       'Orientações básicas para potencializar seus resultados (não substitui nutricionista).',
   },
 ]
 
 export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
-  // Always default to 'conversion70' as requested in the user story
   const [proposalType] = useState<ProposalType>('conversion70')
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('online')
   const [discountedValue, setDiscountedValue] = useState('')
@@ -69,7 +68,7 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
     value: '',
     duration: '',
     observations: '',
-    validityDate: '', // New field
+    validityDate: '',
   })
 
   const [services, setServices] = useState<ProposalService[]>(DEFAULT_SERVICES)
