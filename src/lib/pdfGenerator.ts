@@ -1,44 +1,189 @@
-import { Workout, Diet } from '@/lib/types'
+import { Workout, Diet, UserProfile } from '@/lib/types'
 
-export const generateWorkoutPDF = (workout: Workout, personalName: string) => {
-  const content = `
-TREINO: ${workout.title}
-----------------------------------------
-Aluno: ${workout.clientName || 'N/A'}
-Personal: ${personalName}
-Data de Criação: ${new Date(workout.createdAt).toLocaleDateString()}
-Objetivo: ${workout.objective || 'N/A'}
-Nível: ${workout.level || 'N/A'}
-Início: ${workout.startDate ? new Date(workout.startDate).toLocaleDateString() : 'N/A'}
-Validade: ${workout.isLifetime ? 'Vitalício' : workout.expirationDate ? new Date(workout.expirationDate).toLocaleDateString() : 'N/A'}
-
-Observações Gerais:
-${workout.observations || 'Nenhuma'}
-----------------------------------------
-
-EXERCÍCIOS:
-
-${workout.exercises
-  .map(
-    (ex, index) =>
-      `${index + 1}. ${ex.name}
-   Séries: ${ex.sets} | Repetições: ${ex.reps}
-   ${ex.weight ? `Carga: ${ex.weight}` : ''} ${ex.rest ? `| Descanso: ${ex.rest}` : ''}
-   ${ex.notes ? `Obs: ${ex.notes}` : ''}`,
-  )
-  .join('\n\n')}
-
-----------------------------------------
-Gerado por Meu Personal App
-  `.trim()
-
-  downloadFile(content, `Treino - ${workout.title}.txt`)
+const THEME_COLORS: Record<string, string> = {
+  blue: '#2563eb',
+  green: '#059669',
+  orange: '#f97316',
+  purple: '#7c3aed',
+  red: '#dc2626',
 }
 
-export const generateDietPDF = (diet: Diet, personalName: string) => {
-  const printWindow = window.open('', '', 'width=800,height=600')
+const ICONS = {
+  user: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`,
+  clock: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  dumbbell: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>`,
+  utensils: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`,
+  phone: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+  mail: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+}
+
+const getBaseStyles = (primaryColor: string) => `
+  :root {
+    --primary: ${primaryColor};
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    color: var(--gray-800);
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+  }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { max-width: none; padding: 20px; margin: 0; }
+  }
+  
+  /* Typography */
+  h1, h2, h3, h4 { margin: 0; color: var(--gray-900); }
+  p { margin: 0; }
+  
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+  .brand-area { display: flex; flex-direction: column; gap: 4px; }
+  .brand-name { font-size: 24px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: -0.5px; }
+  .doc-type { font-size: 14px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; }
+  
+  .meta-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 24px;
+    text-align: right;
+  }
+  .meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .meta-label { font-size: 11px; text-transform: uppercase; color: var(--gray-500); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .meta-value { font-size: 14px; font-weight: 500; color: var(--gray-900); }
+
+  /* Section */
+  .section { margin-bottom: 35px; }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+  .section-title svg { color: var(--primary); opacity: 0.8; }
+  
+  /* Info Cards */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  .info-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 15px;
+  }
+  .info-label { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+  .info-value { font-size: 15px; font-weight: 500; color: var(--gray-900); }
+  
+  /* Content Cards */
+  .card-grid { display: flex; flex-direction: column; gap: 15px; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    page-break-inside: avoid;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .card-header {
+    background: var(--gray-50);
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title { font-weight: 700; font-size: 16px; color: var(--gray-900); }
+  .card-subtitle { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+  
+  .card-body { padding: 15px; }
+  
+  /* Stats Grid inside Card */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: var(--gray-50);
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .stat-label { font-size: 10px; text-transform: uppercase; color: var(--gray-500); font-weight: 700; margin-bottom: 2px; }
+  .stat-value { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+  
+  .notes-box {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--gray-600);
+    font-style: italic;
+    background: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid var(--gray-200);
+  }
+
+  /* Table style for Diet items */
+  .items-table { w-full; width: 100%; border-collapse: collapse; font-size: 14px; }
+  .items-table th { text-align: left; color: var(--gray-500); font-weight: 600; font-size: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+  .items-table td { padding: 8px 0; border-bottom: 1px solid var(--gray-100); color: var(--gray-800); }
+  .items-table tr:last-child td { border-bottom: none; }
+  
+  /* Footer */
+  .footer {
+    margin-top: 60px;
+    border-top: 1px solid var(--gray-200);
+    padding-top: 25px;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+  .footer-name { font-weight: 700; color: var(--gray-900); font-size: 16px; margin-bottom: 5px; }
+  .footer-contact { display: flex; justify-content: center; gap: 20px; font-size: 14px; color: var(--gray-600); margin-bottom: 15px; align-items: center; }
+  .contact-item { display: flex; align-items: center; gap: 6px; }
+  .footer-quote { font-size: 13px; color: var(--gray-500); font-style: italic; }
+`
+
+const printHTML = (title: string, content: string, primaryColor: string) => {
+  const printWindow = window.open('', '', 'width=900,height=800')
   if (!printWindow) {
-    alert('Permita popups para gerar o PDF')
+    alert('Por favor, permita popups para gerar o PDF.')
     return
   }
 
@@ -46,65 +191,26 @@ export const generateDietPDF = (diet: Diet, personalName: string) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Dieta - ${diet.title}</title>
+      <title>${title}</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
       <style>
-        body { font-family: sans-serif; line-height: 1.5; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
-        h1, h2, h3 { color: #111; }
-        .header { border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
-        .info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 0.9em; }
-        .meal { background: #f9f9f9; border-radius: 8px; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; }
-        .meal h3 { margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-        .item { margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .item-details { color: #666; font-size: 0.9em; }
-        .footer { margin-top: 50px; text-align: center; font-size: 0.8em; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
-        @media print {
-          body { -webkit-print-color-adjust: exact; }
-        }
+        ${getBaseStyles(primaryColor)}
       </style>
     </head>
     <body>
-      <div class="header">
-        <h1>${diet.title}</h1>
-        <p><strong>Objetivo:</strong> ${diet.objective} | <strong>Tipo:</strong> ${diet.type}</p>
-        <p>${diet.observations || ''}</p>
+      <div class="page">
+        ${content}
       </div>
-      
-      <div class="info">
-        <div><strong>Aluno:</strong> ${diet.clientName || 'N/A'}</div>
-        <div><strong>Personal:</strong> ${personalName}</div>
-        <div><strong>Data:</strong> ${new Date(diet.createdAt).toLocaleDateString()}</div>
-        <div><strong>Validade:</strong> ${diet.isLifetime ? 'Vitalício' : diet.expirationDate ? new Date(diet.expirationDate).toLocaleDateString() : 'N/A'}</div>
-      </div>
-
-      <h2>Plano Alimentar</h2>
-      
-      ${diet.meals
-        .map(
-          (meal) => `
-        <div class="meal">
-          <h3>${meal.name} ${meal.time ? `<span style="font-weight:normal; font-size:0.8em; color:#666">(${meal.time})</span>` : ''}</h3>
-          ${meal.items
-            .map(
-              (item) => `
-            <div class="item">
-              <div><strong>${item.name}</strong></div>
-              <div>${item.quantity} ${item.unit}</div>
-            </div>
-            ${item.notes ? `<div class="item-details">Obs: ${item.notes}</div>` : ''}
-          `,
-            )
-            .join('')}
-        </div>
-      `,
-        )
-        .join('')}
-
-      <div class="footer">
-        <p>Gerado por Meu Personal App</p>
-      </div>
-
       <script>
-        window.onload = function() { window.print(); }
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 500);
+        }
       </script>
     </body>
     </html>
@@ -114,13 +220,242 @@ export const generateDietPDF = (diet: Diet, personalName: string) => {
   printWindow.document.close()
 }
 
-const downloadFile = (content: string, filename: string) => {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+export const generateWorkoutPDF = (
+  workout: Workout,
+  profile: UserProfile,
+  themeColor: string,
+) => {
+  const primaryColor = THEME_COLORS[themeColor] || THEME_COLORS['blue']
+
+  const content = `
+    <header class="header">
+      <div class="brand-area">
+        <div class="brand-name">${profile.name}</div>
+        <div class="doc-type">Plano de Treino</div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.user} Aluno</span>
+          <span class="meta-value">${workout.clientName || 'N/A'}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.calendar} Data</span>
+          <span class="meta-value">${new Date(workout.createdAt).toLocaleDateString('pt-BR')}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.clock} Validade</span>
+          <span class="meta-value">${workout.isLifetime ? 'Vitalício' : workout.expirationDate ? new Date(workout.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-title">Informações Gerais</div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Objetivo</div>
+          <div class="info-value">${workout.objective || '-'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Nível</div>
+          <div class="info-value">${workout.level || '-'}</div>
+        </div>
+        ${
+          workout.observations
+            ? `
+        <div class="info-card" style="grid-column: 1 / -1;">
+          <div class="info-label">Observações</div>
+          <div class="info-value">${workout.observations}</div>
+        </div>
+        `
+            : ''
+        }
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.dumbbell} Estrutura do Treino</div>
+      <div class="card-grid">
+        ${workout.exercises
+          .map(
+            (ex, i) => `
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">${i + 1}. ${ex.name}</span>
+            </div>
+            <div class="card-body">
+              <div class="stats-row">
+                <div class="stat-box">
+                  <span class="stat-label">Séries</span>
+                  <span class="stat-value">${ex.sets}</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Repetições</span>
+                  <span class="stat-value">${ex.reps}</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Carga</span>
+                  <span class="stat-value">${ex.weight || '-'}</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Descanso</span>
+                  <span class="stat-value">${ex.rest || '-'}</span>
+                </div>
+              </div>
+              ${ex.notes ? `<div class="notes-box">Obs: ${ex.notes}</div>` : ''}
+            </div>
+          </div>
+        `,
+          )
+          .join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Recomendações</div>
+      <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6;">
+        Lembre-se de respeitar o tempo de descanso entre as séries. Mantenha-se hidratado durante todo o treino.
+        Em caso de desconforto ou dor incomum, interrompa o exercício imediatamente. Consulte seu Personal Trainer para ajustes.
+      </p>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-name">${profile.name}</div>
+      <div class="footer-contact">
+        <span class="contact-item">${ICONS.phone} ${profile.phone}</span>
+        <span class="contact-item">${ICONS.mail} ${profile.email}</span>
+      </div>
+      <div class="footer-quote">"Este plano foi desenvolvido de forma personalizada para você."</div>
+    </footer>
+  `
+
+  printHTML(`Treino - ${workout.title}`, content, primaryColor)
+}
+
+export const generateDietPDF = (
+  diet: Diet,
+  profile: UserProfile,
+  themeColor: string,
+) => {
+  const primaryColor = THEME_COLORS[themeColor] || THEME_COLORS['blue']
+
+  const content = `
+    <header class="header">
+      <div class="brand-area">
+        <div class="brand-name">${profile.name}</div>
+        <div class="doc-type">Plano Alimentar</div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.user} Aluno</span>
+          <span class="meta-value">${diet.clientName || 'N/A'}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.calendar} Data</span>
+          <span class="meta-value">${new Date(diet.createdAt).toLocaleDateString('pt-BR')}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.clock} Validade</span>
+          <span class="meta-value">${diet.isLifetime ? 'Vitalício' : diet.expirationDate ? new Date(diet.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-title">Informações Gerais</div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Objetivo</div>
+          <div class="info-value">${diet.objective}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Tipo</div>
+          <div class="info-value">${diet.type}</div>
+        </div>
+        ${
+          diet.calories
+            ? `
+        <div class="info-card">
+          <div class="info-label">Calorias (Aprox.)</div>
+          <div class="info-value">${diet.calories} kcal</div>
+        </div>
+        `
+            : ''
+        }
+        ${
+          diet.observations
+            ? `
+        <div class="info-card" style="grid-column: 1 / -1;">
+          <div class="info-label">Observações</div>
+          <div class="info-value">${diet.observations}</div>
+        </div>
+        `
+            : ''
+        }
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.utensils} Refeições</div>
+      <div class="card-grid">
+        ${diet.meals
+          .map(
+            (meal) => `
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">${meal.name}</span>
+              ${meal.time ? `<span class="card-subtitle">${meal.time}</span>` : ''}
+            </div>
+            <div class="card-body">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th style="width: 50%">Alimento</th>
+                    <th style="width: 25%">Qtd</th>
+                    <th style="width: 25%">Obs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${meal.items
+                    .map(
+                      (item) => `
+                    <tr>
+                      <td><strong>${item.name}</strong></td>
+                      <td>${item.quantity} ${item.unit}</td>
+                      <td style="font-size: 12px; color: var(--gray-500);">${item.notes || '-'}</td>
+                    </tr>
+                  `,
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `,
+          )
+          .join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Observações Importantes</div>
+      <ul style="font-size: 14px; color: var(--gray-600); padding-left: 20px; line-height: 1.6;">
+        <li>Beba pelo menos 35ml de água por kg de peso corporal diariamente.</li>
+        <li>Evite alimentos ultraprocessados e excesso de açúcar, salvo indicação contrária.</li>
+        <li>Siga os horários das refeições conforme sua rotina permite.</li>
+        <li>Este plano é individual e intransferível.</li>
+      </ul>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-name">${profile.name}</div>
+      <div class="footer-contact">
+        <span class="contact-item">${ICONS.phone} ${profile.phone}</span>
+        <span class="contact-item">${ICONS.mail} ${profile.email}</span>
+      </div>
+      <div class="footer-quote">"Este plano foi desenvolvido de forma personalizada para você."</div>
+    </footer>
+  `
+
+  printHTML(`Dieta - ${diet.title}`, content, primaryColor)
 }

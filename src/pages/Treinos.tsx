@@ -18,7 +18,6 @@ import {
   Download,
   UserPlus,
   Share2,
-  AlertTriangle,
 } from 'lucide-react'
 import {
   Dialog,
@@ -108,7 +107,7 @@ const Treinos = () => {
   }
 
   const handleDownload = (workout: Workout) => {
-    generateWorkoutPDF(workout, profile.name)
+    generateWorkoutPDF(workout, profile, settings.themeColor)
     toast.success('PDF do treino gerado!')
   }
 
@@ -325,5 +324,3 @@ const Treinos = () => {
     </div>
   )
 }
-
-export default Treinos

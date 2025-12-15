@@ -104,7 +104,8 @@ const Dieta = () => {
   }
 
   const handleDownload = (diet: Diet) => {
-    generateDietPDF(diet, profile.name)
+    generateDietPDF(diet, profile, settings.themeColor)
+    toast.success('PDF da dieta gerado!')
   }
 
   const handleWhatsApp = (diet: Diet) => {
@@ -315,5 +316,3 @@ const Dieta = () => {
     </div>
   )
 }
-
-export default Dieta
