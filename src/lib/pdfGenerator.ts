@@ -1,4 +1,11 @@
-import { Workout, Diet, UserProfile, Transaction, Proposal } from '@/lib/types'
+import {
+  Workout,
+  Diet,
+  UserProfile,
+  Transaction,
+  Proposal,
+  ProposalService,
+} from '@/lib/types'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -20,6 +27,9 @@ const ICONS = {
   mail: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
   dollar: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
   file: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+  target: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  check: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  arrowRight: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`,
 }
 
 const getBaseStyles = (primaryColor: string) => `
@@ -195,6 +205,14 @@ const getBaseStyles = (primaryColor: string) => `
   .footer-contact { display: flex; justify-content: center; gap: 20px; font-size: 14px; color: var(--gray-600); margin-bottom: 15px; align-items: center; }
   .contact-item { display: flex; align-items: center; gap: 6px; }
   .footer-quote { font-size: 13px; color: var(--gray-500); font-style: italic; }
+
+  /* Transformation Services List */
+  .services-list { display: flex; flex-direction: column; gap: 12px; }
+  .service-item { display: flex; gap: 12px; align-items: flex-start; }
+  .service-icon { min-width: 20px; color: var(--primary); margin-top: 2px; }
+  .service-content { flex: 1; }
+  .service-title { font-weight: 700; font-size: 14px; color: var(--gray-900); text-transform: uppercase; margin-bottom: 2px; }
+  .service-desc { font-size: 14px; color: var(--gray-600); }
 `
 
 const printHTML = (title: string, content: string, primaryColor: string) => {
@@ -586,7 +604,9 @@ export const generateProposalPDF = (
 ) => {
   const primaryColor = THEME_COLORS[themeColor] || THEME_COLORS['blue']
 
-  const content = `
+  // Handle Default Template
+  if (proposal.type === 'default' || !proposal.type) {
+    const content = `
     <header class="header">
       <div class="brand-area">
         <div class="brand-name">${profile.name}</div>
@@ -684,6 +704,162 @@ export const generateProposalPDF = (
       </div>
     </footer>
   `
+    printHTML(`Proposta - ${proposal.clientName}`, content, primaryColor)
+    return
+  }
 
-  printHTML(`Proposta - ${proposal.clientName}`, content, primaryColor)
+  // Handle Transformation Template
+  const servicesList =
+    proposal.services && proposal.services.length > 0
+      ? proposal.services
+          .map(
+            (s) => `
+    <div class="service-item">
+      <div class="service-icon">${ICONS.check}</div>
+      <div class="service-content">
+        <div class="service-title">${s.title.replace(/[\u{1F600}-\u{1F6FF}]/gu, '')}</div>
+        <div class="service-desc">${s.description}</div>
+      </div>
+    </div>
+  `,
+          )
+          .join('')
+      : '<p>Serviços não listados.</p>'
+
+  const content = `
+    <header class="header">
+      <div class="brand-area">
+        <div class="brand-name">${profile.name}</div>
+        <div class="doc-type">Projeto de Transformação</div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.user} Aluno</span>
+          <span class="meta-value">${proposal.clientName}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.calendar} Data</span>
+          <span class="meta-value">${new Date(proposal.createdAt).toLocaleDateString('pt-BR')}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-title">Dados Iniciais</div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Idade</div>
+          <div class="info-value">${proposal.clientAge || '-'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Altura</div>
+          <div class="info-value">${proposal.clientHeight || '-'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Peso Atual</div>
+          <div class="info-value">${proposal.clientWeight || '-'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Meta</div>
+          <div class="info-value" style="color: ${primaryColor}">${proposal.clientTargetWeight || proposal.clientObjective || '-'}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.target} Objetivo do Projeto</div>
+      <p style="font-size: 15px; color: var(--gray-800); font-weight: 500; line-height: 1.6;">
+        ${proposal.clientObjective}
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.file} Plano Personalizado</div>
+      <div class="card">
+        <div class="card-body">
+          <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 10px;">
+             Este projeto foi desenhado especificamente para suas necessidades, levando em consideração sua rotina e objetivos.
+          </p>
+          <div class="stats-row" style="grid-template-columns: 1fr;">
+            <div class="stat-box" style="align-items: flex-start; text-align: left; padding: 12px;">
+              <span class="stat-label">Nome do Projeto</span>
+              <span class="stat-value" style="font-size: 16px;">${proposal.planName}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Serviços Inclusos</div>
+      <div class="services-list">
+        ${servicesList}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.clock} Prazo do Projeto</div>
+      <div class="info-grid">
+         <div class="info-card">
+          <div class="info-label">Duração Estimada</div>
+          <div class="info-value">${proposal.duration}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.dollar} Investimento</div>
+      <div class="card">
+        <div class="card-body" style="text-align: center;">
+          <div style="font-size: 12px; text-transform: uppercase; color: var(--gray-500); font-weight: 700; margin-bottom: 4px;">Valor Total</div>
+          <div style="font-size: 24px; font-weight: 800; color: ${primaryColor}">R$ ${proposal.value.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+
+     ${
+       proposal.observations
+         ? `
+    <div class="section">
+      <div class="section-title">Observações Finais</div>
+      <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6;">
+        ${proposal.observations}
+      </p>
+    </div>
+    `
+         : ''
+     }
+
+    <div class="section">
+      <div class="section-title">${ICONS.arrowRight} Próximo Passo</div>
+      <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6; margin-bottom: 20px;">
+        Para darmos início à sua transformação, confirme seu interesse clicando no botão abaixo ou respondendo esta mensagem.
+      </p>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <div style="
+          display: inline-block;
+          background: #25D366;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: bold;
+          text-decoration: none;
+          font-size: 16px;
+        ">
+          Falar no WhatsApp: ${profile.phone}
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-name">${profile.name}</div>
+      <div class="footer-contact">
+        <span class="contact-item">${ICONS.phone} ${profile.phone}</span>
+        <span class="contact-item">${ICONS.mail} ${profile.email}</span>
+      </div>
+    </footer>
+  `
+
+  printHTML(`Projeto - ${proposal.clientName}`, content, primaryColor)
 }

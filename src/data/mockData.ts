@@ -304,6 +304,7 @@ export const mockLinks: LinkItem[] = [
 export const mockProposals: Proposal[] = [
   {
     id: '1',
+    type: 'default',
     clientName: 'Ana Clara',
     clientObjective: 'Definição e Perda de Gordura',
     description:

@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 const IndicacoesPropostas = () => {
   const {
@@ -265,6 +266,14 @@ const IndicacoesPropostas = () => {
                     </div>
                     <CardDescription>
                       {new Date(proposal.createdAt).toLocaleDateString('pt-BR')}
+                      {proposal.type === 'transformation' && (
+                        <Badge
+                          variant="outline"
+                          className="ml-2 text-[10px] h-5"
+                        >
+                          Projeto
+                        </Badge>
+                      )}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 space-y-2 text-sm">
@@ -334,7 +343,7 @@ const IndicacoesPropostas = () => {
         open={isProposalDialogOpen}
         onOpenChange={setIsProposalDialogOpen}
       >
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nova Proposta Comercial</DialogTitle>
           </DialogHeader>

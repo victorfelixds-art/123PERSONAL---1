@@ -111,15 +111,33 @@ export interface LinkItem {
   description?: string
 }
 
+export interface ProposalService {
+  id: string
+  title: string
+  description: string
+}
+
+export type ProposalType = 'default' | 'transformation'
+
 export interface Proposal {
   id: string
+  type: ProposalType
   clientName: string
   clientObjective: string
+  // Additional fields for Transformation model
+  clientAge?: string
+  clientHeight?: string
+  clientWeight?: string
+  clientTargetWeight?: string // "Meta de peso"
+
   description: string
   planName: string
   value: number
   duration: string
   observations?: string
+
+  services?: ProposalService[]
+
   createdAt: string
   status: 'sent' | 'accepted' | 'rejected'
 }
