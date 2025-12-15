@@ -12,20 +12,13 @@ import {
   Clock,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import {
-  format,
-  isBefore,
-  addDays,
-  addMonths,
-  parseISO,
-  differenceInDays,
-  isSameDay,
-} from 'date-fns'
+import { format, isBefore, addDays, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 const Index = () => {
-  const { clients, workouts, events, profile, diets, plans } = useAppStore()
+  const { clients, workouts, events, profile, diets, transactions } =
+    useAppStore()
 
   const activeClients = clients.filter((c) => c.status === 'active').length
   const inactiveClients = clients.filter((c) => c.status === 'inactive').length
@@ -55,25 +48,19 @@ const Index = () => {
       d.clientId,
   )
 
-  // Calculate Plan Expiration Alerts (<= 5 days)
-  const expiringPlans = clients
-    .filter((c) => c.status === 'active' && c.planId && c.planStartDate)
-    .map((c) => {
-      const plan = plans.find((p) => p.id === c.planId)
-      if (!plan) return null
+  // Payment Alerts
+  const overduePayments = transactions.filter(
+    (t) =>
+      t.status === 'overdue' ||
+      (t.status === 'pending' && isBefore(new Date(t.dueDate), new Date())),
+  )
 
-      const startDate = parseISO(c.planStartDate!)
-      const expirationDate = addMonths(startDate, plan.durationInMonths)
-      const daysLeft = differenceInDays(expirationDate, new Date())
-
-      return {
-        client: c,
-        expirationDate,
-        daysLeft,
-        planName: plan.name,
-      }
-    })
-    .filter((item) => item !== null && item.daysLeft <= 5)
+  const dueSoonPayments = transactions.filter(
+    (t) =>
+      t.status === 'pending' &&
+      isBefore(new Date(t.dueDate), addDays(new Date(), 5)) &&
+      !isBefore(new Date(t.dueDate), new Date()),
+  )
 
   // Dashboard Sync: "Today" events
   const todayEvents = events
@@ -92,6 +79,22 @@ const Index = () => {
 
   // Deduplicate alerts logic
   const requiredActions = [
+    ...overduePayments.map((p) => ({
+      type: 'overdue_payment',
+      title: `Pagamento Atrasado: R$ ${p.amount.toFixed(2)}`,
+      client: p.studentName,
+      id: p.studentId,
+      date: p.dueDate,
+      link: '/financeiro',
+    })),
+    ...dueSoonPayments.map((p) => ({
+      type: 'due_soon_payment',
+      title: `Pagamento Vencendo: R$ ${p.amount.toFixed(2)}`,
+      client: p.studentName,
+      id: p.studentId,
+      date: p.dueDate,
+      link: '/financeiro',
+    })),
     ...overdueEvents.map((e) => ({
       type: 'overdue_event',
       title: `Compromisso Atrasado: ${e.title}`,
@@ -99,14 +102,6 @@ const Index = () => {
       id: e.studentId || e.id,
       date: e.date,
       link: '/agenda',
-    })),
-    ...expiringPlans.map((p) => ({
-      type: 'expiring_plan',
-      title: `Plano Vencendo/Vencido: ${p?.planName}`,
-      client: p?.client.name,
-      id: p?.client.id,
-      date: p?.expirationDate,
-      link: `/alunos/${p?.client.id}`,
     })),
     ...expiredWorkouts.map((w) => ({
       type: 'expired_workout',
@@ -214,7 +209,7 @@ const Index = () => {
                           <Dumbbell className="h-4 w-4" />
                         ) : action.type.includes('diet') ? (
                           <Utensils className="h-4 w-4" />
-                        ) : action.type.includes('plan') ? (
+                        ) : action.type.includes('payment') ? (
                           <Wallet className="h-4 w-4" />
                         ) : (
                           <Clock className="h-4 w-4" />
@@ -226,7 +221,7 @@ const Index = () => {
                           {action.client}
                           {'date' in action &&
                             action.date &&
-                            ` - ${format(new Date(action.date as Date), 'dd/MM HH:mm')}`}
+                            ` - ${format(new Date(action.date as string | Date), 'dd/MM')}`}
                         </p>
                       </div>
                     </div>

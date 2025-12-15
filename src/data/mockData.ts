@@ -9,6 +9,7 @@ import {
   AppSettings,
   Plan,
 } from '@/lib/types'
+import { addDays, addMonths, subMonths, format } from 'date-fns'
 
 export const mockPlans: Plan[] = [
   { id: '1', name: 'Mensal', value: 200, durationInMonths: 1 },
@@ -231,22 +232,62 @@ export const mockEvents: CalendarEvent[] = [
   },
 ]
 
+const today = new Date()
+
 export const mockTransactions: Transaction[] = [
   {
     id: '1',
-    description: 'Mensalidade João',
+    description: 'Mensalidade Mensal',
     amount: 200,
     type: 'income',
-    date: '2024-03-05',
     category: 'Mensalidade',
+    studentId: '1',
+    studentName: 'João Silva',
+    planId: '1',
+    planName: 'Mensal',
+    status: 'paid',
+    dueDate: format(subMonths(today, 1), 'yyyy-MM-dd'),
+    paidAt: format(subMonths(today, 1), 'yyyy-MM-dd'),
   },
   {
     id: '2',
-    description: 'Mensalidade Maria',
+    description: 'Mensalidade Trimestral (1/3)',
+    amount: 183.33,
+    type: 'income',
+    category: 'Mensalidade',
+    studentId: '2',
+    studentName: 'Maria Souza',
+    planId: '2',
+    planName: 'Trimestral',
+    status: 'paid',
+    dueDate: format(subMonths(today, 1), 'yyyy-MM-dd'),
+    paidAt: format(subMonths(today, 1), 'yyyy-MM-dd'),
+  },
+  {
+    id: '3',
+    description: 'Mensalidade Mensal',
     amount: 200,
     type: 'income',
-    date: '2024-03-06',
     category: 'Mensalidade',
+    studentId: '1',
+    studentName: 'João Silva',
+    planId: '1',
+    planName: 'Mensal',
+    status: 'pending',
+    dueDate: format(addDays(today, 2), 'yyyy-MM-dd'), // Due soon
+  },
+  {
+    id: '4',
+    description: 'Mensalidade Trimestral (2/3)',
+    amount: 183.33,
+    type: 'income',
+    category: 'Mensalidade',
+    studentId: '2',
+    studentName: 'Maria Souza',
+    planId: '2',
+    planName: 'Trimestral',
+    status: 'overdue',
+    dueDate: format(addDays(today, -2), 'yyyy-MM-dd'), // Overdue
   },
 ]
 

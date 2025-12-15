@@ -24,11 +24,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { StudentForm } from '@/components/forms/StudentForm'
-import { isBefore, addDays, parseISO, differenceInDays } from 'date-fns'
+import { isBefore, addDays } from 'date-fns'
 
 const Alunos = () => {
-  const { clients, addClient, updateClient, workouts, diets, events, plans } =
-    useAppStore()
+  const {
+    clients,
+    addClient,
+    updateClient,
+    workouts,
+    diets,
+    events,
+    transactions,
+  } = useAppStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filterType, setFilterType] = useState<
@@ -45,17 +52,14 @@ const Alunos = () => {
     const client = clients.find((c) => c.id === clientId)
     if (client?.status === 'inactive') return false
 
-    // 1. Plan Expiring or Expired (<= 5 days)
-    let planAttention = false
-    if (client?.planId && client.planStartDate) {
-      const plan = plans.find((p) => p.id === client.planId)
-      if (plan) {
-        const startDate = parseISO(client.planStartDate)
-        const expirationDate = addDays(startDate, plan.durationInMonths * 30) // approx
-        const daysLeft = differenceInDays(expirationDate, new Date())
-        if (daysLeft <= 5) planAttention = true
-      }
-    }
+    // 1. Payment Attention (Overdue or Due Soon)
+    const hasPaymentAttention = transactions.some(
+      (t) =>
+        t.studentId === clientId &&
+        ((t.status === 'pending' &&
+          isBefore(new Date(t.dueDate), addDays(new Date(), 5))) ||
+          t.status === 'overdue'),
+    )
 
     // 2. Workout Expired
     const hasExpiredWorkout = workouts.some(
@@ -84,7 +88,10 @@ const Alunos = () => {
     )
 
     return (
-      planAttention || hasExpiredWorkout || hasExpiredDiet || hasEventAttention
+      hasPaymentAttention ||
+      hasExpiredWorkout ||
+      hasExpiredDiet ||
+      hasEventAttention
     )
   }
 

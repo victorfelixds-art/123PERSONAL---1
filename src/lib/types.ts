@@ -94,8 +94,14 @@ export interface Transaction {
   description: string
   amount: number
   type: 'income' | 'expense'
-  date: string
   category: string
+  studentId?: string
+  studentName?: string
+  planId?: string
+  planName?: string
+  status: 'paid' | 'pending' | 'overdue' | 'cancelled'
+  dueDate: string
+  paidAt?: string
 }
 
 export interface LinkItem {

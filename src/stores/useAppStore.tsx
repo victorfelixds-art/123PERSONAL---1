@@ -27,6 +27,7 @@ import {
   mockSettings,
   mockPlans,
 } from '@/data/mockData'
+import { addMonths, format, parseISO } from 'date-fns'
 
 interface AppContextType {
   clients: Client[]
@@ -67,6 +68,8 @@ interface AppContextType {
   updateEvent: (event: CalendarEvent) => void
   removeEvent: (id: string) => void
   addTransaction: (transaction: Transaction) => void
+  updateTransaction: (transaction: Transaction) => void
+  markTransactionAsPaid: (id: string) => void
   addLink: (link: LinkItem) => void
   removeLink: (id: string) => void
   updateProfile: (profile: UserProfile) => void
@@ -115,16 +118,79 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [settings.theme, settings.themeColor])
 
-  const addClient = (client: Client) => setClients((prev) => [...prev, client])
-  const updateClient = (updated: Client) =>
+  // Helper to generate financial cycle
+  const generateTransactionsForClient = (client: Client) => {
+    if (!client.planId || !client.planStartDate) return []
+
+    const plan = plans.find((p) => p.id === client.planId)
+    if (!plan) return []
+
+    const newTransactions: Transaction[] = []
+    const monthlyAmount = plan.value / plan.durationInMonths
+    const startDate = parseISO(client.planStartDate)
+
+    for (let i = 0; i < plan.durationInMonths; i++) {
+      const dueDate = addMonths(startDate, i)
+      newTransactions.push({
+        id: Math.random().toString(36).substr(2, 9),
+        description: `Mensalidade ${plan.name} (${i + 1}/${plan.durationInMonths})`,
+        amount: monthlyAmount,
+        type: 'income',
+        category: 'Mensalidade',
+        studentId: client.id,
+        studentName: client.name,
+        planId: plan.id,
+        planName: plan.name,
+        status: 'pending',
+        dueDate: format(dueDate, 'yyyy-MM-dd'),
+      })
+    }
+    return newTransactions
+  }
+
+  const addClient = (client: Client) => {
+    setClients((prev) => [...prev, client])
+    const newTransactions = generateTransactionsForClient(client)
+    setTransactions((prev) => [...prev, ...newTransactions])
+  }
+
+  const updateClient = (updated: Client) => {
+    // Check if plan changed to regenerate transactions
+    const oldClient = clients.find((c) => c.id === updated.id)
+    let newTransactions: Transaction[] = []
+    let filteredTransactions = transactions
+
+    if (
+      oldClient &&
+      (oldClient.planId !== updated.planId ||
+        oldClient.planStartDate !== updated.planStartDate)
+    ) {
+      // Remove future pending transactions for this client
+      filteredTransactions = transactions.filter((t) => {
+        if (
+          t.studentId === updated.id &&
+          t.status === 'pending' &&
+          new Date(t.dueDate) > new Date()
+        ) {
+          return false
+        }
+        return true
+      })
+      // Generate new cycle
+      newTransactions = generateTransactionsForClient(updated)
+    }
+
     setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+    setTransactions([...filteredTransactions, ...newTransactions])
+  }
 
   const removeClient = (id: string) => {
     setClients((prev) => prev.filter((c) => c.id !== id))
-    // Cascade delete: Remove associated Workouts, Diets and Events
+    // Cascade delete: Remove associated Workouts, Diets, Events and Transactions
     setWorkouts((prev) => prev.filter((w) => w.clientId !== id))
     setDiets((prev) => prev.filter((d) => d.clientId !== id))
     setEvents((prev) => prev.filter((e) => e.studentId !== id))
+    setTransactions((prev) => prev.filter((t) => t.studentId !== id))
   }
 
   const addWorkout = (workout: Workout) =>
@@ -254,6 +320,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addTransaction = (transaction: Transaction) =>
     setTransactions((prev) => [...prev, transaction])
 
+  const updateTransaction = (updated: Transaction) =>
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === updated.id ? updated : t)),
+    )
+
+  const markTransactionAsPaid = (id: string) => {
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              status: 'paid',
+              paidAt: new Date().toISOString().split('T')[0],
+            }
+          : t,
+      ),
+    )
+  }
+
   const addLink = (link: LinkItem) => setLinks((prev) => [...prev, link])
   const removeLink = (id: string) =>
     setLinks((prev) => prev.filter((l) => l.id !== id))
@@ -304,6 +389,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateEvent,
         removeEvent,
         addTransaction,
+        updateTransaction,
+        markTransactionAsPaid,
         addLink,
         removeLink,
         updateProfile,

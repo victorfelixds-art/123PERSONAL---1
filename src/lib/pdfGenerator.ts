@@ -1,4 +1,6 @@
-import { Workout, Diet, UserProfile } from '@/lib/types'
+import { Workout, Diet, UserProfile, Transaction } from '@/lib/types'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 const THEME_COLORS: Record<string, string> = {
   blue: '#2563eb',
@@ -16,6 +18,7 @@ const ICONS = {
   utensils: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`,
   phone: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
   mail: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+  dollar: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
 }
 
 const getBaseStyles = (primaryColor: string) => `
@@ -165,6 +168,19 @@ const getBaseStyles = (primaryColor: string) => `
   .items-table th { text-align: left; color: var(--gray-500); font-weight: 600; font-size: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
   .items-table td { padding: 8px 0; border-bottom: 1px solid var(--gray-100); color: var(--gray-800); }
   .items-table tr:last-child td { border-bottom: none; }
+
+  /* Financial Specific */
+  .status-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .status-paid { background: #dcfce7; color: #166534; }
+  .status-pending { background: #f3f4f6; color: #374151; }
+  .status-overdue { background: #fee2e2; color: #991b1b; }
+  .status-cancelled { background: #f3f4f6; color: #9ca3af; text-decoration: line-through; }
   
   /* Footer */
   .footer {
@@ -458,4 +474,106 @@ export const generateDietPDF = (
   `
 
   printHTML(`Dieta - ${diet.title}`, content, primaryColor)
+}
+
+export const generateFinancialPDF = (
+  transactions: Transaction[],
+  profile: UserProfile,
+  themeColor: string,
+  periodLabel: string,
+  metrics: { totalRevenue: number; totalPending: number; totalOverdue: number },
+) => {
+  const primaryColor = THEME_COLORS[themeColor] || THEME_COLORS['blue']
+
+  const content = `
+    <header class="header">
+      <div class="brand-area">
+        <div class="brand-name">${profile.name}</div>
+        <div class="doc-type">Relatório Financeiro</div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.calendar} Período</span>
+          <span class="meta-value">${periodLabel}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.clock} Gerado em</span>
+          <span class="meta-value">${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-title">Resumo Financeiro</div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Receita Total</div>
+          <div class="info-value" style="color: #059669;">R$ ${metrics.totalRevenue.toFixed(2)}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Pendente</div>
+          <div class="info-value" style="color: #4b5563;">R$ ${metrics.totalPending.toFixed(2)}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Vencido</div>
+          <div class="info-value" style="color: #dc2626;">R$ ${metrics.totalOverdue.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.dollar} Lista de Pagamentos</div>
+      <div class="card">
+        <div class="card-body">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th style="width: 25%">Aluno</th>
+                <th style="width: 25%">Descrição</th>
+                <th style="width: 15%">Vencimento</th>
+                <th style="width: 15%">Valor</th>
+                <th style="width: 20%">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${transactions
+                .map(
+                  (t) => `
+                <tr>
+                  <td><strong>${t.studentName || '-'}</strong></td>
+                  <td>${t.description}</td>
+                  <td>${format(new Date(t.dueDate), 'dd/MM/yyyy')}</td>
+                  <td>R$ ${t.amount.toFixed(2)}</td>
+                  <td>
+                    <span class="status-badge status-${t.status}">
+                      ${
+                        t.status === 'paid'
+                          ? 'Pago'
+                          : t.status === 'pending'
+                            ? 'Pendente'
+                            : t.status === 'overdue'
+                              ? 'Vencido'
+                              : 'Cancelado'
+                      }
+                    </span>
+                  </td>
+                </tr>
+              `,
+                )
+                .join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-name">${profile.name}</div>
+      <div class="footer-contact">
+        <span class="contact-item">${ICONS.mail} ${profile.email}</span>
+      </div>
+    </footer>
+  `
+
+  printHTML(`Relatório Financeiro - ${periodLabel}`, content, primaryColor)
 }

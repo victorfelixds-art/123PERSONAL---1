@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react'
 import useAppStore from '@/stores/useAppStore'
 import {
   Card,
@@ -6,95 +7,631 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { DollarSign, Users, PieChart as PieChartIcon } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
+import {
+  DollarSign,
+  Users,
+  Download,
+  Filter,
+  CheckCircle2,
+  Calendar,
+  AlertCircle,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+} from 'recharts'
+import {
+  format,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  isWithinInterval,
+  parseISO,
+  isBefore,
+  addDays,
+} from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { toast } from 'sonner'
+import { generateFinancialPDF } from '@/lib/pdfGenerator'
+import { cn } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 const Financeiro = () => {
-  const { clients } = useAppStore()
+  const {
+    transactions,
+    clients,
+    markTransactionAsPaid,
+    updateTransaction,
+    profile,
+    settings,
+    plans,
+  } = useAppStore()
 
-  const activeClients = clients.filter((c) => c.status === 'active')
-  const totalStudents = activeClients.length
+  // Filters
+  const [periodFilter, setPeriodFilter] = useState('current_month')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [planFilter, setPlanFilter] = useState('all')
+  const [customRange, setCustomRange] = useState({
+    start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+    end: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+  })
 
-  // Calculate revenue based on assigned planValue
-  const estimatedRevenue = activeClients.reduce(
-    (acc, curr) => acc + (curr.planValue || 0),
-    0,
+  // Edit Due Date State
+  const [editingTransaction, setEditingTransaction] = useState<string | null>(
+    null,
   )
+  const [newDueDate, setNewDueDate] = useState('')
 
-  const planCounts = activeClients.reduce(
-    (acc, curr) => {
-      const planName = curr.planName || 'Sem Plano'
-      acc[planName] = (acc[planName] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
+  // Compute date range based on filter
+  const dateRange = useMemo(() => {
+    const today = new Date()
+    switch (periodFilter) {
+      case 'current_month':
+        return { start: startOfMonth(today), end: endOfMonth(today) }
+      case 'last_3_months':
+        return { start: subMonths(today, 3), end: today }
+      case 'last_6_months':
+        return { start: subMonths(today, 6), end: today }
+      case 'custom':
+        return {
+          start: parseISO(customRange.start),
+          end: parseISO(customRange.end),
+        }
+      default:
+        return { start: startOfMonth(today), end: endOfMonth(today) }
+    }
+  }, [periodFilter, customRange])
 
-  const planTypes = Object.keys(planCounts)
+  // Filter Transactions
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const tDate = parseISO(t.dueDate)
+      const inDateRange = isWithinInterval(tDate, dateRange)
+
+      const matchesStatus =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'overdue'
+            ? t.status === 'overdue' ||
+              (t.status === 'pending' && isBefore(tDate, new Date()))
+            : t.status === statusFilter
+
+      const matchesPlan =
+        planFilter === 'all'
+          ? true
+          : t.planId === planFilter || t.planName === planFilter
+
+      return inDateRange && matchesStatus && matchesPlan
+    })
+  }, [transactions, dateRange, statusFilter, planFilter])
+
+  // Metrics
+  const metrics = useMemo(() => {
+    const totalRevenue = filteredTransactions
+      .filter((t) => t.status === 'paid')
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const totalPending = filteredTransactions
+      .filter((t) => t.status === 'pending')
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const totalOverdue = filteredTransactions
+      .filter(
+        (t) =>
+          t.status === 'overdue' ||
+          (t.status === 'pending' && isBefore(parseISO(t.dueDate), new Date())),
+      )
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const activeStudentsCount = clients.filter(
+      (c) => c.status === 'active',
+    ).length
+    const mrr = clients
+      .filter((c) => c.status === 'active' && c.planValue && c.planId)
+      .reduce((acc, c) => {
+        const plan = plans.find((p) => p.id === c.planId)
+        return acc + c.planValue / (plan?.durationInMonths || 1)
+      }, 0)
+
+    const avgTicket = activeStudentsCount > 0 ? mrr / activeStudentsCount : 0
+
+    return {
+      totalRevenue,
+      totalPending,
+      totalOverdue,
+      activeStudentsCount,
+      mrr,
+      avgTicket,
+    }
+  }, [filteredTransactions, clients, plans])
+
+  // Charts Data
+  const revenueData = useMemo(() => {
+    const grouped = filteredTransactions
+      .filter((t) => t.status === 'paid')
+      .reduce(
+        (acc, t) => {
+          const monthKey = format(parseISO(t.dueDate), 'MMM/yy', {
+            locale: ptBR,
+          })
+          acc[monthKey] = (acc[monthKey] || 0) + t.amount
+          return acc
+        },
+        {} as Record<string, number>,
+      )
+
+    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
+  }, [filteredTransactions])
+
+  const planData = useMemo(() => {
+    const grouped = filteredTransactions.reduce(
+      (acc, t) => {
+        const key = t.planName || 'Outros'
+        acc[key] = (acc[key] || 0) + t.amount
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+
+    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
+  }, [filteredTransactions])
+
+  const statusData = useMemo(() => {
+    const counts = { paid: 0, pending: 0, overdue: 0 }
+    filteredTransactions.forEach((t) => {
+      if (t.status === 'paid') counts.paid += t.amount
+      else if (
+        t.status === 'overdue' ||
+        (t.status === 'pending' && isBefore(parseISO(t.dueDate), new Date()))
+      )
+        counts.overdue += t.amount
+      else counts.pending += t.amount
+    })
+
+    return [
+      { name: 'Pago', value: counts.paid, fill: '#166534' }, // green-800
+      { name: 'Pendente', value: counts.pending, fill: '#9ca3af' }, // gray-400
+      { name: 'Vencido', value: counts.overdue, fill: '#991b1b' }, // red-800
+    ]
+  }, [filteredTransactions])
+
+  const handleExport = () => {
+    let periodLabel = ''
+    if (periodFilter === 'current_month') periodLabel = 'Mês Atual'
+    if (periodFilter === 'last_3_months') periodLabel = 'Últimos 3 Meses'
+    if (periodFilter === 'last_6_months') periodLabel = 'Últimos 6 Meses'
+    if (periodFilter === 'custom')
+      periodLabel = `${format(parseISO(customRange.start), 'dd/MM/yy')} até ${format(parseISO(customRange.end), 'dd/MM/yy')}`
+
+    generateFinancialPDF(
+      filteredTransactions,
+      profile,
+      settings.themeColor,
+      periodLabel,
+      metrics,
+    )
+    toast.success('Relatório gerado!')
+  }
+
+  const handleSaveDueDate = () => {
+    if (editingTransaction && newDueDate) {
+      const transaction = transactions.find((t) => t.id === editingTransaction)
+      if (transaction) {
+        updateTransaction({ ...transaction, dueDate: newDueDate })
+        toast.success('Data de vencimento atualizada!')
+        setEditingTransaction(null)
+      }
+    }
+  }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight">
-        Financeiro (Simulado)
-      </h1>
+    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in pb-24">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
+        <Button onClick={handleExport}>
+          <Download className="mr-2 h-4 w-4" /> Exportar Relatório
+        </Button>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Filters */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Filter className="h-4 w-4" /> Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2">
+            <Label>Período</Label>
+            <Select value={periodFilter} onValueChange={setPeriodFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="current_month">Mês Atual</SelectItem>
+                <SelectItem value="last_3_months">Últimos 3 Meses</SelectItem>
+                <SelectItem value="last_6_months">Últimos 6 Meses</SelectItem>
+                <SelectItem value="custom">Intervalo Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {periodFilter === 'custom' && (
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1 flex items-end gap-2">
+              <div className="flex-1">
+                <Label className="text-xs">Início</Label>
+                <Input
+                  type="date"
+                  value={customRange.start}
+                  onChange={(e) =>
+                    setCustomRange({ ...customRange, start: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs">Fim</Label>
+                <Input
+                  type="date"
+                  value={customRange.end}
+                  onChange={(e) =>
+                    setCustomRange({ ...customRange, end: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="paid">Pago</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="overdue">Vencido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Plano</Label>
+            <Select value={planFilter} onValueChange={setPlanFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {plans.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Metrics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              R$ {metrics.totalRevenue.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              No período selecionado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">MRR</CardTitle>
+            <DollarSign className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              R$ {metrics.mrr.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Receita recorrente mensal
+            </p>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStudents}</div>
+            <div className="text-2xl font-bold">
+              {metrics.activeStudentsCount}
+            </div>
+            <p className="text-xs text-muted-foreground">Total atual</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Receita Estimada (Mensal)
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              R$ {estimatedRevenue.toFixed(2)}
+            <div className="text-2xl font-bold">
+              R$ {metrics.avgTicket.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Baseado nos planos ativos
-            </p>
+            <p className="text-xs text-muted-foreground">Por aluno ativo</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="col-span-1 md:col-span-2 lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Receita ao longo do tempo</CardTitle>
+            <CardDescription>Valores pagos por mês</CardDescription>
+          </CardHeader>
+          <CardContent className="pl-0">
+            <ChartContainer config={{}} className="h-[250px] w-full">
+              <BarChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={10}
+                  fontSize={12}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={12}
+                  tickFormatter={(value) => `R$ ${value}`}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar
+                  dataKey="value"
+                  fill="hsl(var(--primary))"
+                  radius={[4, 4, 0, 0]}
+                  name="Receita"
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Status de Pagamentos</CardTitle>
+            <CardDescription>Distribuição por status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="h-[250px] w-full">
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-1 md:col-span-2 lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Distribuição por Plano</CardTitle>
+            <CardDescription>Receita gerada por tipo de plano</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="h-[250px] w-full">
+              <BarChart data={planData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" hide />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  tickLine={false}
+                  axisLine={false}
+                  width={100}
+                  fontSize={12}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar
+                  dataKey="value"
+                  fill="hsl(var(--primary))"
+                  radius={[0, 4, 4, 0]}
+                  name="Receita"
+                  barSize={20}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Transactions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Distribuição de Planos</CardTitle>
-          <CardDescription>Como seus alunos estão distribuídos</CardDescription>
+          <CardTitle>Lista de Pagamentos</CardTitle>
+          <CardDescription>
+            Gerencie os pagamentos dos seus alunos.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {planTypes.map((type) => {
-            const count = planCounts[type] || 0
-            const percentage = totalStudents ? (count / totalStudents) * 100 : 0
-            return (
-              <div key={type} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="capitalize font-medium">{type}</span>
-                  <span className="text-muted-foreground">
-                    {count} aluno(s) ({percentage.toFixed(0)}%)
-                  </span>
-                </div>
-                <Progress value={percentage} className="h-2" />
-              </div>
-            )
-          })}
-          {totalStudents === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <PieChartIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
-              <p>Sem dados suficientes para exibir gráficos.</p>
-            </div>
-          )}
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Aluno</TableHead>
+                <TableHead>Plano</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTransactions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center h-24 text-muted-foreground"
+                  >
+                    Nenhum pagamento encontrado.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredTransactions.map((t) => {
+                  const isOverdue =
+                    (t.status === 'overdue' || t.status === 'pending') &&
+                    isBefore(parseISO(t.dueDate), new Date())
+                  return (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-medium">
+                        {t.studentName || '-'}
+                      </TableCell>
+                      <TableCell>{t.planName || '-'}</TableCell>
+                      <TableCell>R$ {t.amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        {format(parseISO(t.dueDate), 'dd/MM/yyyy')}
+                        {isOverdue && t.status !== 'paid' && (
+                          <span className="ml-2 text-xs text-red-600 font-bold">
+                            !
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={cn(
+                            'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase',
+                            t.status === 'paid'
+                              ? 'bg-green-100 text-green-800'
+                              : isOverdue
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800',
+                          )}
+                        >
+                          {t.status === 'paid'
+                            ? 'Pago'
+                            : isOverdue
+                              ? 'Vencido'
+                              : 'Pendente'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        {t.status !== 'paid' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => markTransactionAsPaid(t.id)}
+                            title="Marcar como Pago"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8"
+                          onClick={() => {
+                            setEditingTransaction(t.id)
+                            setNewDueDate(t.dueDate)
+                          }}
+                          title="Editar Vencimento"
+                        >
+                          <Calendar className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Data de Vencimento</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Label>Nova Data</Label>
+            <Input
+              type="date"
+              value={newDueDate}
+              onChange={(e) => setNewDueDate(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditingTransaction(null)}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveDueDate}>Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
