@@ -13,7 +13,6 @@ import {
   Calendar,
   ChevronRight,
   Dumbbell,
-  Utensils,
   DollarSign,
   Clock,
   AlertCircle,
@@ -385,7 +384,7 @@ const Index = () => {
       {/* Quick Access Section */}
       <div className="space-y-4">
         <h2 className="text-lg font-bold tracking-tight">Acesso Rápido</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Button
             asChild
             variant="outline"
@@ -404,16 +403,6 @@ const Index = () => {
             <Link to="/treinos">
               <Dumbbell className="h-6 w-6 text-primary" />
               <span>Treinos</span>
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-24 flex flex-col gap-2 hover:border-primary/50 hover:bg-primary/5"
-          >
-            <Link to="/dieta">
-              <Utensils className="h-6 w-6 text-primary" />
-              <span>Dieta</span>
             </Link>
           </Button>
           <Button
