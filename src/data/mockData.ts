@@ -330,6 +330,7 @@ export const mockProposals: Proposal[] = [
     planName: 'Projeto Viking',
     value: 997,
     duration: '6 meses',
+    validityDate: '15/06/2024', // Example with validity date
     description: '',
     services: [
       {

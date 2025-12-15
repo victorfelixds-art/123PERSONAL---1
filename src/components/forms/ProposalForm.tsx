@@ -52,7 +52,8 @@ const DEFAULT_SERVICES: ProposalService[] = [
 ]
 
 export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
-  const [proposalType, setProposalType] = useState<ProposalType>('default')
+  // Always default to 'conversion70' as requested in the user story
+  const [proposalType] = useState<ProposalType>('conversion70')
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('online')
   const [discountedValue, setDiscountedValue] = useState('')
 
@@ -68,9 +69,10 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
     value: '',
     duration: '',
     observations: '',
+    validityDate: '', // New field
   })
 
-  const [services, setServices] = useState<ProposalService[]>([])
+  const [services, setServices] = useState<ProposalService[]>(DEFAULT_SERVICES)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,11 +82,8 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
       ...formData,
       type: proposalType,
       value: Number(formData.value),
-      discountedValue:
-        proposalType === 'conversion70' && discountedValue
-          ? Number(discountedValue)
-          : undefined,
-      deliveryType: proposalType === 'conversion70' ? deliveryType : undefined,
+      discountedValue: discountedValue ? Number(discountedValue) : undefined,
+      deliveryType: deliveryType,
       services: services,
     })
   }
@@ -115,36 +114,15 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-2">
-        <Label htmlFor="type">Tipo de Proposta</Label>
-        <Select
-          value={proposalType}
-          onValueChange={(val: ProposalType) => {
-            setProposalType(val)
-            if (
-              (val === 'transformation' || val === 'conversion70') &&
-              services.length === 0
-            ) {
-              setServices(DEFAULT_SERVICES)
-            }
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Modelo Atual (Padrão)</SelectItem>
-            {/* Keeping transformation for legacy support in backend but hiding from new creation if not desired, 
-                but user story implies replacing it. We use conversion70 as the new version. */}
-            <SelectItem value="conversion70">
-              Modelo 01 — 70% de conversão
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        <Label>Tipo de Proposta</Label>
+        <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed">
+          Modelo 01 — 70% de conversão
+        </div>
       </div>
 
       <div className="grid gap-4 p-4 border rounded-md bg-muted/20">
         <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-          {proposalType === 'conversion70' ? 'Ficha Técnica' : 'Dados do Aluno'}
+          Ficha Técnica
         </h3>
         <div className="grid gap-2">
           <Label htmlFor="clientName">Nome do Potencial Cliente *</Label>
@@ -159,24 +137,22 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
           />
         </div>
 
-        {proposalType === 'conversion70' && (
-          <div className="grid gap-2">
-            <Label>Tipo de Entrega</Label>
-            <Select
-              value={deliveryType}
-              onValueChange={(val: DeliveryType) => setDeliveryType(val)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="presencial">Presencial</SelectItem>
-                <SelectItem value="hybrid">Online + Presencial</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div className="grid gap-2">
+          <Label>Tipo de Entrega</Label>
+          <Select
+            value={deliveryType}
+            onValueChange={(val: DeliveryType) => setDeliveryType(val)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="online">Online</SelectItem>
+              <SelectItem value="presencial">Presencial</SelectItem>
+              <SelectItem value="hybrid">Online + Presencial</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
@@ -241,75 +217,57 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         </div>
       </div>
 
-      {proposalType === 'default' && (
-        <div className="grid gap-2">
-          <Label htmlFor="description">Descrição do Acompanhamento</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            placeholder="Descreva como será o trabalho (treinos, dieta, suporte...)"
-            rows={4}
-          />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label>Lista de Serviços (Editável)</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addService}
+          >
+            <Plus className="h-4 w-4 mr-2" /> Adicionar Serviço
+          </Button>
         </div>
-      )}
-
-      {(proposalType === 'transformation' ||
-        proposalType === 'conversion70') && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Lista de Serviços (Editável)</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addService}
-            >
-              <Plus className="h-4 w-4 mr-2" /> Adicionar Serviço
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {services.map((service) => (
-              <Card key={service.id} className="relative">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeService(service.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <CardContent className="p-3 space-y-2">
-                  <Input
-                    value={service.title}
-                    onChange={(e) =>
-                      updateService(service.id, 'title', e.target.value)
-                    }
-                    className="font-semibold border-none px-0 h-auto focus-visible:ring-0 focus-visible:border-b rounded-none"
-                    placeholder="Título do Serviço"
-                  />
-                  <Textarea
-                    value={service.description}
-                    onChange={(e) =>
-                      updateService(service.id, 'description', e.target.value)
-                    }
-                    className="text-sm min-h-[60px] resize-none"
-                    placeholder="Descrição do serviço..."
-                  />
-                </CardContent>
-              </Card>
-            ))}
-            {services.length === 0 && (
-              <div className="text-center p-4 border border-dashed rounded text-sm text-muted-foreground">
-                Nenhum serviço listado.
-              </div>
-            )}
-          </div>
+        <div className="space-y-3">
+          {services.map((service) => (
+            <Card key={service.id} className="relative">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive"
+                onClick={() => removeService(service.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <CardContent className="p-3 space-y-2">
+                <Input
+                  value={service.title}
+                  onChange={(e) =>
+                    updateService(service.id, 'title', e.target.value)
+                  }
+                  className="font-semibold border-none px-0 h-auto focus-visible:ring-0 focus-visible:border-b rounded-none"
+                  placeholder="Título do Serviço"
+                />
+                <Textarea
+                  value={service.description}
+                  onChange={(e) =>
+                    updateService(service.id, 'description', e.target.value)
+                  }
+                  className="text-sm min-h-[60px] resize-none"
+                  placeholder="Descrição do serviço..."
+                />
+              </CardContent>
+            </Card>
+          ))}
+          {services.length === 0 && (
+            <div className="text-center p-4 border border-dashed rounded text-sm text-muted-foreground">
+              Nenhum serviço listado.
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
@@ -336,34 +294,31 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         </div>
       </div>
 
-      {proposalType === 'conversion70' ? (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="discountedValue">Valor sem desconto (R$)</Label>
-            <Input
-              id="discountedValue"
-              type="number"
-              value={discountedValue}
-              onChange={(e) => setDiscountedValue(e.target.value)}
-              placeholder="0.00"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="value">Valor Real (com desconto)</Label>
-            <Input
-              id="value"
-              type="number"
-              value={formData.value}
-              onChange={(e) =>
-                setFormData({ ...formData, value: e.target.value })
-              }
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-      ) : (
+      <div className="grid gap-2">
+        <Label htmlFor="validityDate">Data de Validade (Proposta)</Label>
+        <Input
+          id="validityDate"
+          value={formData.validityDate}
+          onChange={(e) =>
+            setFormData({ ...formData, validityDate: e.target.value })
+          }
+          placeholder="Ex: 15 dias"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="value">Valor (R$)</Label>
+          <Label htmlFor="discountedValue">Valor sem desconto (R$)</Label>
+          <Input
+            id="discountedValue"
+            type="number"
+            value={discountedValue}
+            onChange={(e) => setDiscountedValue(e.target.value)}
+            placeholder="0.00"
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="value">Valor Real (com desconto)</Label>
           <Input
             id="value"
             type="number"
@@ -374,21 +329,7 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
             placeholder="0.00"
           />
         </div>
-      )}
-
-      {proposalType !== 'conversion70' && (
-        <div className="grid gap-2">
-          <Label htmlFor="observations">Observações / Fechamento</Label>
-          <Textarea
-            id="observations"
-            value={formData.observations}
-            onChange={(e) =>
-              setFormData({ ...formData, observations: e.target.value })
-            }
-            placeholder="Ex: Condições de pagamento, bônus..."
-          />
-        </div>
-      )}
+      </div>
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

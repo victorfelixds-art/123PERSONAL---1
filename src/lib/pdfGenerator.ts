@@ -641,25 +641,27 @@ export const generateProposalPDF = (
       </div>
       <div class="meta-grid">
         <div class="meta-row">
-          <span class="meta-label">${ICONS.user} Aluno</span>
-          <span class="meta-value">${proposal.clientName}</span>
-        </div>
-        <div class="meta-row">
           <span class="meta-label">${ICONS.calendar} Data</span>
           <span class="meta-value">${new Date(proposal.createdAt).toLocaleDateString('pt-BR')}</span>
         </div>
+        ${
+          proposal.validityDate
+            ? `
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.clock} Validade</span>
+          <span class="meta-value">${proposal.validityDate}</span>
+        </div>
+        `
+            : ''
+        }
       </div>
     </header>
 
     <div class="section">
       <div class="section-title">FICHA TÉCNICA</div>
       <div class="info-grid">
-         <div class="info-card">
-          <div class="info-label">Tipo</div>
-          <div class="info-value">${deliveryTypeLabel}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Aluno</div>
+        <div class="info-card" style="grid-column: 1 / -1;">
+          <div class="info-label">NOME</div>
           <div class="info-value">${proposal.clientName}</div>
         </div>
         <div class="info-card">
@@ -671,8 +673,12 @@ export const generateProposalPDF = (
           <div class="info-value">${proposal.clientHeight || '-'}</div>
         </div>
         <div class="info-card" style="grid-column: 1 / -1;">
-          <div class="info-label">Objetivo do Projeto</div>
+          <div class="info-label">Objetivo</div>
           <div class="info-value">${proposal.clientObjective}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Acompanhamento</div>
+          <div class="info-value">${deliveryTypeLabel}</div>
         </div>
       </div>
     </div>

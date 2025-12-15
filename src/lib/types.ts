@@ -134,6 +134,7 @@ export interface Proposal {
   // New fields for Conversion70
   deliveryType?: DeliveryType
   discountedValue?: number // "Valor sem desconto"
+  validityDate?: string // "Data de Validade"
 
   description: string
   planName: string
