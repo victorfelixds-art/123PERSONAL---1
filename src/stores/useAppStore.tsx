@@ -15,6 +15,7 @@ import {
   UserProfile,
   AppSettings,
   Plan,
+  Proposal,
 } from '@/lib/types'
 import {
   mockClients,
@@ -26,6 +27,7 @@ import {
   mockProfile,
   mockSettings,
   mockPlans,
+  mockProposals,
 } from '@/data/mockData'
 import { addMonths, format, parseISO } from 'date-fns'
 
@@ -39,6 +41,9 @@ interface AppContextType {
   profile: UserProfile
   settings: AppSettings
   plans: Plan[]
+  proposals: Proposal[]
+  referralViews: number
+  referralConversions: number
   addClient: (client: Client) => void
   updateClient: (client: Client) => void
   removeClient: (id: string) => void
@@ -81,6 +86,11 @@ interface AppContextType {
   addPlan: (plan: Plan) => void
   updatePlan: (plan: Plan) => void
   removePlan: (id: string) => void
+  addProposal: (proposal: Proposal) => void
+  updateProposal: (proposal: Proposal) => void
+  removeProposal: (id: string) => void
+  incrementReferralViews: () => void
+  incrementReferralConversions: () => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -96,6 +106,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile>(mockProfile)
   const [settings, setSettings] = useState<AppSettings>(mockSettings)
   const [plans, setPlans] = useState<Plan[]>(mockPlans)
+  const [proposals, setProposals] = useState<Proposal[]>(mockProposals)
+  const [referralViews, setReferralViews] = useState(15) // Mock initial views
+  const [referralConversions, setReferralConversions] = useState(3) // Mock initial conversions
 
   // Apply Theme Effect
   useEffect(() => {
@@ -360,6 +373,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const removePlan = (id: string) =>
     setPlans((prev) => prev.filter((p) => p.id !== id))
 
+  const addProposal = (proposal: Proposal) =>
+    setProposals((prev) => [...prev, proposal])
+  const updateProposal = (updated: Proposal) =>
+    setProposals((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+  const removeProposal = (id: string) =>
+    setProposals((prev) => prev.filter((p) => p.id !== id))
+
+  const incrementReferralViews = () => setReferralViews((prev) => prev + 1)
+  const incrementReferralConversions = () =>
+    setReferralConversions((prev) => prev + 1)
+
   return (
     <AppContext.Provider
       value={{
@@ -372,6 +396,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         profile,
         settings,
         plans,
+        proposals,
+        referralViews,
+        referralConversions,
         addClient,
         updateClient,
         removeClient,
@@ -400,6 +427,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addPlan,
         updatePlan,
         removePlan,
+        addProposal,
+        updateProposal,
+        removeProposal,
+        incrementReferralViews,
+        incrementReferralConversions,
       }}
     >
       {children}

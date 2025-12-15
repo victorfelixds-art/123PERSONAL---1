@@ -13,10 +13,12 @@ import Treinos from '@/pages/Treinos'
 import Dieta from '@/pages/Dieta'
 import Agenda from '@/pages/Agenda'
 import Financeiro from '@/pages/Financeiro'
-import Links from '@/pages/Links'
+import IndicacoesPropostas from '@/pages/IndicacoesPropostas'
 import Perfil from '@/pages/Perfil'
 import Configuracoes from '@/pages/Configuracoes'
 import PublicStudent from '@/pages/PublicStudent'
+import PublicRegistration from '@/pages/PublicRegistration'
+import PublicReferral from '@/pages/PublicReferral'
 import NotFound from '@/pages/NotFound'
 
 const App = () => (
@@ -36,12 +38,17 @@ const App = () => (
             <Route path="/dieta" element={<Dieta />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/financeiro" element={<Financeiro />} />
-            <Route path="/links" element={<Links />} />
+            <Route
+              path="/indicacoes-propostas"
+              element={<IndicacoesPropostas />}
+            />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
           </Route>
-          {/* Public Route outside Layout */}
+          {/* Public Routes outside Layout */}
           <Route path="/p/:linkId" element={<PublicStudent />} />
+          <Route path="/register" element={<PublicRegistration />} />
+          <Route path="/ref/:trainerId" element={<PublicReferral />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

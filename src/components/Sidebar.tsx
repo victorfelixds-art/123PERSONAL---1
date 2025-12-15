@@ -6,10 +6,9 @@ import {
   Utensils,
   Calendar,
   DollarSign,
-  Link as LinkIcon,
+  FileText,
   User,
   Settings,
-  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,7 +19,11 @@ const navItems = [
   { name: 'Dieta', path: '/dieta', icon: Utensils },
   { name: 'Agenda', path: '/agenda', icon: Calendar },
   { name: 'Financeiro', path: '/financeiro', icon: DollarSign },
-  { name: 'Links', path: '/links', icon: LinkIcon },
+  {
+    name: 'Indicações & Propostas',
+    path: '/indicacoes-propostas',
+    icon: FileText,
+  },
   { name: 'Perfil', path: '/perfil', icon: User },
   { name: 'Configurações', path: '/configuracoes', icon: Settings },
 ]

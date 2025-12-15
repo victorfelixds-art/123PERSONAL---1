@@ -8,6 +8,7 @@ import {
   UserProfile,
   AppSettings,
   Plan,
+  Proposal,
 } from '@/lib/types'
 import { addDays, addMonths, subMonths, format } from 'date-fns'
 
@@ -297,6 +298,22 @@ export const mockLinks: LinkItem[] = [
     title: 'Meu Instagram',
     url: 'https://instagram.com',
     description: 'Divulgação de trabalho',
+  },
+]
+
+export const mockProposals: Proposal[] = [
+  {
+    id: '1',
+    clientName: 'Ana Clara',
+    clientObjective: 'Definição e Perda de Gordura',
+    description:
+      'Acompanhamento online com treinos personalizados e ajuste de dieta mensal.',
+    planName: 'Consultoria Trimestral',
+    value: 600,
+    duration: '3 meses',
+    observations: 'Início imediato após confirmação.',
+    createdAt: format(subMonths(today, 0), 'yyyy-MM-dd'),
+    status: 'sent',
   },
 ]
 

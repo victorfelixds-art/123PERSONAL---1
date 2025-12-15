@@ -1,4 +1,4 @@
-import { Workout, Diet, UserProfile, Transaction } from '@/lib/types'
+import { Workout, Diet, UserProfile, Transaction, Proposal } from '@/lib/types'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -19,6 +19,7 @@ const ICONS = {
   phone: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
   mail: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
   dollar: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+  file: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`,
 }
 
 const getBaseStyles = (primaryColor: string) => `
@@ -576,4 +577,113 @@ export const generateFinancialPDF = (
   `
 
   printHTML(`Relatório Financeiro - ${periodLabel}`, content, primaryColor)
+}
+
+export const generateProposalPDF = (
+  proposal: Proposal,
+  profile: UserProfile,
+  themeColor: string,
+) => {
+  const primaryColor = THEME_COLORS[themeColor] || THEME_COLORS['blue']
+
+  const content = `
+    <header class="header">
+      <div class="brand-area">
+        <div class="brand-name">${profile.name}</div>
+        <div class="doc-type">Proposta Comercial</div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.user} Para</span>
+          <span class="meta-value">${proposal.clientName}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.calendar} Data</span>
+          <span class="meta-value">${new Date(proposal.createdAt).toLocaleDateString('pt-BR')}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.clock} Validade</span>
+          <span class="meta-value">30 dias</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-title">Objetivo e Escopo</div>
+      <div class="info-grid">
+        <div class="info-card" style="grid-column: 1 / -1;">
+          <div class="info-label">Objetivo do Cliente</div>
+          <div class="info-value">${proposal.clientObjective}</div>
+        </div>
+        <div class="info-card" style="grid-column: 1 / -1;">
+          <div class="info-label">Descrição do Acompanhamento</div>
+          <div class="info-value">${proposal.description}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.file} Plano Oferecido</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-box">
+              <span class="stat-label">Plano</span>
+              <span class="stat-value">${proposal.planName}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Duração</span>
+              <span class="stat-value">${proposal.duration}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Investimento</span>
+              <span class="stat-value" style="color: ${primaryColor}">R$ ${proposal.value.toFixed(2)}</span>
+            </div>
+          </div>
+          ${
+            proposal.observations
+              ? `
+            <div class="notes-box">
+              <strong>Observações:</strong> ${proposal.observations}
+            </div>
+          `
+              : ''
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Próximos Passos</div>
+      <p style="font-size: 14px; color: var(--gray-600); line-height: 1.6; margin-bottom: 20px;">
+        Esta proposta é válida por 30 dias. Para iniciarmos o acompanhamento, entre em contato comigo pelo WhatsApp ou Email.
+        Estou à disposição para tirar qualquer dúvida e ajustarmos os detalhes para alcançarmos seus objetivos.
+      </p>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <div style="
+          display: inline-block;
+          background: #25D366;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: bold;
+          text-decoration: none;
+          font-size: 16px;
+        ">
+          Falar no WhatsApp: ${profile.phone}
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-name">${profile.name}</div>
+      <div class="footer-contact">
+        <span class="contact-item">${ICONS.phone} ${profile.phone}</span>
+        <span class="contact-item">${ICONS.mail} ${profile.email}</span>
+      </div>
+    </footer>
+  `
+
+  printHTML(`Proposta - ${proposal.clientName}`, content, primaryColor)
 }

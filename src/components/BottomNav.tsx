@@ -8,7 +8,7 @@ import {
   Utensils,
   Calendar,
   DollarSign,
-  Link as LinkIcon,
+  FileText,
   Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,6 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
 
 const mainNavItems = [
   { name: 'Início', path: '/', icon: LayoutDashboard },
@@ -33,7 +32,7 @@ const moreNavItems = [
   { name: 'Dieta', path: '/dieta', icon: Utensils },
   { name: 'Agenda', path: '/agenda', icon: Calendar },
   { name: 'Financeiro', path: '/financeiro', icon: DollarSign },
-  { name: 'Links', path: '/links', icon: LinkIcon },
+  { name: 'Indicações', path: '/indicacoes-propostas', icon: FileText },
   { name: 'Configurações', path: '/configuracoes', icon: Settings },
 ]
 

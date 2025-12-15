@@ -111,6 +111,19 @@ export interface LinkItem {
   description?: string
 }
 
+export interface Proposal {
+  id: string
+  clientName: string
+  clientObjective: string
+  description: string
+  planName: string
+  value: number
+  duration: string
+  observations?: string
+  createdAt: string
+  status: 'sent' | 'accepted' | 'rejected'
+}
+
 export interface UserProfile {
   name: string
   specialization: string
