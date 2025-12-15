@@ -69,33 +69,33 @@
     --chart-5: 359 77% 55%;
   }
 
-  /* Theme: Light Performance */
+  /* Theme: Light Performance (Updated to Dark Variant for Consistency) */
   .theme-light-performance {
-    /* bg: #FFFFFF */
-    --background: 0 0% 100%;
-    /* text: #111111 */
-    --foreground: 0 0% 7%;
+    /* bg: #121212 */
+    --background: 0 0% 7%;
+    /* text: #FFFFFF */
+    --foreground: 0 0% 100%;
 
-    /* card: #FFFFFF (with shadow or border to distinguish) */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
+    /* card: #1E1E1E */
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 100%;
 
-    /* accent.primary: #16A34A -> 142 76% 36% */
+    /* accent.primary: #16A34A */
     --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
 
-    /* secondary: #F5F5F5 -> 0 0% 96% */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 31%; /* #4F4F4F */
+    /* secondary: #2A2A2A */
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* muted: #9E9E9E */
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 62%;
+    /* muted: #2A2A2A */
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 60%;
 
-    /* accent.secondary: #22C55E */
-    --accent: 0 0% 96%;
+    /* accent: #22C55E */
+    --accent: 0 0% 16%;
     --accent-foreground: 142 71% 45%;
 
     /* error: #DC2626 */
@@ -104,20 +104,20 @@
 
     /* Status Colors */
     --success: 142 76% 36%;
-    --warning: 43 96% 56%; /* #F59E0B */
+    --warning: 43 96% 56%;
     --error: 0 72% 51%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 142 76% 36%;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 7%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 142 76% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 7%;
-    --sidebar-border: 0 0% 90%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
     --sidebar-ring: 142 76% 36%;
 
     --chart-1: 142 76% 36%;

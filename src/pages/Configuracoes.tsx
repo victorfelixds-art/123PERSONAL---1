@@ -99,8 +99,8 @@ const Configuracoes = () => {
     },
     {
       id: 'light-performance',
-      label: 'Light Performance',
-      previewClass: 'bg-[#FFFFFF] border-[#E5E7EB]',
+      label: 'Light Performance (High Contrast)',
+      previewClass: 'bg-[#121212] border-[#2A2A2A]',
     },
     {
       id: 'performance-blue',
@@ -167,8 +167,6 @@ const Configuracoes = () => {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* ... (Other tabs remain similar but styled with new components) ... */}
 
         <TabsContent value="planos">
           <Card>

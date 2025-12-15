@@ -252,11 +252,11 @@ const AlunoDetalhes = () => {
                 {client.name}
               </h1>
               {displayStatus === 'Ativo' ? (
-                <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-none px-3 py-1">
+                <Badge className="bg-green-600 text-white hover:bg-green-700 border-none px-3 py-1">
                   Ativo
                 </Badge>
               ) : displayStatus === 'Atenção' ? (
-                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-none px-3 py-1">
+                <Badge className="bg-yellow-600 text-white hover:bg-yellow-700 border-none px-3 py-1">
                   Atenção
                 </Badge>
               ) : (
@@ -279,11 +279,11 @@ const AlunoDetalhes = () => {
               />
               <div className="flex items-center gap-1.5">
                 {client.profileStatus === 'complete' ? (
-                  <span className="flex items-center gap-1.5 text-green-600">
+                  <span className="flex items-center gap-1.5 text-green-400">
                     <CheckCircle2 className="h-4 w-4" /> Perfil Completo
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 text-yellow-600">
+                  <span className="flex items-center gap-1.5 text-yellow-400">
                     <AlertTriangle className="h-4 w-4" /> Perfil Incompleto
                   </span>
                 )}
@@ -691,7 +691,7 @@ const AlunoDetalhes = () => {
                         <Clock className="h-3 w-3" />
                         {format(new Date(e.date), 'HH:mm')}
                         {e.completed && (
-                          <span className="text-green-600 font-bold ml-2 uppercase text-xs">
+                          <span className="text-green-400 font-bold ml-2 uppercase text-xs">
                             • Concluído
                           </span>
                         )}
@@ -704,7 +704,7 @@ const AlunoDetalhes = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-10 w-10 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="h-10 w-10 text-green-400 hover:text-green-500 hover:bg-green-50/10"
                         onClick={() => updateEvent({ ...e, completed: true })}
                         title="Concluir"
                       >

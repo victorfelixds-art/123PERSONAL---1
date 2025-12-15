@@ -166,12 +166,12 @@ const Agenda = () => {
                 className={cn(
                   'transition-all hover:shadow-md border-l-4',
                   status === 'concluido'
-                    ? 'border-l-green-500 opacity-60'
+                    ? 'border-l-green-600 opacity-60'
                     : status === 'atrasado'
-                      ? 'border-l-red-500'
+                      ? 'border-l-red-600'
                       : status === 'hoje'
-                        ? 'border-l-blue-500'
-                        : 'border-l-gray-300',
+                        ? 'border-l-blue-600'
+                        : 'border-l-gray-600',
                 )}
               >
                 <CardContent className="p-6 flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center">
@@ -189,7 +189,7 @@ const Agenda = () => {
                       {status === 'atrasado' && (
                         <Badge
                           variant="destructive"
-                          className="font-bold uppercase"
+                          className="font-bold uppercase text-white"
                         >
                           Atrasado
                         </Badge>
@@ -197,7 +197,7 @@ const Agenda = () => {
                       {status === 'hoje' && (
                         <Badge
                           variant="secondary"
-                          className="bg-blue-100 text-blue-800 font-bold uppercase"
+                          className="bg-blue-900 text-white font-bold uppercase"
                         >
                           Hoje
                         </Badge>
@@ -236,7 +236,7 @@ const Agenda = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50 h-10 w-10"
+                        className="text-green-600 hover:text-green-500 hover:bg-green-900/20 h-10 w-10"
                         onClick={() => handleComplete(event)}
                         title="Concluir"
                       >

@@ -148,7 +148,7 @@ const Alunos = () => {
                       </p>
                     </div>
                     {status === 'attention' && (
-                      <div className="animate-pulse text-yellow-500">
+                      <div className="animate-pulse text-yellow-400">
                         <AlertCircle className="h-6 w-6" />
                       </div>
                     )}

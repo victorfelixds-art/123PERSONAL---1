@@ -60,11 +60,11 @@ const PublicRegistration = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center shadow-lg border-primary/20">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center shadow-lg border-primary/20 bg-card">
           <CardHeader>
-            <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4 animate-in zoom-in">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            <div className="mx-auto bg-green-900 p-4 rounded-full w-fit mb-4 animate-in zoom-in">
+              <CheckCircle2 className="h-10 w-10 text-white" />
             </div>
             <CardTitle className="text-2xl">Cadastro Recebido!</CardTitle>
             <CardDescription className="text-base mt-2">
@@ -78,8 +78,8 @@ const PublicRegistration = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 animate-fade-in">
-      <Card className="w-full max-w-lg shadow-lg">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 animate-fade-in">
+      <Card className="w-full max-w-lg shadow-lg bg-card">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
             <Dumbbell className="h-8 w-8 text-primary" />

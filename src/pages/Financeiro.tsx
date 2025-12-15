@@ -552,12 +552,12 @@ const Financeiro = () => {
                       <TableCell>
                         <span
                           className={cn(
-                            'inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide',
+                            'inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide text-white',
                             t.status === 'paid'
-                              ? 'bg-green-100 text-green-800'
+                              ? 'bg-green-700'
                               : isOverdue
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-gray-100 text-gray-800',
+                                ? 'bg-red-700'
+                                : 'bg-gray-700',
                           )}
                         >
                           {t.status === 'paid'
@@ -572,7 +572,7 @@ const Financeiro = () => {
                           <Button
                             size="icon"
                             variant="outline"
-                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="h-8 w-8 text-green-600 hover:text-green-500 hover:bg-green-900/20"
                             onClick={() => markTransactionAsPaid(t.id)}
                             title="Marcar como Pago"
                           >

@@ -74,8 +74,8 @@ const PublicStudent = () => {
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center bg-card">
           <CardHeader>
             <CardTitle>Link Inválido</CardTitle>
             <CardDescription>
@@ -89,11 +89,11 @@ const PublicStudent = () => {
 
   if (!client.linkActive) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center bg-card">
           <CardHeader>
-            <div className="mx-auto bg-red-100 p-3 rounded-full w-fit mb-4">
-              <Ban className="h-8 w-8 text-red-600" />
+            <div className="mx-auto bg-red-900 p-3 rounded-full w-fit mb-4">
+              <Ban className="h-8 w-8 text-white" />
             </div>
             <CardTitle>Link Expirado ou Inativo</CardTitle>
             <CardDescription>
@@ -108,11 +108,11 @@ const PublicStudent = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center bg-card">
           <CardHeader>
-            <div className="mx-auto bg-green-100 p-3 rounded-full w-fit mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <div className="mx-auto bg-green-900 p-3 rounded-full w-fit mb-4">
+              <CheckCircle2 className="h-8 w-8 text-white" />
             </div>
             <CardTitle>Dados Enviados!</CardTitle>
             <CardDescription>
@@ -125,11 +125,11 @@ const PublicStudent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 animate-fade-in">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 animate-fade-in">
+      <Card className="w-full max-w-md bg-card">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <UserCircle2 className="w-20 h-20 mx-auto text-gray-300" />
+            <UserCircle2 className="w-20 h-20 mx-auto text-muted-foreground" />
           </div>
           <CardTitle>Preencha seu Perfil</CardTitle>
           <CardDescription>Passo {step} de 3</CardDescription>

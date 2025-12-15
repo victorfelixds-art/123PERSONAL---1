@@ -215,17 +215,17 @@ const IndicacoesPropostas = () => {
                       </CardTitle>
                       <div className="flex items-center gap-1">
                         {proposal.status === 'accepted' && (
-                          <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded uppercase tracking-wide">
+                          <span className="text-[10px] font-bold text-white bg-green-700 px-2 py-1 rounded uppercase tracking-wide">
                             Aceita
                           </span>
                         )}
                         {proposal.status === 'rejected' && (
-                          <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-1 rounded uppercase tracking-wide">
+                          <span className="text-[10px] font-bold text-white bg-red-700 px-2 py-1 rounded uppercase tracking-wide">
                             Recusada
                           </span>
                         )}
                         {proposal.status === 'sent' && (
-                          <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded uppercase tracking-wide">
+                          <span className="text-[10px] font-bold text-white bg-blue-700 px-2 py-1 rounded uppercase tracking-wide">
                             Enviada
                           </span>
                         )}
@@ -289,7 +289,7 @@ const IndicacoesPropostas = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs font-bold text-green-600 hover:text-green-700 hover:bg-green-50"
+                      className="text-xs font-bold text-green-600 hover:text-green-500 hover:bg-green-900/20"
                       onClick={() => handleShareProposal(proposal)}
                     >
                       <Share2 className="h-3.5 w-3.5 mr-1" /> Whats

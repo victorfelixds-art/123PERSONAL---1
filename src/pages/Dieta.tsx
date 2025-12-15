@@ -130,10 +130,10 @@ const Dieta = () => {
       diet.expirationDate &&
       isBefore(parseISO(diet.expirationDate), new Date())
     ) {
-      return { label: 'VENCIDA', color: 'bg-red-100 text-red-800' }
+      return { label: 'VENCIDA', color: 'bg-red-900 text-white' }
     }
 
-    return { label: 'ATIVA', color: 'bg-green-100 text-green-800' }
+    return { label: 'ATIVA', color: 'bg-green-900 text-white' }
   }
 
   return (

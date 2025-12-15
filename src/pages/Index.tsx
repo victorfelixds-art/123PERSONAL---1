@@ -68,8 +68,7 @@ const Index = () => {
       link: `/alunos/${c.id}?tab=plano`,
       actionLabel: 'Renovar',
       icon: CreditCard,
-      colorClass:
-        'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30',
+      colorClass: 'text-white bg-orange-600 dark:text-white dark:bg-orange-600',
     }
   })
 
@@ -155,7 +154,7 @@ const Index = () => {
                         {action.detail}
                       </p>
                     </div>
-                    <div className="p-3 bg-destructive/10 rounded-full text-destructive">
+                    <div className="p-3 bg-destructive/20 rounded-full text-white">
                       <action.icon className="h-6 w-6" />
                     </div>
                   </div>

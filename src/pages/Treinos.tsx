@@ -133,10 +133,10 @@ const Treinos = () => {
       workout.expirationDate &&
       isBefore(parseISO(workout.expirationDate), new Date())
     ) {
-      return { label: 'VENCIDO', color: 'bg-red-100 text-red-800' }
+      return { label: 'VENCIDO', color: 'bg-red-900 text-white' }
     }
 
-    return { label: 'ATIVO', color: 'bg-green-100 text-green-800' }
+    return { label: 'ATIVO', color: 'bg-green-900 text-white' }
   }
 
   return (

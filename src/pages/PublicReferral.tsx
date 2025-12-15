@@ -34,7 +34,7 @@ const PublicReferral = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background flex items-center justify-center p-4 animate-fade-in">
-      <Card className="w-full max-w-md shadow-2xl border-none">
+      <Card className="w-full max-w-md shadow-2xl border-none bg-card">
         <div className="bg-primary h-32 relative rounded-t-lg">
           <div className="absolute -bottom-16 left-1/2 -translate-x-1/2">
             <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
@@ -85,7 +85,7 @@ const PublicReferral = () => {
         <CardFooter className="pb-8">
           <Button
             size="lg"
-            className="w-full bg-green-600 hover:bg-green-700 text-lg h-14 shadow-lg animate-pulse hover:animate-none transition-all"
+            className="w-full bg-green-600 hover:bg-green-700 text-white text-lg h-14 shadow-lg animate-pulse hover:animate-none transition-all"
             onClick={handleWhatsAppClick}
           >
             <MessageCircle className="mr-2 h-6 w-6" /> Falar no WhatsApp

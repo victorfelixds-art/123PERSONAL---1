@@ -162,13 +162,13 @@ export function PlanTab({ client }: PlanTabProps) {
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  'p-2 rounded-lg',
+                  'p-2 rounded-lg text-white',
                   hasActivePlan
                     ? isExpired
-                      ? 'bg-red-100 text-red-700'
+                      ? 'bg-red-900'
                       : isExpiringSoon
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-green-100 text-green-700'
+                        ? 'bg-yellow-600'
+                        : 'bg-green-600'
                     : 'bg-muted text-muted-foreground',
                 )}
               >
@@ -201,7 +201,7 @@ export function PlanTab({ client }: PlanTabProps) {
                     <Button
                       variant="secondary"
                       onClick={() => setIsConcludeDialogOpen(true)}
-                      className="bg-green-100 text-green-800 hover:bg-green-200 border-none shadow-none"
+                      className="bg-green-600 text-white hover:bg-green-700 border-none shadow-none"
                     >
                       <CheckSquare className="mr-2 h-4 w-4" />
                       Concluir
@@ -212,7 +212,7 @@ export function PlanTab({ client }: PlanTabProps) {
                     <Button
                       variant="secondary"
                       onClick={() => setIsCancelDialogOpen(true)}
-                      className="bg-red-100 text-red-800 hover:bg-red-200 border-none shadow-none"
+                      className="bg-red-600 text-white hover:bg-red-700 border-none shadow-none"
                     >
                       <Ban className="mr-2 h-4 w-4" />
                       Cancelar
@@ -239,7 +239,7 @@ export function PlanTab({ client }: PlanTabProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Valor</p>
-                  <p className="text-xl font-bold text-green-600">
+                  <p className="text-xl font-bold text-green-400">
                     R$ {client.planValue?.toFixed(2)}
                   </p>
                 </div>
@@ -261,9 +261,9 @@ export function PlanTab({ client }: PlanTabProps) {
                       className={cn(
                         'font-medium flex items-center gap-1',
                         isExpired
-                          ? 'text-red-600'
+                          ? 'text-red-400'
                           : isExpiringSoon
-                            ? 'text-yellow-600'
+                            ? 'text-yellow-400'
                             : '',
                       )}
                     >
@@ -278,7 +278,7 @@ export function PlanTab({ client }: PlanTabProps) {
                   <p className="text-sm text-muted-foreground">
                     Status do Pagamento
                   </p>
-                  <div className="flex items-center gap-2 text-green-600 font-medium mt-1">
+                  <div className="flex items-center gap-2 text-green-400 font-medium mt-1">
                     <CheckCircle2 className="h-4 w-4" /> Pago Automaticamente
                   </div>
                 </div>
@@ -324,12 +324,12 @@ export function PlanTab({ client }: PlanTabProps) {
                         {item.status && (
                           <span
                             className={cn(
-                              'text-[10px] px-1.5 py-0.5 rounded-full uppercase font-bold',
+                              'text-[10px] px-1.5 py-0.5 rounded-full uppercase font-bold text-white',
                               item.status === 'completed'
-                                ? 'bg-green-200 text-green-800'
+                                ? 'bg-green-700'
                                 : item.status === 'cancelled'
-                                  ? 'bg-red-200 text-red-800'
-                                  : 'bg-gray-200 text-gray-800',
+                                  ? 'bg-red-700'
+                                  : 'bg-gray-700',
                             )}
                           >
                             {item.status === 'completed'
@@ -351,12 +351,12 @@ export function PlanTab({ client }: PlanTabProps) {
                       <p className="font-bold">R$ {item.value.toFixed(2)}</p>
                       <span
                         className={cn(
-                          'text-xs px-2 py-0.5 rounded-full uppercase font-bold',
+                          'text-xs px-2 py-0.5 rounded-full uppercase font-bold text-white',
                           item.paymentStatus === 'refunded'
-                            ? 'bg-red-100 text-red-800'
+                            ? 'bg-red-600'
                             : item.paymentStatus === 'paid'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800',
+                              ? 'bg-green-600'
+                              : 'bg-yellow-600',
                         )}
                       >
                         {item.paymentStatus === 'paid'

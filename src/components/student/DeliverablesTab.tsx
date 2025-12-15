@@ -79,7 +79,7 @@ export function DeliverablesTab({
         {/* Progress Report Section */}
         <section className="col-span-1 lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+            <div className="p-2 bg-purple-900 rounded-lg text-white">
               <BarChart3 className="h-5 w-5" />
             </div>
             <div>
@@ -92,7 +92,7 @@ export function DeliverablesTab({
             </div>
           </div>
 
-          <div className="p-6 border rounded-xl bg-gradient-to-br from-card to-purple-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-6 border rounded-xl bg-gradient-to-br from-card to-purple-900/10 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <h4 className="font-semibold text-foreground">
                 Relatório Completo
@@ -114,7 +114,7 @@ export function DeliverablesTab({
         {/* Workouts Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
+            <div className="p-2 bg-blue-900 rounded-lg text-white">
               <FileType className="h-5 w-5" />
             </div>
             <div>
@@ -163,7 +163,7 @@ export function DeliverablesTab({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                      className="h-9 w-9 text-green-400 hover:text-green-500 hover:bg-green-50/10"
                       onClick={() => handleShare('Treino', workout.title)}
                       title="Compartilhar"
                     >
@@ -179,7 +179,7 @@ export function DeliverablesTab({
         {/* Diets Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-green-100 rounded-lg text-green-700">
+            <div className="p-2 bg-green-900 rounded-lg text-white">
               <FileType className="h-5 w-5" />
             </div>
             <div>
@@ -227,7 +227,7 @@ export function DeliverablesTab({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                      className="h-9 w-9 text-green-400 hover:text-green-500 hover:bg-green-50/10"
                       onClick={() => handleShare('Dieta', diet.title)}
                       title="Compartilhar"
                     >
