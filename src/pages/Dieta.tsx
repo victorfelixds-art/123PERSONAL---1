@@ -316,3 +316,5 @@ const Dieta = () => {
     </div>
   )
 }
+
+export default Dieta

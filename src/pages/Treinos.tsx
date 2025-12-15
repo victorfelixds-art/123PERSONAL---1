@@ -152,7 +152,7 @@ const Treinos = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Treinos</h1>
         <Button onClick={handleOpenNew}>
-          <Plus className="mr-2 h-4 w-4" /> Criar Novo Treino
+          <Plus className="mr-2 h-4 w-4" /> Criar Nova Treino
         </Button>
       </div>
 
@@ -324,3 +324,5 @@ const Treinos = () => {
     </div>
   )
 }
+
+export default Treinos
