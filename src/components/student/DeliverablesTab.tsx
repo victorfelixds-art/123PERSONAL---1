@@ -1,9 +1,23 @@
+import { useState } from 'react'
 import { Workout, Diet, UserProfile, AppSettings, Client } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { FileText, Download, Share2, FileType } from 'lucide-react'
-import { generateWorkoutPDF, generateDietPDF } from '@/lib/pdfGenerator'
+import { FileText, Download, Share2, FileType, BarChart3 } from 'lucide-react'
+import {
+  generateWorkoutPDF,
+  generateDietPDF,
+  generateProgressReportPDF,
+} from '@/lib/pdfGenerator'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 interface DeliverablesTabProps {
   client: Client
@@ -20,6 +34,12 @@ export function DeliverablesTab({
   profile,
   settings,
 }: DeliverablesTabProps) {
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+  const [reportData, setReportData] = useState({
+    observations: '',
+    nextStep: '',
+  })
+
   const handleDownloadWorkout = (workout: Workout) => {
     generateWorkoutPDF(workout, profile, settings.themeColor)
     toast.success('PDF do treino gerado!')
@@ -30,7 +50,19 @@ export function DeliverablesTab({
     toast.success('PDF da dieta gerado!')
   }
 
-  const handleShare = (type: 'Treino' | 'Dieta', title: string) => {
+  const handleGenerateReport = () => {
+    generateProgressReportPDF(
+      client,
+      profile,
+      settings.themeColor,
+      reportData.observations,
+      reportData.nextStep,
+    )
+    setIsReportDialogOpen(false)
+    toast.success('Relatório gerado com sucesso!')
+  }
+
+  const handleShare = (type: string, title: string) => {
     const message = `Olá ${client.name}, aqui está o PDF do seu ${type}: ${title}.`
     const encodedMessage = encodeURIComponent(message)
     const phone = client.phone.replace(/\D/g, '')
@@ -44,6 +76,41 @@ export function DeliverablesTab({
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Progress Report Section */}
+        <section className="col-span-1 lg:col-span-2 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+              <BarChart3 className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                Relatório de Progresso
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Gere e envie relatórios de evolução
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 border rounded-xl bg-gradient-to-br from-card to-purple-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="font-semibold text-foreground">
+                Relatório Completo
+              </h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                Inclui evolução de peso, histórico, observações e próximos
+                passos.
+              </p>
+            </div>
+            <Button
+              onClick={() => setIsReportDialogOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              <FileText className="mr-2 h-4 w-4" /> Gerar Novo Relatório
+            </Button>
+          </div>
+        </section>
+
         {/* Workouts Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
@@ -173,6 +240,49 @@ export function DeliverablesTab({
           </div>
         </section>
       </div>
+
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerar Relatório de Progresso</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="observations">Observações da Semana</Label>
+              <Textarea
+                id="observations"
+                placeholder="Ex: Ótima evolução nos treinos de força..."
+                value={reportData.observations}
+                onChange={(e) =>
+                  setReportData({ ...reportData, observations: e.target.value })
+                }
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nextStep">Próximo Passo</Label>
+              <Textarea
+                id="nextStep"
+                placeholder="Ex: Aumentar ingestão calórica e carga no agachamento..."
+                value={reportData.nextStep}
+                onChange={(e) =>
+                  setReportData({ ...reportData, nextStep: e.target.value })
+                }
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsReportDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleGenerateReport}>Gerar PDF</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

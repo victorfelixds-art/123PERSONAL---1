@@ -5,6 +5,13 @@ export interface Plan {
   durationInMonths: number
 }
 
+export interface WeightEntry {
+  id: string
+  date: string
+  weight: number
+  observations?: string
+}
+
 export interface Client {
   id: string
   name: string
@@ -13,16 +20,18 @@ export interface Client {
   status: 'active' | 'inactive'
   profileStatus: 'complete' | 'incomplete'
   since: string
-  // Avatar removed as per User Story
   planId?: string
   planName: string
   planValue: number
   planStartDate?: string
-  weight?: number
+  weight?: number // Current weight
+  initialWeight?: number
+  targetWeight?: number // Meta de peso
   height?: number
   objective?: string
   linkId?: string
   linkActive: boolean
+  weightHistory?: WeightEntry[]
 }
 
 export interface Exercise {
@@ -84,11 +93,13 @@ export interface Diet {
 export interface CalendarEvent {
   id: string
   title: string
-  date: Date
+  date: Date | string
   type: 'workout' | 'meeting' | 'other'
   description?: string
   studentId?: string
   completed: boolean
+  isRecurring?: boolean
+  frequency?: number // days
 }
 
 export interface Transaction {
@@ -127,25 +138,19 @@ export interface Proposal {
   type: ProposalType
   clientName: string
   clientObjective: string
-  // Additional fields for Transformation model & Conversion70
   clientAge?: string
   clientHeight?: string
   clientWeight?: string
-  clientTargetWeight?: string // "Meta de peso"
-
-  // New fields for Conversion70
+  clientTargetWeight?: string
   deliveryType?: DeliveryType
-  discountedValue?: number // "Valor sem desconto"
-  validityDate?: string // "Data de Validade"
-
+  discountedValue?: number
+  validityDate?: string
   description: string
   planName: string
   value: number
   duration: string
   observations?: string
-
   services?: ProposalService[]
-
   createdAt: string
   status: 'sent' | 'accepted' | 'rejected'
 }

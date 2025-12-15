@@ -30,6 +30,8 @@ export function StudentForm({
     email: '',
     phone: '',
     weight: undefined,
+    initialWeight: undefined,
+    targetWeight: undefined,
     height: undefined,
     objective: '',
     planName: '',
@@ -59,12 +61,10 @@ export function StudentForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const dataToSave = { ...formData }
-    // Fallback if user somehow didn't select a plan ID but typed a name (legacy support)
     if (!dataToSave.planName) {
       dataToSave.planName = 'Personalizado'
     }
 
-    // Auto-complete profile if all required fields are present
     if (dataToSave.weight && dataToSave.height && dataToSave.objective) {
       dataToSave.profileStatus = 'complete'
     }
@@ -104,7 +104,7 @@ export function StudentForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="weight">Peso (kg)</Label>
+          <Label htmlFor="weight">Peso Atual (kg)</Label>
           <Input
             id="weight"
             type="number"
@@ -123,6 +123,37 @@ export function StudentForm({
             value={formData.height || ''}
             onChange={(e) =>
               setFormData({ ...formData, height: Number(e.target.value) })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="initialWeight">Peso Inicial (kg)</Label>
+          <Input
+            id="initialWeight"
+            type="number"
+            value={formData.initialWeight || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                initialWeight: Number(e.target.value),
+              })
+            }
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="targetWeight">Meta de Peso (kg)</Label>
+          <Input
+            id="targetWeight"
+            type="number"
+            value={formData.targetWeight || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                targetWeight: Number(e.target.value),
+              })
             }
           />
         </div>

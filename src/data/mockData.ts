@@ -35,8 +35,20 @@ export const mockClients: Client[] = [
     planStartDate: '2024-03-01',
     linkId: 'joao-silva-123',
     weight: 80,
+    initialWeight: 85,
+    targetWeight: 75,
     height: 1.8,
     objective: 'Hipertrofia',
+    weightHistory: [
+      { id: 'w1', date: '2024-01-15', weight: 85, observations: 'Início' },
+      { id: 'w2', date: '2024-02-15', weight: 82, observations: 'Evolução ok' },
+      {
+        id: 'w3',
+        date: '2024-03-15',
+        weight: 80,
+        observations: 'Meta próxima',
+      },
+    ],
   },
   {
     id: '2',
@@ -53,8 +65,25 @@ export const mockClients: Client[] = [
     planStartDate: '2024-02-01',
     linkId: 'maria-souza-456',
     weight: 60,
+    initialWeight: 65,
+    targetWeight: 58,
     height: 1.65,
     objective: 'Emagrecimento',
+    weightHistory: [
+      { id: 'w4', date: '2024-02-01', weight: 65, observations: 'Início' },
+      {
+        id: 'w5',
+        date: '2024-03-01',
+        weight: 62,
+        observations: 'Dieta ajustada',
+      },
+      {
+        id: 'w6',
+        date: '2024-04-01',
+        weight: 60,
+        observations: 'Ótimo resultado',
+      },
+    ],
   },
   {
     id: '3',
@@ -234,6 +263,17 @@ export const mockEvents: CalendarEvent[] = [
     studentId: '2',
     completed: false,
   },
+  {
+    id: '3',
+    title: 'Atualizar peso do aluno',
+    date: new Date(),
+    type: 'other',
+    description: 'Acompanhamento semanal',
+    studentId: '1',
+    completed: false,
+    isRecurring: true,
+    frequency: 7,
+  },
 ]
 
 const today = new Date()
@@ -316,37 +356,6 @@ export const mockProposals: Proposal[] = [
     value: 600,
     duration: '3 meses',
     observations: 'Início imediato após confirmação.',
-    createdAt: format(subMonths(today, 0), 'yyyy-MM-dd'),
-    status: 'sent',
-  },
-  {
-    id: '2',
-    type: 'conversion70',
-    clientName: 'Bruno Oliveira',
-    clientObjective: 'Ganho de Massa e Força',
-    clientAge: '28',
-    clientHeight: '1.82',
-    clientWeight: '75',
-    clientTargetWeight: '85',
-    deliveryType: 'hybrid',
-    discountedValue: 1200,
-    planName: 'Projeto Viking',
-    value: 997,
-    duration: '6 meses',
-    validityDate: '15/06/2024', // Example with validity date
-    description: '',
-    services: [
-      {
-        id: '1',
-        title: 'AVALIAÇÃO',
-        description: 'Bioimpedância e dobras',
-      },
-      {
-        id: '2',
-        title: 'TREINOS',
-        description: 'Periodização completa',
-      },
-    ],
     createdAt: format(subMonths(today, 0), 'yyyy-MM-dd'),
     status: 'sent',
   },

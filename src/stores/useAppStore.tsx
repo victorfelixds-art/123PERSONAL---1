@@ -16,6 +16,7 @@ import {
   AppSettings,
   Plan,
   Proposal,
+  WeightEntry,
 } from '@/lib/types'
 import {
   mockClients,
@@ -29,7 +30,7 @@ import {
   mockPlans,
   mockProposals,
 } from '@/data/mockData'
-import { addMonths, format, parseISO } from 'date-fns'
+import { addMonths, format, parseISO, addDays } from 'date-fns'
 
 interface AppContextType {
   clients: Client[]
@@ -50,6 +51,12 @@ interface AppContextType {
   generateStudentLink: (clientId: string) => void
   regenerateStudentLink: (clientId: string) => void
   deactivateStudentLink: (clientId: string) => void
+  addWeightEntry: (
+    clientId: string,
+    weight: number,
+    date: string,
+    observations?: string,
+  ) => void
   addWorkout: (workout: Workout) => void
   updateWorkout: (workout: Workout) => void
   duplicateWorkout: (id: string) => void
@@ -110,8 +117,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<AppSettings>(mockSettings)
   const [plans, setPlans] = useState<Plan[]>(mockPlans)
   const [proposals, setProposals] = useState<Proposal[]>(mockProposals)
-  const [referralViews, setReferralViews] = useState(15) // Mock initial views
-  const [referralConversions, setReferralConversions] = useState(3) // Mock initial conversions
+  const [referralViews, setReferralViews] = useState(15)
+  const [referralConversions, setReferralConversions] = useState(3)
 
   // Apply Theme Effect
   useEffect(() => {
@@ -168,10 +175,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setClients((prev) => [...prev, client])
     const newTransactions = generateTransactionsForClient(client)
     setTransactions((prev) => [...prev, ...newTransactions])
+
+    // Create recurring weight update event
+    if (client.status === 'active') {
+      addEvent({
+        id: Math.random().toString(36).substr(2, 9),
+        title: 'Atualizar peso do aluno',
+        date: new Date(),
+        type: 'other',
+        description: 'Acompanhamento semanal de peso',
+        studentId: client.id,
+        completed: false,
+        isRecurring: true,
+        frequency: 7,
+      })
+    }
   }
 
   const updateClient = (updated: Client) => {
-    // Check if plan changed to regenerate transactions
     const oldClient = clients.find((c) => c.id === updated.id)
     let newTransactions: Transaction[] = []
     let filteredTransactions = transactions
@@ -181,7 +202,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       (oldClient.planId !== updated.planId ||
         oldClient.planStartDate !== updated.planStartDate)
     ) {
-      // Remove future pending transactions for this client
       filteredTransactions = transactions.filter((t) => {
         if (
           t.studentId === updated.id &&
@@ -192,7 +212,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
         return true
       })
-      // Generate new cycle
       newTransactions = generateTransactionsForClient(updated)
     }
 
@@ -202,7 +221,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const removeClient = (id: string) => {
     setClients((prev) => prev.filter((c) => c.id !== id))
-    // Cascade delete: Remove associated Workouts, Diets, Events and Transactions
     setWorkouts((prev) => prev.filter((w) => w.clientId !== id))
     setDiets((prev) => prev.filter((d) => d.clientId !== id))
     setEvents((prev) => prev.filter((e) => e.studentId !== id))
@@ -228,6 +246,39 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     )
   }
 
+  const addWeightEntry = (
+    clientId: string,
+    weight: number,
+    date: string,
+    observations?: string,
+  ) => {
+    setClients((prev) =>
+      prev.map((c) => {
+        if (c.id === clientId) {
+          const newEntry: WeightEntry = {
+            id: Math.random().toString(36).substr(2, 9),
+            date,
+            weight,
+            observations,
+          }
+          const history = c.weightHistory ? [...c.weightHistory] : []
+          history.push(newEntry)
+          // Sort history by date descending
+          history.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+          )
+
+          return {
+            ...c,
+            weight: weight, // Update current weight
+            weightHistory: history,
+          }
+        }
+        return c
+      }),
+    )
+  }
+
   const addWorkout = (workout: Workout) =>
     setWorkouts((prev) => [...prev, workout])
   const updateWorkout = (updated: Workout) =>
@@ -240,7 +291,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         id: Math.random().toString(36).substr(2, 9),
         title: `${workout.title} (Cópia)`,
         createdAt: new Date().toISOString().split('T')[0],
-        clientId: undefined, // Reset client when duplicating as template
+        clientId: undefined,
         clientName: undefined,
         startDate: undefined,
       })
@@ -282,7 +333,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const duplicateDiet = (id: string) => {
     const diet = diets.find((d) => d.id === id)
     if (diet) {
-      // Deep copy meals
       const mealsCopy = diet.meals.map((meal) => ({
         ...meal,
         id: Math.random().toString(36).substr(2, 9),
@@ -320,7 +370,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     const newDiets: Diet[] = studentIds.map((studentId) => {
       const student = clients.find((c) => c.id === studentId)
-      // Deep copy meals for assigned diet
       const mealsCopy = diet.meals.map((meal) => ({
         ...meal,
         id: Math.random().toString(36).substr(2, 9),
@@ -348,8 +397,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addEvent = (event: CalendarEvent) =>
     setEvents((prev) => [...prev, event])
-  const updateEvent = (updated: CalendarEvent) =>
+
+  const updateEvent = (updated: CalendarEvent) => {
+    // Logic for recurring event completion
+    if (updated.completed && updated.isRecurring && updated.frequency) {
+      const previousEvent = events.find((e) => e.id === updated.id)
+      // Only trigger recurrence if it wasn't already completed
+      if (previousEvent && !previousEvent.completed) {
+        const nextDate = addDays(new Date(), updated.frequency)
+        addEvent({
+          ...updated,
+          id: Math.random().toString(36).substr(2, 9),
+          date: nextDate,
+          completed: false,
+        })
+      }
+    }
+
     setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+  }
+
   const removeEvent = (id: string) =>
     setEvents((prev) => prev.filter((e) => e.id !== id))
 
@@ -428,6 +495,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         generateStudentLink,
         regenerateStudentLink,
         deactivateStudentLink,
+        addWeightEntry,
         addWorkout,
         updateWorkout,
         duplicateWorkout,
