@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -10,6 +16,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -20,7 +28,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   ArrowLeft,
-  MoreVertical,
+  MoreHorizontal,
   MessageCircle,
   Link as LinkIcon,
   Edit,
@@ -28,8 +36,14 @@ import {
   Ban,
   CheckCircle2,
   AlertTriangle,
-  Calendar,
+  Calendar as CalendarIcon,
   Plus,
+  Mail,
+  Phone,
+  Dumbbell,
+  Utensils,
+  CreditCard,
+  Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { StudentForm } from '@/components/forms/StudentForm'
@@ -40,7 +54,7 @@ import { WorkoutForm } from '@/components/forms/WorkoutForm'
 import { DietForm } from '@/components/forms/DietForm'
 import { EventForm } from '@/components/forms/EventForm'
 import { Workout, Diet, CalendarEvent } from '@/lib/types'
-import { format, parseISO, isBefore, addMonths, isSameDay } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +72,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 const AlunoDetalhes = () => {
   const { id } = useParams()
@@ -82,7 +96,6 @@ const AlunoDetalhes = () => {
     generateStudentLink,
     settings,
     profile,
-    plans,
   } = useAppStore()
 
   // State
@@ -114,7 +127,7 @@ const AlunoDetalhes = () => {
 
   if (!client) {
     return (
-      <div className="container mx-auto p-8 text-center">
+      <div className="container mx-auto p-8 text-center min-h-[50vh] flex flex-col items-center justify-center">
         <h2 className="text-2xl font-bold mb-4">Aluno não encontrado</h2>
         <Button onClick={() => navigate('/alunos')}>Voltar para Lista</Button>
       </div>
@@ -146,15 +159,9 @@ const AlunoDetalhes = () => {
   }
 
   const handleDeleteClient = () => {
-    if (
-      confirm(
-        'Tem certeza que deseja remover este aluno? Esta ação é irreversível.',
-      )
-    ) {
-      removeClient(client.id)
-      toast.success('Aluno removido')
-      navigate('/alunos')
-    }
+    removeClient(client.id)
+    toast.success('Aluno removido')
+    navigate('/alunos')
   }
 
   // Handlers for Workout/Diet/Event
@@ -220,247 +227,460 @@ const AlunoDetalhes = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in pb-24">
+    <div className="container max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in pb-24">
       {/* Revised Header */}
       <div className="space-y-4">
         <Button
           variant="ghost"
-          className="pl-0"
+          className="pl-0 text-muted-foreground hover:text-foreground"
           onClick={() => navigate('/alunos')}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para Alunos
         </Button>
 
-        <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              <Badge
-                variant={client.status === 'active' ? 'default' : 'secondary'}
-              >
-                {client.status.toUpperCase()}
-              </Badge>
-              {client.profileStatus === 'incomplete' ? (
-                <Badge
-                  variant="outline"
-                  className="text-yellow-600 border-yellow-200 bg-yellow-50"
-                >
-                  <AlertTriangle className="w-3 h-3 mr-1" /> Perfil Incompleto
+        <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
+                {client.name}
+              </h1>
+              {client.status === 'active' ? (
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-none">
+                  Ativo
                 </Badge>
               ) : (
-                <Badge
-                  variant="outline"
-                  className="text-green-600 border-green-200 bg-green-50"
-                >
-                  <CheckCircle2 className="w-3 h-3 mr-1" /> Perfil Completo
-                </Badge>
+                <Badge variant="secondary">Inativo</Badge>
               )}
-              <span className="text-sm text-muted-foreground ml-1 flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                Desde {new Date(client.since).toLocaleDateString('pt-BR')}
-              </span>
             </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  Desde {new Date(client.since).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+              <Separator
+                orientation="vertical"
+                className="h-4 hidden sm:block"
+              />
+              <div className="flex items-center gap-1.5">
+                {client.profileStatus === 'complete' ? (
+                  <span className="flex items-center gap-1.5 text-green-600">
+                    <CheckCircle2 className="h-4 w-4" /> Perfil Completo
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-yellow-600">
+                    <AlertTriangle className="h-4 w-4" /> Perfil Incompleto
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              className="bg-green-600 hover:bg-green-700 shadow-sm"
+              onClick={handleWhatsApp}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="px-3">
+                  Ações <MoreHorizontal className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Gerenciar Aluno</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setIsEditingProfile(true)}>
+                  <Edit className="mr-2 h-4 w-4" /> Editar Dados
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLinkAction}>
+                  <LinkIcon className="mr-2 h-4 w-4" />
+                  {client.linkId ? 'Copiar Link Público' : 'Gerar Link Público'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() =>
+                    updateClient({
+                      ...client,
+                      status:
+                        client.status === 'active' ? 'inactive' : 'active',
+                    })
+                  }
+                >
+                  <Ban className="mr-2 h-4 w-4" />{' '}
+                  {client.status === 'active'
+                    ? 'Inativar Aluno'
+                    : 'Reativar Aluno'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => {
+                    if (confirm('Tem certeza que deseja excluir este aluno?')) {
+                      handleDeleteClient()
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Excluir Aluno
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
-      {/* Main Action Bar */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          className="flex-1 md:flex-none bg-green-600 hover:bg-green-700"
-          onClick={handleWhatsApp}
-        >
-          <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
-        </Button>
-        <Button
-          variant="outline"
-          className="flex-1 md:flex-none"
-          onClick={handleLinkAction}
-        >
-          <LinkIcon className="mr-2 h-4 w-4" />{' '}
-          {client.linkId ? 'Copiar Link' : 'Gerar Link'}
-        </Button>
-        <Button
-          variant="outline"
-          className="flex-1 md:flex-none"
-          onClick={() => setIsEditingProfile(true)}
-        >
-          <Edit className="mr-2 h-4 w-4" /> Editar Dados
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                updateClient({
-                  ...client,
-                  status: client.status === 'active' ? 'inactive' : 'active',
-                })
-              }
-            >
-              <Ban className="mr-2 h-4 w-4" />{' '}
-              {client.status === 'active' ? 'Inativar' : 'Reativar'}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={handleDeleteClient}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Quick Summary Cards */}
-      <StudentSummary client={client} />
-
       {/* Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start overflow-x-auto h-auto p-1 gap-1">
-          <TabsTrigger value="dados">Dados</TabsTrigger>
-          <TabsTrigger value="plano">Plano</TabsTrigger>
-          <TabsTrigger value="treinos">Treinos</TabsTrigger>
-          <TabsTrigger value="dietas">Dietas</TabsTrigger>
-          <TabsTrigger value="agenda">Agenda</TabsTrigger>
-          <TabsTrigger
-            value="entregaveis"
-            className="bg-primary/5 text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            Entregáveis
-          </TabsTrigger>
-        </TabsList>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full space-y-6"
+      >
+        <div className="border-b pb-1 overflow-x-auto">
+          <TabsList className="bg-transparent h-auto p-0 space-x-6 justify-start">
+            <TabsTrigger
+              value="dados"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
+            >
+              Visão Geral
+            </TabsTrigger>
+            <TabsTrigger
+              value="treinos"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
+            >
+              Treinos
+            </TabsTrigger>
+            <TabsTrigger
+              value="dietas"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
+            >
+              Dietas
+            </TabsTrigger>
+            <TabsTrigger
+              value="agenda"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
+            >
+              Agenda
+            </TabsTrigger>
+            <TabsTrigger
+              value="plano"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
+            >
+              Plano
+            </TabsTrigger>
+            <TabsTrigger
+              value="entregaveis"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3 text-primary font-semibold"
+            >
+              Entregáveis
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="dados" className="mt-4 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações de Contato</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">Email</Label>
-                  <p className="font-medium">{client.email || '-'}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Telefone</Label>
-                  <p className="font-medium">{client.phone || '-'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* DADOS TAB */}
+        <TabsContent value="dados" className="space-y-8 animate-fade-in-up">
+          <section>
+            <h3 className="text-lg font-semibold mb-4 tracking-tight">
+              Estatísticas Físicas
+            </h3>
+            <StudentSummary client={client} />
+          </section>
 
-        <TabsContent value="plano" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Plano Atual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 border rounded-lg bg-muted/20">
-                <p className="text-lg font-bold">{client.planName}</p>
-                <p className="text-muted-foreground">
-                  R$ {client.planValue?.toFixed(2)}
-                </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Informações de Contato
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-muted rounded-full">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">
+                      Email
+                    </p>
+                    <p className="text-sm font-medium">
+                      {client.email || 'Não informado'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-muted rounded-full">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">
+                      Telefone
+                    </p>
+                    <p className="text-sm font-medium">
+                      {client.phone || 'Não informado'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Resumo do Plano</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-primary">
+                      Plano Atual
+                    </p>
+                    <p className="text-xl font-bold">{client.planName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Valor
+                    </p>
+                    <p className="text-lg font-bold">
+                      R$ {client.planValue?.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
                 {client.planStartDate && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Início:{' '}
+                  <p className="text-xs text-muted-foreground mt-3 text-center">
+                    Início em{' '}
                     {format(parseISO(client.planStartDate), 'dd/MM/yyyy')}
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* PLANO TAB */}
+        <TabsContent value="plano" className="animate-fade-in-up">
+          <Card className="max-w-2xl">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg text-green-700">
+                  <CreditCard className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle>Detalhes da Assinatura</CardTitle>
+                  <CardDescription>
+                    Gerencie o plano financeiro do aluno
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-6 p-6 bg-muted/20 rounded-xl border">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Nome do Plano
+                  </p>
+                  <p className="text-2xl font-bold tracking-tight">
+                    {client.planName}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Valor Mensal
+                  </p>
+                  <p className="text-2xl font-bold tracking-tight text-green-600">
+                    R$ {client.planValue?.toFixed(2)}
+                  </p>
+                </div>
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Data de Início
+                  </p>
+                  <p className="font-medium flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    {client.planStartDate
+                      ? format(
+                          parseISO(client.planStartDate),
+                          'dd de MMMM de yyyy',
+                        )
+                      : '-'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditingProfile(true)}
+                >
+                  Alterar Plano
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="treinos" className="mt-4 space-y-4">
+        {/* TREINOS TAB */}
+        <TabsContent value="treinos" className="space-y-6 animate-fade-in-up">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Treinos Ativos</h3>
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                Treinos Ativos
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Gerencie a rotina de exercícios
+              </p>
+            </div>
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setIsAssignWorkoutOpen(true)}
               >
-                Atribuir
+                Atribuir Modelo
               </Button>
               <Button size="sm" onClick={() => setIsWorkoutFormOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Novo
+                <Plus className="h-4 w-4 mr-2" /> Criar Novo
               </Button>
             </div>
           </div>
-          {clientWorkouts.map((w) => (
-            <Card key={w.id}>
-              <CardContent className="p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-bold">{w.title}</p>
-                  <p className="text-xs text-muted-foreground">{w.objective}</p>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => removeWorkout(w.id)}
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {clientWorkouts.length === 0 ? (
+              <div className="col-span-full py-12 text-center border border-dashed rounded-lg bg-muted/20">
+                <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">
+                  Nenhum treino atribuído a este aluno.
+                </p>
+              </div>
+            ) : (
+              clientWorkouts.map((w) => (
+                <Card
+                  key={w.id}
+                  className="group hover:border-primary/50 transition-all shadow-sm"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-          {clientWorkouts.length === 0 && (
-            <p className="text-muted-foreground text-sm text-center py-4">
-              Nenhum treino.
-            </p>
-          )}
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-50 text-blue-700 border-blue-100"
+                      >
+                        {w.level || 'Geral'}
+                      </Badge>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive -mr-2 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeWorkout(w.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <CardTitle className="text-lg leading-tight mt-2">
+                      {w.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
+                      {w.objective}
+                    </p>
+                    <div className="mt-4 flex items-center text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Criado em {format(new Date(w.createdAt), 'dd/MM/yyyy')}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </TabsContent>
 
-        <TabsContent value="dietas" className="mt-4 space-y-4">
+        {/* DIETAS TAB */}
+        <TabsContent value="dietas" className="space-y-6 animate-fade-in-up">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Dietas Ativas</h3>
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                Planos Alimentares
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Gerencie as dietas e nutrição
+              </p>
+            </div>
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setIsAssignDietOpen(true)}
               >
-                Atribuir
+                Atribuir Modelo
               </Button>
               <Button size="sm" onClick={() => setIsDietFormOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Nova
+                <Plus className="h-4 w-4 mr-2" /> Criar Nova
               </Button>
             </div>
           </div>
-          {clientDiets.map((d) => (
-            <Card key={d.id}>
-              <CardContent className="p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-bold">{d.title}</p>
-                  <p className="text-xs text-muted-foreground">{d.type}</p>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => removeDiet(d.id)}
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {clientDiets.length === 0 ? (
+              <div className="col-span-full py-12 text-center border border-dashed rounded-lg bg-muted/20">
+                <Utensils className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">
+                  Nenhuma dieta atribuída a este aluno.
+                </p>
+              </div>
+            ) : (
+              clientDiets.map((d) => (
+                <Card
+                  key={d.id}
+                  className="group hover:border-primary/50 transition-all shadow-sm"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-          {clientDiets.length === 0 && (
-            <p className="text-muted-foreground text-sm text-center py-4">
-              Nenhuma dieta.
-            </p>
-          )}
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-700 border-green-100"
+                      >
+                        {d.type || 'Geral'}
+                      </Badge>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive -mr-2 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeDiet(d.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <CardTitle className="text-lg leading-tight mt-2">
+                      {d.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
+                      {d.objective}
+                    </p>
+                    <div className="mt-4 flex items-center text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Criado em {format(new Date(d.createdAt), 'dd/MM/yyyy')}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </TabsContent>
 
-        <TabsContent value="agenda" className="mt-4 space-y-4">
+        {/* AGENDA TAB */}
+        <TabsContent value="agenda" className="space-y-6 animate-fade-in-up">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Agenda</h3>
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                Agenda do Aluno
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Compromissos e aulas agendadas
+              </p>
+            </div>
             <Button
               size="sm"
               onClick={() => {
@@ -471,53 +691,90 @@ const AlunoDetalhes = () => {
               <Plus className="h-4 w-4 mr-2" /> Agendar
             </Button>
           </div>
-          {clientEvents.map((e) => (
-            <Card
-              key={e.id}
-              className={cn('mb-2', e.completed && 'opacity-60')}
-            >
-              <CardContent className="p-3 flex justify-between items-center">
-                <div>
-                  <p
-                    className={cn('font-medium', e.completed && 'line-through')}
-                  >
-                    {e.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(e.date), "dd/MM 'às' HH:mm")}
-                  </p>
-                </div>
-                <div className="flex gap-1">
-                  {!e.completed && (
+
+          <div className="space-y-2">
+            {clientEvents.length === 0 ? (
+              <div className="py-12 text-center border border-dashed rounded-lg bg-muted/20">
+                <CalendarIcon className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">
+                  Nenhum agendamento encontrado.
+                </p>
+              </div>
+            ) : (
+              clientEvents.map((e) => (
+                <div
+                  key={e.id}
+                  className={cn(
+                    'flex items-center justify-between p-4 rounded-lg border bg-card transition-all hover:shadow-sm',
+                    e.completed && 'opacity-60 bg-muted/30',
+                  )}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        'flex flex-col items-center justify-center h-12 w-12 rounded-lg border',
+                        e.completed
+                          ? 'bg-muted text-muted-foreground'
+                          : 'bg-primary/5 text-primary border-primary/20',
+                      )}
+                    >
+                      <span className="text-xs font-bold uppercase">
+                        {format(new Date(e.date), 'MMM')}
+                      </span>
+                      <span className="text-lg font-bold leading-none">
+                        {format(new Date(e.date), 'dd')}
+                      </span>
+                    </div>
+                    <div>
+                      <p
+                        className={cn(
+                          'font-semibold text-base',
+                          e.completed && 'line-through',
+                        )}
+                      >
+                        {e.title}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(e.date), 'HH:mm')}
+                        {e.completed && (
+                          <span className="text-green-600 font-medium ml-2">
+                            • Concluído
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-1">
+                    {!e.completed && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        onClick={() => updateEvent({ ...e, completed: true })}
+                        title="Concluir"
+                      >
+                        <CheckCircle2 className="h-5 w-5" />
+                      </Button>
+                    )}
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-green-600"
-                      onClick={() => updateEvent({ ...e, completed: true })}
+                      className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setDeleteEventId(e.id)}
+                      title="Excluir"
                     >
-                      <CheckCircle2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => setDeleteEventId(e.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-          {clientEvents.length === 0 && (
-            <p className="text-muted-foreground text-sm text-center py-4">
-              Nenhum agendamento.
-            </p>
-          )}
+              ))
+            )}
+          </div>
         </TabsContent>
 
-        <TabsContent value="entregaveis" className="mt-4">
+        <TabsContent value="entregaveis" className="animate-fade-in-up">
           <DeliverablesTab
             client={client}
             workouts={clientWorkouts}
@@ -589,23 +846,31 @@ const AlunoDetalhes = () => {
       <Dialog open={isAssignWorkoutOpen} onOpenChange={setIsAssignWorkoutOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Atribuir Treino</DialogTitle>
+            <DialogTitle>Atribuir Modelo de Treino</DialogTitle>
           </DialogHeader>
-          <Select onValueChange={setSelectedTemplateId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione..." />
-            </SelectTrigger>
-            <SelectContent>
-              {workouts
-                .filter((w) => !w.clientId)
-                .map((w) => (
-                  <SelectItem key={w.id} value={w.id}>
-                    {w.title}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+          <div className="py-4">
+            <Select onValueChange={setSelectedTemplateId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um treino..." />
+              </SelectTrigger>
+              <SelectContent>
+                {workouts
+                  .filter((w) => !w.clientId)
+                  .map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.title}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
           <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAssignWorkoutOpen(false)}
+            >
+              Cancelar
+            </Button>
             <Button onClick={handleAssignExistingWorkout}>Confirmar</Button>
           </DialogFooter>
         </DialogContent>
@@ -614,23 +879,31 @@ const AlunoDetalhes = () => {
       <Dialog open={isAssignDietOpen} onOpenChange={setIsAssignDietOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Atribuir Dieta</DialogTitle>
+            <DialogTitle>Atribuir Modelo de Dieta</DialogTitle>
           </DialogHeader>
-          <Select onValueChange={setSelectedTemplateId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione..." />
-            </SelectTrigger>
-            <SelectContent>
-              {diets
-                .filter((d) => !d.clientId)
-                .map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.title}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+          <div className="py-4">
+            <Select onValueChange={setSelectedTemplateId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma dieta..." />
+              </SelectTrigger>
+              <SelectContent>
+                {diets
+                  .filter((d) => !d.clientId)
+                  .map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.title}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
           <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAssignDietOpen(false)}
+            >
+              Cancelar
+            </Button>
             <Button onClick={handleAssignExistingDiet}>Confirmar</Button>
           </DialogFooter>
         </DialogContent>
@@ -642,8 +915,10 @@ const AlunoDetalhes = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir?</AlertDialogTitle>
-            <AlertDialogDescription>Irreversível.</AlertDialogDescription>
+            <AlertDialogTitle>Excluir Compromisso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação é irreversível.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>

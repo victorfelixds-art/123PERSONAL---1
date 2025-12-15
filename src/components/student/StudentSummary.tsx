@@ -1,5 +1,4 @@
 import { Client } from '@/lib/types'
-import { Card, CardContent } from '@/components/ui/card'
 import { Weight, Ruler, Target } from 'lucide-react'
 
 interface StudentSummaryProps {
@@ -8,40 +7,49 @@ interface StudentSummaryProps {
 
 export function StudentSummary({ client }: StudentSummaryProps) {
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-          <Weight className="h-4 w-4 text-muted-foreground mb-1" />
-          <span className="text-xs text-muted-foreground uppercase font-bold">
-            Peso
-          </span>
-          <span className="font-semibold text-lg">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="flex items-center gap-4 p-4 rounded-xl border bg-card text-card-foreground shadow-sm transition-colors hover:bg-muted/30">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+          <Weight className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">
+            Peso Atual
+          </p>
+          <p className="text-2xl font-bold tracking-tight">
             {client.weight ? `${client.weight} kg` : '-'}
-          </span>
-        </CardContent>
-      </Card>
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-          <Ruler className="h-4 w-4 text-muted-foreground mb-1" />
-          <span className="text-xs text-muted-foreground uppercase font-bold">
-            Altura
-          </span>
-          <span className="font-semibold text-lg">
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 p-4 rounded-xl border bg-card text-card-foreground shadow-sm transition-colors hover:bg-muted/30">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+          <Ruler className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Altura</p>
+          <p className="text-2xl font-bold tracking-tight">
             {client.height ? `${client.height} m` : '-'}
-          </span>
-        </CardContent>
-      </Card>
-      <Card className="shadow-sm">
-        <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-          <Target className="h-4 w-4 text-muted-foreground mb-1" />
-          <span className="text-xs text-muted-foreground uppercase font-bold">
-            Objetivo
-          </span>
-          <span className="font-semibold text-sm line-clamp-2 leading-tight">
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 p-4 rounded-xl border bg-card text-card-foreground shadow-sm transition-colors hover:bg-muted/30 sm:col-span-1">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+          <Target className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-muted-foreground">
+            Objetivo Principal
+          </p>
+          <p
+            className="text-lg font-bold tracking-tight truncate leading-tight"
+            title={client.objective}
+          >
             {client.objective || '-'}
-          </span>
-        </CardContent>
-      </Card>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
