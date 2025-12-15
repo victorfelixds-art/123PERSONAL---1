@@ -264,14 +264,26 @@ const IndicacoesPropostas = () => {
                         )}
                       </div>
                     </div>
-                    <CardDescription>
-                      {new Date(proposal.createdAt).toLocaleDateString('pt-BR')}
+                    <CardDescription className="flex items-center flex-wrap gap-2 mt-1">
+                      <span>
+                        {new Date(proposal.createdAt).toLocaleDateString(
+                          'pt-BR',
+                        )}
+                      </span>
                       {proposal.type === 'transformation' && (
                         <Badge
                           variant="outline"
-                          className="ml-2 text-[10px] h-5"
+                          className="text-[10px] h-5 px-1"
                         >
-                          Projeto
+                          Projeto (Antigo)
+                        </Badge>
+                      )}
+                      {proposal.type === 'conversion70' && (
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] h-5 px-1 bg-primary/10 text-primary hover:bg-primary/20 border-none"
+                        >
+                          Conversão 70%
                         </Badge>
                       )}
                     </CardDescription>

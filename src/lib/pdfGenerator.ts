@@ -604,6 +604,172 @@ export const generateProposalPDF = (
 ) => {
   const primaryColor = THEME_COLORS[themeColor] || THEME_COLORS['blue']
 
+  // Handle Conversion 70 Model (New)
+  if (proposal.type === 'conversion70') {
+    const servicesList =
+      proposal.services && proposal.services.length > 0
+        ? proposal.services
+            .map(
+              (s) => `
+    <div class="service-item">
+      <div class="service-icon">${ICONS.check}</div>
+      <div class="service-content">
+        <div class="service-title">${s.title.replace(/[\u{1F600}-\u{1F6FF}]/gu, '')}</div>
+        <div class="service-desc">${s.description}</div>
+      </div>
+    </div>
+  `,
+            )
+            .join('')
+        : '<p>Serviços não listados.</p>'
+
+    const waMessage = encodeURIComponent('Quero iniciar meu projeto!')
+    const waLink = `https://wa.me/${profile.phone}?text=${waMessage}`
+
+    const deliveryTypeLabel =
+      {
+        online: 'Online',
+        presencial: 'Presencial',
+        hybrid: 'Online + Presencial',
+      }[proposal.deliveryType || 'online'] || 'Online'
+
+    const content = `
+    <header class="header">
+      <div class="brand-area">
+        <div class="brand-name">${profile.name}</div>
+        <div class="doc-type">Projeto de Transformação</div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.user} Aluno</span>
+          <span class="meta-value">${proposal.clientName}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">${ICONS.calendar} Data</span>
+          <span class="meta-value">${new Date(proposal.createdAt).toLocaleDateString('pt-BR')}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="section">
+      <div class="section-title">FICHA TÉCNICA</div>
+      <div class="info-grid">
+         <div class="info-card">
+          <div class="info-label">Tipo</div>
+          <div class="info-value">${deliveryTypeLabel}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Aluno</div>
+          <div class="info-value">${proposal.clientName}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Idade</div>
+          <div class="info-value">${proposal.clientAge || '-'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Altura</div>
+          <div class="info-value">${proposal.clientHeight || '-'}</div>
+        </div>
+        <div class="info-card" style="grid-column: 1 / -1;">
+          <div class="info-label">Objetivo do Projeto</div>
+          <div class="info-value">${proposal.clientObjective}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.target} Metas e objetivos</div>
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: var(--gray-50); padding: 30px; border-radius: 8px; border: 1px solid var(--gray-200);">
+        <div style="display: flex; align-items: center; gap: 20px; width: 100%; justify-content: center;">
+          <div style="text-align: center;">
+            <div style="font-size: 12px; text-transform: uppercase; color: var(--gray-500); font-weight: 700;">Peso Atual</div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--gray-900);">${proposal.clientWeight || '0'} kg</div>
+          </div>
+          
+          <div style="flex: 1; max-width: 150px; height: 2px; background: var(--gray-300); position: relative; display: flex; align-items: center; justify-content: flex-end;">
+            <div style="width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid var(--gray-300); margin-right: -4px;"></div>
+          </div>
+
+          <div style="text-align: center;">
+            <div style="font-size: 12px; text-transform: uppercase; color: var(--gray-500); font-weight: 700;">Meta de Peso</div>
+            <div style="font-size: 20px; font-weight: 700; color: ${primaryColor};">${proposal.clientTargetWeight || '0'} kg</div>
+          </div>
+        </div>
+        
+        <div style="background: white; padding: 6px 16px; border-radius: 20px; border: 1px solid var(--gray-200); font-size: 14px; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 6px;">
+          ${ICONS.clock} Duração: ${proposal.duration}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Serviços Inclusos</div>
+      <div class="services-list">
+        ${servicesList}
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">${ICONS.clock} Prazo do Projeto</div>
+      <div class="info-grid">
+         <div class="info-card">
+          <div class="info-label">Duração Estimada</div>
+          <div class="info-value">${proposal.duration}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.dollar} Investimento</div>
+      <div class="card">
+        <div class="card-body" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+          ${
+            proposal.discountedValue
+              ? `
+            <div style="font-size: 16px; color: var(--gray-500); text-decoration: line-through;">
+              De R$ ${proposal.discountedValue.toFixed(2)}
+            </div>
+          `
+              : ''
+          }
+          <div style="font-size: 12px; text-transform: uppercase; color: var(--gray-500); font-weight: 700;">Valor Real</div>
+          <div style="font-size: 32px; font-weight: 800; color: ${primaryColor}">R$ ${proposal.value.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${ICONS.arrowRight} Próximo Passo</div>
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="${waLink}" target="_blank" style="
+          display: inline-block;
+          background: #25D366;
+          color: white;
+          padding: 16px 32px;
+          border-radius: 8px;
+          font-weight: 800;
+          text-decoration: none;
+          font-size: 18px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+          Aceitar e começar!
+        </a>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-name">${profile.name}</div>
+      <div class="footer-contact">
+        <span class="contact-item">${ICONS.phone} ${profile.phone}</span>
+        <span class="contact-item">${ICONS.mail} ${profile.email}</span>
+      </div>
+    </footer>
+    `
+
+    printHTML(`Projeto - ${proposal.clientName}`, content, primaryColor)
+    return
+  }
+
   // Handle Default Template
   if (proposal.type === 'default' || !proposal.type) {
     const content = `
@@ -708,7 +874,7 @@ export const generateProposalPDF = (
     return
   }
 
-  // Handle Transformation Template
+  // Handle Legacy Transformation Template
   const servicesList =
     proposal.services && proposal.services.length > 0
       ? proposal.services

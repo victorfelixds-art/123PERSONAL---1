@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { Proposal, ProposalService, ProposalType } from '@/lib/types'
+import {
+  Proposal,
+  ProposalService,
+  ProposalType,
+  DeliveryType,
+} from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -48,6 +53,9 @@ const DEFAULT_SERVICES: ProposalService[] = [
 
 export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
   const [proposalType, setProposalType] = useState<ProposalType>('default')
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>('online')
+  const [discountedValue, setDiscountedValue] = useState('')
+
   const [formData, setFormData] = useState({
     clientName: '',
     clientAge: '',
@@ -72,6 +80,11 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
       ...formData,
       type: proposalType,
       value: Number(formData.value),
+      discountedValue:
+        proposalType === 'conversion70' && discountedValue
+          ? Number(discountedValue)
+          : undefined,
+      deliveryType: proposalType === 'conversion70' ? deliveryType : undefined,
       services: services,
     })
   }
@@ -107,7 +120,10 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
           value={proposalType}
           onValueChange={(val: ProposalType) => {
             setProposalType(val)
-            if (val === 'transformation' && services.length === 0) {
+            if (
+              (val === 'transformation' || val === 'conversion70') &&
+              services.length === 0
+            ) {
               setServices(DEFAULT_SERVICES)
             }
           }}
@@ -117,8 +133,10 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="default">Modelo Atual (Padrão)</SelectItem>
-            <SelectItem value="transformation">
-              Modelo 01 — Projeto de Transformação
+            {/* Keeping transformation for legacy support in backend but hiding from new creation if not desired, 
+                but user story implies replacing it. We use conversion70 as the new version. */}
+            <SelectItem value="conversion70">
+              Modelo 01 — 70% de conversão
             </SelectItem>
           </SelectContent>
         </Select>
@@ -126,7 +144,7 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
 
       <div className="grid gap-4 p-4 border rounded-md bg-muted/20">
         <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-          Dados do Aluno
+          {proposalType === 'conversion70' ? 'Ficha Técnica' : 'Dados do Aluno'}
         </h3>
         <div className="grid gap-2">
           <Label htmlFor="clientName">Nome do Potencial Cliente *</Label>
@@ -140,6 +158,25 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
             required
           />
         </div>
+
+        {proposalType === 'conversion70' && (
+          <div className="grid gap-2">
+            <Label>Tipo de Entrega</Label>
+            <Select
+              value={deliveryType}
+              onValueChange={(val: DeliveryType) => setDeliveryType(val)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="online">Online</SelectItem>
+                <SelectItem value="presencial">Presencial</SelectItem>
+                <SelectItem value="hybrid">Online + Presencial</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
@@ -219,7 +256,8 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         </div>
       )}
 
-      {proposalType === 'transformation' && (
+      {(proposalType === 'transformation' ||
+        proposalType === 'conversion70') && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label>Lista de Serviços (Editável)</Label>
@@ -298,28 +336,59 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         </div>
       </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="value">Valor (R$)</Label>
-        <Input
-          id="value"
-          type="number"
-          value={formData.value}
-          onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-          placeholder="0.00"
-        />
-      </div>
+      {proposalType === 'conversion70' ? (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="discountedValue">Valor sem desconto (R$)</Label>
+            <Input
+              id="discountedValue"
+              type="number"
+              value={discountedValue}
+              onChange={(e) => setDiscountedValue(e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="value">Valor Real (com desconto)</Label>
+            <Input
+              id="value"
+              type="number"
+              value={formData.value}
+              onChange={(e) =>
+                setFormData({ ...formData, value: e.target.value })
+              }
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          <Label htmlFor="value">Valor (R$)</Label>
+          <Input
+            id="value"
+            type="number"
+            value={formData.value}
+            onChange={(e) =>
+              setFormData({ ...formData, value: e.target.value })
+            }
+            placeholder="0.00"
+          />
+        </div>
+      )}
 
-      <div className="grid gap-2">
-        <Label htmlFor="observations">Observações / Fechamento</Label>
-        <Textarea
-          id="observations"
-          value={formData.observations}
-          onChange={(e) =>
-            setFormData({ ...formData, observations: e.target.value })
-          }
-          placeholder="Ex: Condições de pagamento, bônus..."
-        />
-      </div>
+      {proposalType !== 'conversion70' && (
+        <div className="grid gap-2">
+          <Label htmlFor="observations">Observações / Fechamento</Label>
+          <Textarea
+            id="observations"
+            value={formData.observations}
+            onChange={(e) =>
+              setFormData({ ...formData, observations: e.target.value })
+            }
+            placeholder="Ex: Condições de pagamento, bônus..."
+          />
+        </div>
+      )}
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

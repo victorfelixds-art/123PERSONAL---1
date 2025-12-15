@@ -316,6 +316,36 @@ export const mockProposals: Proposal[] = [
     createdAt: format(subMonths(today, 0), 'yyyy-MM-dd'),
     status: 'sent',
   },
+  {
+    id: '2',
+    type: 'conversion70',
+    clientName: 'Bruno Oliveira',
+    clientObjective: 'Ganho de Massa e Força',
+    clientAge: '28',
+    clientHeight: '1.82',
+    clientWeight: '75',
+    clientTargetWeight: '85',
+    deliveryType: 'hybrid',
+    discountedValue: 1200,
+    planName: 'Projeto Viking',
+    value: 997,
+    duration: '6 meses',
+    description: '',
+    services: [
+      {
+        id: '1',
+        title: 'AVALIAÇÃO',
+        description: 'Bioimpedância e dobras',
+      },
+      {
+        id: '2',
+        title: 'TREINOS',
+        description: 'Periodização completa',
+      },
+    ],
+    createdAt: format(subMonths(today, 0), 'yyyy-MM-dd'),
+    status: 'sent',
+  },
 ]
 
 export const mockProfile: UserProfile = {

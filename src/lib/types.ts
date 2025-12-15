@@ -117,18 +117,23 @@ export interface ProposalService {
   description: string
 }
 
-export type ProposalType = 'default' | 'transformation'
+export type ProposalType = 'default' | 'transformation' | 'conversion70'
+export type DeliveryType = 'online' | 'presencial' | 'hybrid'
 
 export interface Proposal {
   id: string
   type: ProposalType
   clientName: string
   clientObjective: string
-  // Additional fields for Transformation model
+  // Additional fields for Transformation model & Conversion70
   clientAge?: string
   clientHeight?: string
   clientWeight?: string
   clientTargetWeight?: string // "Meta de peso"
+
+  // New fields for Conversion70
+  deliveryType?: DeliveryType
+  discountedValue?: number // "Valor sem desconto"
 
   description: string
   planName: string
