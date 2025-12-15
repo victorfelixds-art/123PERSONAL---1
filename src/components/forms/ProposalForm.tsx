@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Proposal, ProposalService, ProposalType } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,14 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
-import { Plus, Trash2, GripVertical } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Plus, Trash2 } from 'lucide-react'
 
 interface ProposalFormProps {
   onSave: (data: Omit<Proposal, 'id' | 'createdAt' | 'status'>) => void
@@ -70,13 +64,6 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
 
   const [services, setServices] = useState<ProposalService[]>([])
 
-  // Load default services when switching to Transformation type if empty
-  useEffect(() => {
-    if (proposalType === 'transformation' && services.length === 0) {
-      setServices(DEFAULT_SERVICES)
-    }
-  }, [proposalType])
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.clientName) return
@@ -118,7 +105,12 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         <Label htmlFor="type">Tipo de Proposta</Label>
         <Select
           value={proposalType}
-          onValueChange={(val: ProposalType) => setProposalType(val)}
+          onValueChange={(val: ProposalType) => {
+            setProposalType(val)
+            if (val === 'transformation' && services.length === 0) {
+              setServices(DEFAULT_SERVICES)
+            }
+          }}
         >
           <SelectTrigger>
             <SelectValue />
