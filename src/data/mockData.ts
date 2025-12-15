@@ -18,6 +18,8 @@ export const mockClients: Client[] = [
     status: 'active',
     since: '2024-01-15',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=1',
+    planType: 'mensal',
+    planValue: 200,
   },
   {
     id: '2',
@@ -27,6 +29,8 @@ export const mockClients: Client[] = [
     status: 'active',
     since: '2024-02-01',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=female&seed=2',
+    planType: 'trimestral',
+    planValue: 550,
   },
   {
     id: '3',
@@ -36,6 +40,8 @@ export const mockClients: Client[] = [
     status: 'inactive',
     since: '2023-11-20',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=3',
+    planType: 'mensal',
+    planValue: 200,
   },
 ]
 
@@ -51,6 +57,7 @@ export const mockWorkouts: Workout[] = [
       { name: 'Crucifixo', sets: 3, reps: '12' },
       { name: 'Tríceps Corda', sets: 3, reps: '12-15' },
     ],
+    isLifetime: true,
   },
   {
     id: '2',
@@ -62,6 +69,8 @@ export const mockWorkouts: Workout[] = [
       { name: 'Esteira', sets: 1, reps: '30 min' },
       { name: 'Abdominal Supra', sets: 4, reps: '20' },
     ],
+    isLifetime: false,
+    expirationDate: '2024-04-12',
   },
 ]
 
@@ -79,6 +88,8 @@ export const mockDiets: Diet[] = [
         items: ['Frango grelhado', 'Salada', 'Arroz integral'],
       },
     ],
+    isLifetime: false,
+    expirationDate: '2024-05-01',
   },
 ]
 
@@ -89,6 +100,7 @@ export const mockEvents: CalendarEvent[] = [
     date: new Date(),
     type: 'workout',
     description: 'Treino de Peito',
+    studentId: '1',
   },
   {
     id: '2',
@@ -96,6 +108,7 @@ export const mockEvents: CalendarEvent[] = [
     date: new Date(new Date().setDate(new Date().getDate() + 1)),
     type: 'meeting',
     description: 'Reavaliação mensal',
+    studentId: '2',
   },
 ]
 
@@ -116,14 +129,6 @@ export const mockTransactions: Transaction[] = [
     date: '2024-03-06',
     category: 'Mensalidade',
   },
-  {
-    id: '3',
-    description: 'Equipamentos',
-    amount: 150,
-    type: 'expense',
-    date: '2024-03-10',
-    category: 'Material',
-  },
 ]
 
 export const mockLinks: LinkItem[] = [
@@ -132,12 +137,6 @@ export const mockLinks: LinkItem[] = [
     title: 'Meu Instagram',
     url: 'https://instagram.com',
     description: 'Divulgação de trabalho',
-  },
-  {
-    id: '2',
-    title: 'Calculadora de Macros',
-    url: 'https://example.com/macros',
-    description: 'Ferramenta útil',
   },
 ]
 

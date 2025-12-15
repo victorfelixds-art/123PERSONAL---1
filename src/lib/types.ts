@@ -6,15 +6,19 @@ export interface Client {
   status: 'active' | 'inactive'
   since: string
   avatar?: string
+  planType: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+  planValue: number
 }
 
 export interface Workout {
   id: string
   title: string
   clientId?: string
-  clientName?: string // simplified for mock
+  clientName?: string
   exercises: { name: string; sets: number; reps: string }[]
   createdAt: string
+  expirationDate?: string | null
+  isLifetime: boolean
 }
 
 export interface Diet {
@@ -24,6 +28,8 @@ export interface Diet {
   clientName?: string
   calories: number
   meals: { name: string; items: string[] }[]
+  expirationDate?: string | null
+  isLifetime: boolean
 }
 
 export interface CalendarEvent {
@@ -32,6 +38,7 @@ export interface CalendarEvent {
   date: Date
   type: 'workout' | 'meeting' | 'other'
   description?: string
+  studentId?: string
 }
 
 export interface Transaction {

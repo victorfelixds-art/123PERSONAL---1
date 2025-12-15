@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import useAppStore from '@/stores/useAppStore'
+import { Diet } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,16 +12,13 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Utensils, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Copy, Edit, Clock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
 } from '@/components/ui/dialog'
-import { toast } from 'sonner'
 import {
   Select,
   SelectContent,
@@ -28,153 +26,205 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { toast } from 'sonner'
 
 const Dieta = () => {
-  const { diets, clients, addDiet, removeDiet } = useAppStore()
+  const { diets, clients, addDiet, updateDiet, removeDiet, duplicateDiet } =
+    useAppStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [newDiet, setNewDiet] = useState({
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [formData, setFormData] = useState<Partial<Diet>>({
     title: '',
-    clientId: '',
+    clientId: 'none',
     calories: 2000,
+    isLifetime: true,
+    expirationDate: '',
   })
 
-  const handleAddDiet = () => {
-    if (!newDiet.title) return
-
-    const client = clients.find((c) => c.id === newDiet.clientId)
-
-    addDiet({
-      id: Math.random().toString(36).substr(2, 9),
-      title: newDiet.title,
-      clientId: newDiet.clientId,
-      clientName: client ? client.name : undefined,
-      calories: newDiet.calories,
-      meals: [
-        { name: 'Café da Manhã', items: ['Ovos', 'Fruta'] },
-        { name: 'Almoço', items: ['Proteína', 'Carbo', 'Vegetais'] },
-        { name: 'Jantar', items: ['Proteína Leve', 'Salada'] },
-      ],
+  const openNew = () => {
+    setEditingId(null)
+    setFormData({
+      title: '',
+      clientId: 'none',
+      calories: 2000,
+      isLifetime: true,
+      expirationDate: '',
     })
-    setNewDiet({ title: '', clientId: '', calories: 2000 })
+    setIsDialogOpen(true)
+  }
+
+  const openEdit = (diet: Diet) => {
+    setEditingId(diet.id)
+    setFormData({
+      ...diet,
+      clientId: diet.clientId || 'none',
+      expirationDate: diet.expirationDate || '',
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleSave = () => {
+    if (!formData.title) return
+
+    const client =
+      formData.clientId !== 'none'
+        ? clients.find((c) => c.id === formData.clientId)
+        : undefined
+
+    const dietData = {
+      title: formData.title,
+      clientId: client?.id,
+      clientName: client?.name,
+      calories: formData.calories,
+      isLifetime: formData.isLifetime,
+      expirationDate: formData.isLifetime ? null : formData.expirationDate,
+      meals: (editingId
+        ? diets.find((d) => d.id === editingId)?.meals
+        : []) || [{ name: 'Refeição 1', items: ['Item A', 'Item B'] }],
+    }
+
+    if (editingId) {
+      updateDiet({ ...dietData, id: editingId } as Diet)
+      toast.success('Dieta atualizada')
+    } else {
+      addDiet({
+        ...dietData,
+        id: Math.random().toString(36).substr(2, 9),
+      } as Diet)
+      toast.success('Dieta criada')
+    }
     setIsDialogOpen(false)
-    toast.success('Dieta criada com sucesso!')
   }
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Dietas</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Criar Nova Dieta
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Novo Plano Alimentar</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Nome da Dieta</Label>
-                <Input
-                  id="title"
-                  value={newDiet.title}
-                  onChange={(e) =>
-                    setNewDiet({ ...newDiet, title: e.target.value })
-                  }
-                  placeholder="Ex: Emagrecimento"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="calories">Calorias (Kcal)</Label>
-                <Input
-                  id="calories"
-                  type="number"
-                  value={newDiet.calories}
-                  onChange={(e) =>
-                    setNewDiet({ ...newDiet, calories: Number(e.target.value) })
-                  }
-                  placeholder="2000"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="client">Aluno (Opcional)</Label>
-                <Select
-                  onValueChange={(val) =>
-                    setNewDiet({ ...newDiet, clientId: val })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um aluno" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleAddDiet}>Criar Dieta</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openNew}>
+          <Plus className="mr-2 h-4 w-4" /> Nova Dieta
+        </Button>
       </div>
 
-      {diets.length === 0 ? (
-        <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-          <Utensils className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-lg font-medium text-muted-foreground">
-            Nenhuma dieta criada.
-          </p>
-          <Button variant="link" onClick={() => setIsDialogOpen(true)}>
-            Criar primeira dieta
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {diets.map((diet) => (
-            <Card key={diet.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle>{diet.title}</CardTitle>
-                <CardDescription>
-                  {diet.clientName
-                    ? `Para: ${diet.clientName}`
-                    : 'Sem aluno atribuído'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold mb-2">
-                  {diet.calories}{' '}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    kcal
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {diet.meals.length} refeições planejadas
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between border-t pt-4">
-                <Button variant="outline" size="sm">
-                  Detalhes
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => removeDiet(diet.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? 'Editar Dieta' : 'Nova Dieta'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Calorias</Label>
+              <Input
+                type="number"
+                value={formData.calories}
+                onChange={(e) =>
+                  setFormData({ ...formData, calories: Number(e.target.value) })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Aluno</Label>
+              <Select
+                value={formData.clientId}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, clientId: val })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem aluno</SelectItem>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={formData.isLifetime}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, isLifetime: checked })
+                }
+              />
+              <Label>Sem validade</Label>
+            </div>
+            {!formData.isLifetime && (
+              <div className="grid gap-2">
+                <Label>Data de Término</Label>
+                <Input
+                  type="date"
+                  value={formData.expirationDate || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expirationDate: e.target.value })
+                  }
+                />
+              </div>
+            )}
+            <Button onClick={handleSave}>Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {diets.map((diet) => (
+          <Card key={diet.id}>
+            <CardHeader>
+              <CardTitle>{diet.title}</CardTitle>
+              <CardDescription>{diet.clientName || 'Geral'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold mb-2">
+                {diet.calories} kcal
+              </div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {diet.isLifetime
+                  ? 'Vitalício'
+                  : `Vence em ${diet.expirationDate}`}
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => duplicateDiet(diet.id)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openEdit(diet)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive"
+                onClick={() => removeDiet(diet.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

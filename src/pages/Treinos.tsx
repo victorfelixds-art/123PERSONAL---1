@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import useAppStore from '@/stores/useAppStore'
+import { Workout } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,16 +12,14 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Dumbbell, Trash2 } from 'lucide-react'
+import { Plus, Dumbbell, Trash2, Copy, Edit, Clock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from '@/components/ui/dialog'
-import { toast } from 'sonner'
 import {
   Select,
   SelectContent,
@@ -28,153 +27,201 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { toast } from 'sonner'
 
 const Treinos = () => {
-  const { workouts, clients, addWorkout, removeWorkout } = useAppStore()
+  const {
+    workouts,
+    clients,
+    addWorkout,
+    updateWorkout,
+    removeWorkout,
+    duplicateWorkout,
+  } = useAppStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [newWorkout, setNewWorkout] = useState({
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [formData, setFormData] = useState<Partial<Workout>>({
     title: '',
-    clientId: '',
-    exerciseCount: 1,
+    clientId: 'none',
+    isLifetime: true,
+    expirationDate: '',
   })
 
-  const handleAddWorkout = () => {
-    if (!newWorkout.title) return
-
-    const client = clients.find((c) => c.id === newWorkout.clientId)
-
-    addWorkout({
-      id: Math.random().toString(36).substr(2, 9),
-      title: newWorkout.title,
-      clientId: newWorkout.clientId,
-      clientName: client ? client.name : undefined,
-      createdAt: new Date().toISOString().split('T')[0],
-      exercises: Array(newWorkout.exerciseCount).fill({
-        name: 'Exercício Exemplo',
-        sets: 3,
-        reps: '10',
-      }),
+  const openNew = () => {
+    setEditingId(null)
+    setFormData({
+      title: '',
+      clientId: 'none',
+      isLifetime: true,
+      expirationDate: '',
     })
-    setNewWorkout({ title: '', clientId: '', exerciseCount: 1 })
+    setIsDialogOpen(true)
+  }
+
+  const openEdit = (workout: Workout) => {
+    setEditingId(workout.id)
+    setFormData({
+      ...workout,
+      clientId: workout.clientId || 'none',
+      expirationDate: workout.expirationDate || '',
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleSave = () => {
+    if (!formData.title) return
+
+    const client =
+      formData.clientId !== 'none'
+        ? clients.find((c) => c.id === formData.clientId)
+        : undefined
+
+    const workoutData = {
+      title: formData.title,
+      clientId: client?.id,
+      clientName: client?.name,
+      isLifetime: formData.isLifetime,
+      expirationDate: formData.isLifetime ? null : formData.expirationDate,
+      exercises:
+        (editingId
+          ? workouts.find((w) => w.id === editingId)?.exercises
+          : []) ||
+        Array(3).fill({ name: 'Exercício Padrão', sets: 3, reps: '10' }),
+      createdAt: new Date().toISOString(),
+    }
+
+    if (editingId) {
+      updateWorkout({ ...workoutData, id: editingId } as Workout)
+      toast.success('Treino atualizado')
+    } else {
+      addWorkout({
+        ...workoutData,
+        id: Math.random().toString(36).substr(2, 9),
+      } as Workout)
+      toast.success('Treino criado')
+    }
     setIsDialogOpen(false)
-    toast.success('Treino criado com sucesso!')
   }
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Treinos</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Criar Novo Treino
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Novo Plano de Treino</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Nome do Treino</Label>
-                <Input
-                  id="title"
-                  value={newWorkout.title}
-                  onChange={(e) =>
-                    setNewWorkout({ ...newWorkout, title: e.target.value })
-                  }
-                  placeholder="Ex: Hipertrofia A"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="client">Aluno (Opcional)</Label>
-                <Select
-                  onValueChange={(val) =>
-                    setNewWorkout({ ...newWorkout, clientId: val })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um aluno" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleAddWorkout}>Criar Treino</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openNew}>
+          <Plus className="mr-2 h-4 w-4" /> Novo Treino
+        </Button>
       </div>
 
-      {workouts.length === 0 ? (
-        <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-          <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-lg font-medium text-muted-foreground">
-            Nenhum treino criado.
-          </p>
-          <Button variant="link" onClick={() => setIsDialogOpen(true)}>
-            Criar primeiro treino
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {workouts.map((workout) => (
-            <Card
-              key={workout.id}
-              className="hover:shadow-md transition-shadow"
-            >
-              <CardHeader>
-                <CardTitle>{workout.title}</CardTitle>
-                <CardDescription>
-                  {workout.clientName
-                    ? `Para: ${workout.clientName}`
-                    : 'Sem aluno atribuído'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-muted-foreground mb-4">
-                  {workout.exercises.length} exercícios cadastrados
-                </div>
-                <ul className="text-sm space-y-1">
-                  {workout.exercises.slice(0, 3).map((ex, idx) => (
-                    <li key={idx} className="flex justify-between">
-                      <span>{ex.name}</span>
-                      <span className="text-muted-foreground">
-                        {ex.sets}x{ex.reps}
-                      </span>
-                    </li>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? 'Editar Treino' : 'Novo Treino'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Aluno</Label>
+              <Select
+                value={formData.clientId}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, clientId: val })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem aluno</SelectItem>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
                   ))}
-                  {workout.exercises.length > 3 && (
-                    <li className="text-xs text-muted-foreground pt-1">
-                      e mais {workout.exercises.length - 3}...
-                    </li>
-                  )}
-                </ul>
-              </CardContent>
-              <CardFooter className="flex justify-between border-t pt-4">
-                <Button variant="outline" size="sm">
-                  Detalhes
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => removeWorkout(workout.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={formData.isLifetime}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, isLifetime: checked })
+                }
+              />
+              <Label>Sem data de validade</Label>
+            </div>
+            {!formData.isLifetime && (
+              <div className="grid gap-2">
+                <Label>Validade</Label>
+                <Input
+                  type="date"
+                  value={formData.expirationDate || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expirationDate: e.target.value })
+                  }
+                />
+              </div>
+            )}
+            <Button onClick={handleSave}>Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {workouts.map((workout) => (
+          <Card key={workout.id}>
+            <CardHeader>
+              <CardTitle>{workout.title}</CardTitle>
+              <CardDescription>{workout.clientName || 'Geral'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                <Clock className="h-3 w-3" />
+                {workout.isLifetime
+                  ? 'Vitalício'
+                  : `Vence em ${workout.expirationDate}`}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {workout.exercises.length} exercícios
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => duplicateWorkout(workout.id)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openEdit(workout)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive"
+                onClick={() => removeWorkout(workout.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

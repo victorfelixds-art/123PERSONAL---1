@@ -30,12 +30,19 @@ interface AppContextType {
   profile: UserProfile
   settings: AppSettings
   addClient: (client: Client) => void
+  updateClient: (client: Client) => void
   removeClient: (id: string) => void
   addWorkout: (workout: Workout) => void
+  updateWorkout: (workout: Workout) => void
+  duplicateWorkout: (id: string) => void
   removeWorkout: (id: string) => void
   addDiet: (diet: Diet) => void
+  updateDiet: (diet: Diet) => void
+  duplicateDiet: (id: string) => void
   removeDiet: (id: string) => void
   addEvent: (event: CalendarEvent) => void
+  updateEvent: (event: CalendarEvent) => void
+  removeEvent: (id: string) => void
   addTransaction: (transaction: Transaction) => void
   addLink: (link: LinkItem) => void
   removeLink: (id: string) => void
@@ -58,20 +65,51 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<AppSettings>(mockSettings)
 
   const addClient = (client: Client) => setClients((prev) => [...prev, client])
+  const updateClient = (updated: Client) =>
+    setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
   const removeClient = (id: string) =>
     setClients((prev) => prev.filter((c) => c.id !== id))
 
   const addWorkout = (workout: Workout) =>
     setWorkouts((prev) => [...prev, workout])
+  const updateWorkout = (updated: Workout) =>
+    setWorkouts((prev) => prev.map((w) => (w.id === updated.id ? updated : w)))
+  const duplicateWorkout = (id: string) => {
+    const workout = workouts.find((w) => w.id === id)
+    if (workout) {
+      addWorkout({
+        ...workout,
+        id: Math.random().toString(36).substr(2, 9),
+        title: `${workout.title} (Cópia)`,
+        createdAt: new Date().toISOString().split('T')[0],
+      })
+    }
+  }
   const removeWorkout = (id: string) =>
     setWorkouts((prev) => prev.filter((w) => w.id !== id))
 
   const addDiet = (diet: Diet) => setDiets((prev) => [...prev, diet])
+  const updateDiet = (updated: Diet) =>
+    setDiets((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+  const duplicateDiet = (id: string) => {
+    const diet = diets.find((d) => d.id === id)
+    if (diet) {
+      addDiet({
+        ...diet,
+        id: Math.random().toString(36).substr(2, 9),
+        title: `${diet.title} (Cópia)`,
+      })
+    }
+  }
   const removeDiet = (id: string) =>
     setDiets((prev) => prev.filter((d) => d.id !== id))
 
   const addEvent = (event: CalendarEvent) =>
     setEvents((prev) => [...prev, event])
+  const updateEvent = (updated: CalendarEvent) =>
+    setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+  const removeEvent = (id: string) =>
+    setEvents((prev) => prev.filter((e) => e.id !== id))
 
   const addTransaction = (transaction: Transaction) =>
     setTransactions((prev) => [...prev, transaction])
@@ -81,16 +119,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLinks((prev) => prev.filter((l) => l.id !== id))
 
   const updateProfile = (newProfile: UserProfile) => setProfile(newProfile)
-
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings)
-
   const updateTheme = (theme: 'light' | 'dark') => {
     setSettings((prev) => ({ ...prev, theme }))
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    if (theme === 'dark') document.documentElement.classList.add('dark')
+    else document.documentElement.classList.remove('dark')
   }
 
   return (
@@ -105,12 +138,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         profile,
         settings,
         addClient,
+        updateClient,
         removeClient,
         addWorkout,
+        updateWorkout,
+        duplicateWorkout,
         removeWorkout,
         addDiet,
+        updateDiet,
+        duplicateDiet,
         removeDiet,
         addEvent,
+        updateEvent,
+        removeEvent,
         addTransaction,
         addLink,
         removeLink,
@@ -126,9 +166,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 const useAppStore = () => {
   const context = useContext(AppContext)
-  if (context === undefined) {
+  if (context === undefined)
     throw new Error('useAppStore must be used within an AppProvider')
-  }
   return context
 }
 

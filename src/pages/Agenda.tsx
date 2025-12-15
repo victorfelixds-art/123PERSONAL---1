@@ -3,7 +3,7 @@ import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar } from '@/components/ui/calendar'
-import { Plus, Calendar as CalendarIcon } from 'lucide-react'
+import { Plus, User } from 'lucide-react'
 import { ptBR } from 'date-fns/locale'
 import {
   Dialog,
@@ -15,17 +15,25 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { format, isSameDay } from 'date-fns'
 
 const Agenda = () => {
-  const { events, addEvent } = useAppStore()
+  const { events, addEvent, clients } = useAppStore()
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newEvent, setNewEvent] = useState({
     title: '',
     time: '10:00',
     type: 'workout' as const,
+    studentId: 'none',
   })
 
   const selectedDateEvents = events.filter(
@@ -45,8 +53,14 @@ const Agenda = () => {
       date: eventDate,
       type: newEvent.type,
       description: 'Novo evento agendado',
+      studentId: newEvent.studentId !== 'none' ? newEvent.studentId : undefined,
     })
-    setNewEvent({ title: '', time: '10:00', type: 'workout' })
+    setNewEvent({
+      title: '',
+      time: '10:00',
+      type: 'workout',
+      studentId: 'none',
+    })
     setIsDialogOpen(false)
     toast.success('Evento agendado!')
   }
@@ -63,32 +77,49 @@ const Agenda = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                Novo Evento para {date ? format(date, 'dd/MM') : ''}
-              </DialogTitle>
+              <DialogTitle>Novo Evento</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="title">Título</Label>
+                <Label>Título</Label>
                 <Input
-                  id="title"
                   value={newEvent.title}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, title: e.target.value })
                   }
-                  placeholder="Treino com..."
+                  placeholder="Ex: Treino"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="time">Horário</Label>
+                <Label>Horário</Label>
                 <Input
-                  id="time"
                   type="time"
                   value={newEvent.time}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, time: e.target.value })
                   }
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label>Aluno (Opcional)</Label>
+                <Select
+                  value={newEvent.studentId}
+                  onValueChange={(val) =>
+                    setNewEvent({ ...newEvent, studentId: val })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter>
@@ -99,14 +130,13 @@ const Agenda = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
-        <Card className="flex-none">
+        <Card className="flex-none h-fit">
           <CardContent className="p-4">
             <Calendar
               mode="single"
               selected={date}
               onSelect={setDate}
               locale={ptBR}
-              className="rounded-md border"
               modifiers={{
                 booked: (d) => events.some((e) => isSameDay(e.date, d)),
               }}
@@ -123,39 +153,35 @@ const Agenda = () => {
 
         <Card className="flex-1">
           <CardHeader>
-            <CardTitle>
-              Eventos de{' '}
-              {date
-                ? format(date, "d 'de' MMMM", { locale: ptBR })
-                : 'Selecione uma data'}
-            </CardTitle>
+            <CardTitle>Eventos do Dia</CardTitle>
           </CardHeader>
           <CardContent>
             {selectedDateEvents.length > 0 ? (
               <ul className="space-y-4">
-                {selectedDateEvents
-                  .sort((a, b) => a.date.getTime() - b.date.getTime())
-                  .map((event) => (
-                    <li
-                      key={event.id}
-                      className="flex items-start p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="mr-4 flex flex-col items-center justify-center bg-primary/10 text-primary h-12 w-12 rounded-lg">
-                        <CalendarIcon className="h-5 w-5" />
+                {selectedDateEvents.map((event) => (
+                  <li
+                    key={event.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div>
+                      <h4 className="font-semibold">{event.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {format(event.date, 'HH:mm')}
+                      </p>
+                    </div>
+                    {event.studentId && (
+                      <div className="flex items-center text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                        <User className="mr-1 h-3 w-3" />
+                        {clients.find((c) => c.id === event.studentId)?.name}
                       </div>
-                      <div>
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {format(event.date, 'HH:mm')} - {event.description}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
+                    )}
+                  </li>
+                ))}
               </ul>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <p>Nenhum evento agendado para esta data.</p>
-              </div>
+              <p className="text-center text-muted-foreground py-12">
+                Nada agendado.
+              </p>
             )}
           </CardContent>
         </Card>

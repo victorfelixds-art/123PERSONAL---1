@@ -5,29 +5,68 @@ import {
   Users,
   Dumbbell,
   Calendar,
-  Bell,
-  DollarSign,
+  AlertTriangle,
   ChevronRight,
+  Utensils,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { format } from 'date-fns'
+import { format, isBefore, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const Index = () => {
-  const { clients, workouts, events, profile, transactions } = useAppStore()
+  const { clients, workouts, events, profile, diets } = useAppStore()
 
   const activeClients = clients.filter((c) => c.status === 'active').length
-  const nextEvent = events
-    .filter((e) => e.date > new Date())
-    .sort((a, b) => a.date.getTime() - b.date.getTime())[0]
+  const inactiveClients = clients.filter((c) => c.status === 'inactive').length
 
-  const currentMonth = new Date().getMonth()
-  const monthlyRevenue = transactions
-    .filter(
-      (t) =>
-        t.type === 'income' && new Date(t.date).getMonth() === currentMonth,
-    )
-    .reduce((acc, curr) => acc + curr.amount, 0)
+  const expiringWorkouts = workouts.filter(
+    (w) =>
+      !w.isLifetime &&
+      w.expirationDate &&
+      isBefore(new Date(w.expirationDate), addDays(new Date(), 7)) &&
+      !isBefore(new Date(w.expirationDate), new Date()),
+  )
+
+  const expiredWorkouts = workouts.filter(
+    (w) =>
+      !w.isLifetime &&
+      w.expirationDate &&
+      isBefore(new Date(w.expirationDate), new Date()),
+  )
+
+  const expiredDiets = diets.filter(
+    (d) =>
+      !d.isLifetime &&
+      d.expirationDate &&
+      isBefore(new Date(d.expirationDate), new Date()),
+  )
+
+  const upcomingEvents = events
+    .filter((e) => e.date > new Date())
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .slice(0, 3)
+
+  const requiredActions = [
+    ...expiredWorkouts.map((w) => ({
+      type: 'expired_workout',
+      title: `Treino Vencido: ${w.title}`,
+      client: w.clientName,
+      id: w.clientId,
+    })),
+    ...expiredDiets.map((d) => ({
+      type: 'expired_diet',
+      title: `Dieta Vencida: ${d.title}`,
+      client: d.clientName,
+      id: d.clientId,
+    })),
+    ...upcomingEvents.slice(0, 3).map((e) => ({
+      type: 'event',
+      title: e.title,
+      client: clients.find((c) => c.id === e.studentId)?.name || 'Geral',
+      id: e.studentId,
+      date: e.date,
+    })),
+  ].slice(0, 5)
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in">
@@ -35,7 +74,7 @@ const Index = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
-            Bem-vindo de volta, {profile.name.split(' ')[0]}!
+            Olá, {profile.name.split(' ')[0]}!
           </p>
         </div>
         <div className="text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
@@ -43,94 +82,141 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Alunos</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeClients}</div>
+            <div className="flex justify-between items-baseline">
+              <div className="text-2xl font-bold">{activeClients}</div>
+              <span className="text-xs text-muted-foreground">Ativos</span>
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {inactiveClients} Inativos
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Alertas</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{expiringWorkouts.length}</div>
             <p className="text-xs text-muted-foreground">
-              Total de alunos registrados
+              Planos vencendo em 7 dias
             </p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Próximo Evento
+              Próximos Eventos
             </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold truncate">
-              {nextEvent ? format(nextEvent.date, 'HH:mm') : '--:--'}
-            </div>
-            <p className="text-xs text-muted-foreground truncate">
-              {nextEvent ? nextEvent.title : 'Nada agendado'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Rendimento Mensal
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              R$ {monthlyRevenue.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">Este mês</p>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Notificações</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Mensagens não lidas</p>
+            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
+            <p className="text-xs text-muted-foreground">Agendados</p>
           </CardContent>
         </Card>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Ações Rápidas</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Button
-            asChild
-            className="h-auto py-4 flex flex-col items-center gap-2"
-            variant="outline"
-          >
-            <Link to="/alunos">
-              <Users className="h-6 w-6 mb-1 text-primary" />
-              <span>Adicionar Aluno</span>
-            </Link>
-          </Button>
-          <Button
-            asChild
-            className="h-auto py-4 flex flex-col items-center gap-2"
-            variant="outline"
-          >
-            <Link to="/treinos">
-              <Dumbbell className="h-6 w-6 mb-1 text-primary" />
-              <span>Criar Treino</span>
-            </Link>
-          </Button>
-          <Button
-            asChild
-            className="h-auto py-4 flex flex-col items-center gap-2"
-            variant="outline"
-          >
-            <Link to="/agenda">
-              <Calendar className="h-6 w-6 mb-1 text-primary" />
-              <span>Ver Agenda</span>
-            </Link>
-          </Button>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle>Ações Necessárias</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {requiredActions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Tudo em dia! Nenhuma ação pendente.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {requiredActions.map((action, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 border rounded-lg bg-card/50"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`p-2 rounded-full ${action.type.includes('expired') ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}
+                      >
+                        {action.type.includes('workout') ? (
+                          <Dumbbell className="h-4 w-4" />
+                        ) : action.type.includes('diet') ? (
+                          <Utensils className="h-4 w-4" />
+                        ) : (
+                          <Calendar className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{action.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {action.client}
+                          {'date' in action &&
+                            ` - ${format(action.date as Date, 'dd/MM HH:mm')}`}
+                        </p>
+                      </div>
+                    </div>
+                    {action.id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        asChild
+                        className="h-8 w-8"
+                      >
+                        <Link to={`/alunos/${action.id}`}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Acesso Rápido</h2>
+          <div className="grid grid-cols-1 gap-4">
+            <Button
+              asChild
+              className="w-full justify-start h-12"
+              variant="outline"
+            >
+              <Link to="/alunos">
+                <Users className="mr-2 h-5 w-5 text-primary" />
+                Gerenciar Alunos
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="w-full justify-start h-12"
+              variant="outline"
+            >
+              <Link to="/treinos">
+                <Dumbbell className="mr-2 h-5 w-5 text-primary" />
+                Criar Novo Treino
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="w-full justify-start h-12"
+              variant="outline"
+            >
+              <Link to="/financeiro">
+                <AlertTriangle className="mr-2 h-5 w-5 text-primary" />
+                Visão Financeira
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </div>
