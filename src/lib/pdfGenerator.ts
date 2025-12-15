@@ -659,8 +659,8 @@ export const generateProposalPDF = (
 
     <div class="section">
       <div class="section-title">FICHA TÉCNICA</div>
-      <div class="info-grid">
-        <div class="info-card" style="grid-column: 1 / -1;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="info-card">
           <div class="info-label">NOME</div>
           <div class="info-value">${proposal.clientName}</div>
         </div>
@@ -672,7 +672,7 @@ export const generateProposalPDF = (
           <div class="info-label">Altura</div>
           <div class="info-value">${proposal.clientHeight || '-'}</div>
         </div>
-        <div class="info-card" style="grid-column: 1 / -1;">
+        <div class="info-card">
           <div class="info-label">Objetivo</div>
           <div class="info-value">${proposal.clientObjective}</div>
         </div>
