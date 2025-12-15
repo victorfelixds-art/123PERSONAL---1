@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import useAppStore from '@/stores/useAppStore'
 
 interface StudentFormProps {
   initialData?: Client
@@ -22,14 +23,16 @@ export function StudentForm({
   onSave,
   onCancel,
 }: StudentFormProps) {
+  const { plans } = useAppStore()
   const [formData, setFormData] = useState<Partial<Client>>({
     name: '',
     email: '',
     phone: '',
-    planType: 'mensal',
+    planName: '',
     planValue: 0,
     status: 'active',
-    linkId: '', // linkId will be generated on save if not present, but good to init
+    linkId: '',
+    planStartDate: new Date().toISOString().split('T')[0],
   })
 
   useEffect(() => {
@@ -38,12 +41,28 @@ export function StudentForm({
     }
   }, [initialData])
 
+  const handlePlanChange = (planId: string) => {
+    const selectedPlan = plans.find((p) => p.id === planId)
+    if (selectedPlan) {
+      setFormData({
+        ...formData,
+        planId: selectedPlan.id,
+        planName: selectedPlan.name,
+        planValue: selectedPlan.value,
+      })
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Generate linkId if it's a new client or missing
     const dataToSave = { ...formData }
     if (!dataToSave.linkId && !initialData?.linkId) {
       dataToSave.linkId = Math.random().toString(36).substr(2, 9)
+    }
+    // Fallback if user somehow didn't select a plan ID but typed a name (legacy support)
+    if (!dataToSave.planName) {
+      dataToSave.planName = 'Personalizado'
     }
     onSave(dataToSave)
   }
@@ -78,26 +97,24 @@ export function StudentForm({
           required
         />
       </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="planId">Selecionar Plano</Label>
+        <Select value={formData.planId} onValueChange={handlePlanChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione um plano" />
+          </SelectTrigger>
+          <SelectContent>
+            {plans.map((plan) => (
+              <SelectItem key={plan.id} value={plan.id}>
+                {plan.name} - R$ {plan.value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="planType">Plano</Label>
-          <Select
-            value={formData.planType}
-            onValueChange={(val: any) =>
-              setFormData({ ...formData, planType: val })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mensal">Mensal</SelectItem>
-              <SelectItem value="trimestral">Trimestral</SelectItem>
-              <SelectItem value="semestral">Semestral</SelectItem>
-              <SelectItem value="anual">Anual</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <div className="grid gap-2">
           <Label htmlFor="planValue">Valor (R$)</Label>
           <Input
@@ -108,6 +125,17 @@ export function StudentForm({
               setFormData({ ...formData, planValue: Number(e.target.value) })
             }
             required
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="planStartDate">Início do Plano</Label>
+          <Input
+            id="planStartDate"
+            type="date"
+            value={formData.planStartDate || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, planStartDate: e.target.value })
+            }
           />
         </div>
       </div>

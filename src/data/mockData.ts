@@ -7,7 +7,15 @@ import {
   LinkItem,
   UserProfile,
   AppSettings,
+  Plan,
 } from '@/lib/types'
+
+export const mockPlans: Plan[] = [
+  { id: '1', name: 'Mensal', value: 200, durationInMonths: 1 },
+  { id: '2', name: 'Trimestral', value: 550, durationInMonths: 3 },
+  { id: '3', name: 'Semestral', value: 1000, durationInMonths: 6 },
+  { id: '4', name: 'Anual', value: 1800, durationInMonths: 12 },
+]
 
 export const mockClients: Client[] = [
   {
@@ -18,8 +26,10 @@ export const mockClients: Client[] = [
     status: 'active',
     since: '2024-01-15',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=1',
-    planType: 'mensal',
+    planId: '1',
+    planName: 'Mensal',
     planValue: 200,
+    planStartDate: '2024-03-01',
     linkId: 'joao-silva-123',
     weight: 80,
     height: 1.8,
@@ -33,8 +43,10 @@ export const mockClients: Client[] = [
     status: 'active',
     since: '2024-02-01',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=female&seed=2',
-    planType: 'trimestral',
+    planId: '2',
+    planName: 'Trimestral',
     planValue: 550,
+    planStartDate: '2024-02-01',
     linkId: 'maria-souza-456',
     weight: 60,
     height: 1.65,
@@ -48,7 +60,7 @@ export const mockClients: Client[] = [
     status: 'inactive',
     since: '2023-11-20',
     avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=3',
-    planType: 'mensal',
+    planName: 'Mensal',
     planValue: 200,
     linkId: 'pedro-santos-789',
   },
@@ -160,6 +172,7 @@ export const mockProfile: UserProfile = {
 
 export const mockSettings: AppSettings = {
   theme: 'light',
+  themeColor: 'blue',
   notifications: {
     workouts: true,
     payments: true,

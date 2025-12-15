@@ -92,6 +92,35 @@
     --sidebar-ring: 224.3 76.3% 48%;
   }
 
+  /* Themes */
+  .theme-green {
+    --primary: 142.1 76.2% 36.3%; /* Green 600 */
+    --ring: 142.1 76.2% 36.3%;
+    --sidebar-primary: 142.1 76.2% 36.3%;
+    --sidebar-ring: 142.1 76.2% 36.3%;
+  }
+
+  .theme-orange {
+    --primary: 24.6 95% 53.1%; /* Orange 500 */
+    --ring: 24.6 95% 53.1%;
+    --sidebar-primary: 24.6 95% 53.1%;
+    --sidebar-ring: 24.6 95% 53.1%;
+  }
+
+  .theme-purple {
+    --primary: 262.1 83.3% 57.8%; /* Violet 600 */
+    --ring: 262.1 83.3% 57.8%;
+    --sidebar-primary: 262.1 83.3% 57.8%;
+    --sidebar-ring: 262.1 83.3% 57.8%;
+  }
+
+  .theme-red {
+    --primary: 346.8 77.2% 49.8%; /* Red 600 */
+    --ring: 346.8 77.2% 49.8%;
+    --sidebar-primary: 346.8 77.2% 49.8%;
+    --sidebar-ring: 346.8 77.2% 49.8%;
+  }
+
   /* NEVER REMOVE THIS */
   section[aria-label='Notifications alt+T'] {
     padding: 0 !important;

@@ -1,3 +1,10 @@
+export interface Plan {
+  id: string
+  name: string
+  value: number
+  durationInMonths: number
+}
+
 export interface Client {
   id: string
   name: string
@@ -6,8 +13,10 @@ export interface Client {
   status: 'active' | 'inactive'
   since: string
   avatar?: string
-  planType: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+  planId?: string
+  planName: string
   planValue: number
+  planStartDate?: string
   weight?: number
   height?: number
   objective?: string
@@ -72,6 +81,7 @@ export interface UserProfile {
 
 export interface AppSettings {
   theme: 'light' | 'dark'
+  themeColor: 'blue' | 'green' | 'orange' | 'purple' | 'red'
   notifications: {
     workouts: boolean
     payments: boolean

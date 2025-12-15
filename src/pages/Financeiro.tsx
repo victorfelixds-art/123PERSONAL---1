@@ -14,6 +14,8 @@ const Financeiro = () => {
 
   const activeClients = clients.filter((c) => c.status === 'active')
   const totalStudents = activeClients.length
+
+  // Calculate revenue based on assigned planValue
   const estimatedRevenue = activeClients.reduce(
     (acc, curr) => acc + (curr.planValue || 0),
     0,
@@ -21,13 +23,14 @@ const Financeiro = () => {
 
   const planCounts = activeClients.reduce(
     (acc, curr) => {
-      acc[curr.planType] = (acc[curr.planType] || 0) + 1
+      const planName = curr.planName || 'Sem Plano'
+      acc[planName] = (acc[planName] || 0) + 1
       return acc
     },
     {} as Record<string, number>,
   )
 
-  const planTypes = ['mensal', 'trimestral', 'semestral', 'anual']
+  const planTypes = Object.keys(planCounts)
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">

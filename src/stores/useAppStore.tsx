@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react'
 import {
   Client,
   Workout,
@@ -8,6 +14,7 @@ import {
   LinkItem,
   UserProfile,
   AppSettings,
+  Plan,
 } from '@/lib/types'
 import {
   mockClients,
@@ -18,6 +25,7 @@ import {
   mockLinks,
   mockProfile,
   mockSettings,
+  mockPlans,
 } from '@/data/mockData'
 
 interface AppContextType {
@@ -29,6 +37,7 @@ interface AppContextType {
   links: LinkItem[]
   profile: UserProfile
   settings: AppSettings
+  plans: Plan[]
   addClient: (client: Client) => void
   updateClient: (client: Client) => void
   removeClient: (id: string) => void
@@ -49,6 +58,12 @@ interface AppContextType {
   updateProfile: (profile: UserProfile) => void
   updateSettings: (settings: AppSettings) => void
   updateTheme: (theme: 'light' | 'dark') => void
+  updateThemeColor: (
+    color: 'blue' | 'green' | 'orange' | 'purple' | 'red',
+  ) => void
+  addPlan: (plan: Plan) => void
+  updatePlan: (plan: Plan) => void
+  removePlan: (id: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -63,6 +78,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [links, setLinks] = useState<LinkItem[]>(mockLinks)
   const [profile, setProfile] = useState<UserProfile>(mockProfile)
   const [settings, setSettings] = useState<AppSettings>(mockSettings)
+  const [plans, setPlans] = useState<Plan[]>(mockPlans)
+
+  // Apply Theme Effect
+  useEffect(() => {
+    // Mode
+    if (settings.theme === 'dark')
+      document.documentElement.classList.add('dark')
+    else document.documentElement.classList.remove('dark')
+
+    // Color
+    const themes = [
+      'theme-blue',
+      'theme-green',
+      'theme-orange',
+      'theme-purple',
+      'theme-red',
+    ]
+    document.documentElement.classList.remove(...themes)
+    if (settings.themeColor) {
+      document.documentElement.classList.add(`theme-${settings.themeColor}`)
+    }
+  }, [settings.theme, settings.themeColor])
 
   const addClient = (client: Client) => setClients((prev) => [...prev, client])
   const updateClient = (updated: Client) =>
@@ -122,9 +159,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings)
   const updateTheme = (theme: 'light' | 'dark') => {
     setSettings((prev) => ({ ...prev, theme }))
-    if (theme === 'dark') document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
   }
+  const updateThemeColor = (
+    color: 'blue' | 'green' | 'orange' | 'purple' | 'red',
+  ) => {
+    setSettings((prev) => ({ ...prev, themeColor: color }))
+  }
+
+  const addPlan = (plan: Plan) => setPlans((prev) => [...prev, plan])
+  const updatePlan = (updated: Plan) =>
+    setPlans((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+  const removePlan = (id: string) =>
+    setPlans((prev) => prev.filter((p) => p.id !== id))
 
   return (
     <AppContext.Provider
@@ -137,6 +183,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         links,
         profile,
         settings,
+        plans,
         addClient,
         updateClient,
         removeClient,
@@ -157,6 +204,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateProfile,
         updateSettings,
         updateTheme,
+        updateThemeColor,
+        addPlan,
+        updatePlan,
+        removePlan,
       }}
     >
       {children}

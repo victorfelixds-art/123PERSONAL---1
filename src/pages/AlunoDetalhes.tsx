@@ -185,8 +185,14 @@ const AlunoDetalhes = () => {
             <div className="text-sm">
               <p className="font-semibold mb-1">Plano</p>
               <p className="capitalize text-muted-foreground">
-                {client.planType} - R$ {client.planValue}
+                {client.planName} - R$ {client.planValue}
               </p>
+              {client.planStartDate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Início:{' '}
+                  {new Date(client.planStartDate).toLocaleDateString('pt-BR')}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsEditing(true)}>

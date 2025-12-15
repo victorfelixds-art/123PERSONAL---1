@@ -8,13 +8,21 @@ import {
   AlertTriangle,
   ChevronRight,
   Utensils,
+  Wallet,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { format, isBefore, addDays } from 'date-fns'
+import {
+  format,
+  isBefore,
+  addDays,
+  addMonths,
+  parseISO,
+  differenceInDays,
+} from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const Index = () => {
-  const { clients, workouts, events, profile, diets } = useAppStore()
+  const { clients, workouts, events, profile, diets, plans } = useAppStore()
 
   const activeClients = clients.filter((c) => c.status === 'active').length
   const inactiveClients = clients.filter((c) => c.status === 'inactive').length
@@ -41,12 +49,39 @@ const Index = () => {
       isBefore(new Date(d.expirationDate), new Date()),
   )
 
+  // Calculate Plan Expiration Alerts (<= 5 days)
+  const expiringPlans = clients
+    .filter((c) => c.status === 'active' && c.planId && c.planStartDate)
+    .map((c) => {
+      const plan = plans.find((p) => p.id === c.planId)
+      if (!plan) return null
+
+      const startDate = parseISO(c.planStartDate!)
+      const expirationDate = addMonths(startDate, plan.durationInMonths)
+      const daysLeft = differenceInDays(expirationDate, new Date())
+
+      return {
+        client: c,
+        expirationDate,
+        daysLeft,
+        planName: plan.name,
+      }
+    })
+    .filter((item) => item !== null && item.daysLeft <= 5 && item.daysLeft >= 0)
+
   const upcomingEvents = events
     .filter((e) => e.date > new Date())
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 3)
 
   const requiredActions = [
+    ...expiringPlans.map((p) => ({
+      type: 'expiring_plan',
+      title: `Plano Vencendo: ${p?.planName}`,
+      client: p?.client.name,
+      id: p?.client.id,
+      date: p?.expirationDate,
+    })),
     ...expiredWorkouts.map((w) => ({
       type: 'expired_workout',
       title: `Treino Vencido: ${w.title}`,
@@ -105,10 +140,10 @@ const Index = () => {
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{expiringWorkouts.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Planos vencendo em 7 dias
-            </p>
+            <div className="text-2xl font-bold">
+              {expiringWorkouts.length + expiringPlans.length}
+            </div>
+            <p className="text-xs text-muted-foreground">Pendências e avisos</p>
           </CardContent>
         </Card>
 
@@ -145,12 +180,20 @@ const Index = () => {
                   >
                     <div className="flex items-start gap-3">
                       <div
-                        className={`p-2 rounded-full ${action.type.includes('expired') ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}
+                        className={cn(
+                          'p-2 rounded-full',
+                          action.type.includes('expired') ||
+                            action.type.includes('expiring')
+                            ? 'bg-red-100 text-red-600'
+                            : 'bg-blue-100 text-blue-600',
+                        )}
                       >
                         {action.type.includes('workout') ? (
                           <Dumbbell className="h-4 w-4" />
                         ) : action.type.includes('diet') ? (
                           <Utensils className="h-4 w-4" />
+                        ) : action.type.includes('plan') ? (
+                          <Wallet className="h-4 w-4" />
                         ) : (
                           <Calendar className="h-4 w-4" />
                         )}
@@ -160,7 +203,8 @@ const Index = () => {
                         <p className="text-xs text-muted-foreground">
                           {action.client}
                           {'date' in action &&
-                            ` - ${format(action.date as Date, 'dd/MM HH:mm')}`}
+                            action.date &&
+                            ` - ${format(action.date as Date, 'dd/MM')}`}
                         </p>
                       </div>
                     </div>
