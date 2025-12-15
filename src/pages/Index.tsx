@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Utensils,
   Wallet,
+  Clock,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
@@ -74,52 +75,56 @@ const Index = () => {
     })
     .filter((item) => item !== null && item.daysLeft <= 5)
 
-  const upcomingEvents = events
-    .filter((e) => e.date > new Date())
+  // Dashboard Sync: "Today" events
+  const todayEvents = events
+    .filter((e) => !e.completed && isSameDay(new Date(e.date), new Date()))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3)
 
-  // Agenda items near (today) or overdue
-  const agendaAlerts = events.filter((e) => {
-    const eventDate = new Date(e.date)
-    const today = new Date()
-    return (
-      e.studentId && (isSameDay(eventDate, today) || isBefore(eventDate, today))
+  // Dashboard Sync: "Overdue" events
+  const overdueEvents = events
+    .filter(
+      (e) =>
+        !e.completed &&
+        isBefore(new Date(e.date), new Date()) &&
+        !isSameDay(new Date(e.date), new Date()),
     )
-  })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  // Deduplicate alerts logic if needed, but separate categories are fine
+  // Deduplicate alerts logic
   const requiredActions = [
+    ...overdueEvents.map((e) => ({
+      type: 'overdue_event',
+      title: `Compromisso Atrasado: ${e.title}`,
+      client: clients.find((c) => c.id === e.studentId)?.name || 'Geral',
+      id: e.studentId || e.id,
+      date: e.date,
+      link: '/agenda',
+    })),
     ...expiringPlans.map((p) => ({
       type: 'expiring_plan',
       title: `Plano Vencendo/Vencido: ${p?.planName}`,
       client: p?.client.name,
       id: p?.client.id,
       date: p?.expirationDate,
+      link: `/alunos/${p?.client.id}`,
     })),
     ...expiredWorkouts.map((w) => ({
       type: 'expired_workout',
       title: `Treino Vencido: ${w.title}`,
       client: w.clientName,
       id: w.clientId,
+      link: `/alunos/${w.clientId}?tab=treinos`,
     })),
     ...expiredDiets.map((d) => ({
       type: 'expired_diet',
       title: `Dieta Vencida: ${d.title}`,
       client: d.clientName,
       id: d.clientId,
-    })),
-    ...agendaAlerts.map((e) => ({
-      type: 'agenda_alert',
-      title: `Agenda: ${e.title}`,
-      client: clients.find((c) => c.id === e.studentId)?.name || 'Aluno',
-      id: e.studentId,
-      date: e.date,
-      isOverdue:
-        isBefore(new Date(e.date), new Date()) &&
-        !isSameDay(new Date(e.date), new Date()),
+      link: `/alunos/${d.clientId}?tab=dietas`,
     })),
   ].slice(0, 10) // Limit display
+
+  const alertsCount = requiredActions.length
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in">
@@ -158,21 +163,23 @@ const Index = () => {
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{requiredActions.length}</div>
-            <p className="text-xs text-muted-foreground">Pendências e avisos</p>
+            <div className="text-2xl font-bold">{alertsCount}</div>
+            <p className="text-xs text-muted-foreground">Ações necessárias</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Próximos Eventos
+              Agenda de Hoje
             </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
-            <p className="text-xs text-muted-foreground">Agendados</p>
+            <div className="text-2xl font-bold">{todayEvents.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Compromissos pendentes
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -180,7 +187,7 @@ const Index = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="h-full">
           <CardHeader>
-            <CardTitle>Ações Necessárias (Alunos)</CardTitle>
+            <CardTitle>Ações Necessárias</CardTitle>
           </CardHeader>
           <CardContent>
             {requiredActions.length === 0 ? (
@@ -197,13 +204,10 @@ const Index = () => {
                     <div className="flex items-start gap-3">
                       <div
                         className={cn(
-                          'p-2 rounded-full',
-                          action.type.includes('expired') ||
-                            action.type.includes('expiring') ||
-                            // @ts-expect-error - dynamic check
-                            action.isOverdue
+                          'p-2 rounded-full shrink-0',
+                          action.type.includes('overdue')
                             ? 'bg-red-100 text-red-600'
-                            : 'bg-blue-100 text-blue-600',
+                            : 'bg-orange-100 text-orange-600',
                         )}
                       >
                         {action.type.includes('workout') ? (
@@ -213,7 +217,7 @@ const Index = () => {
                         ) : action.type.includes('plan') ? (
                           <Wallet className="h-4 w-4" />
                         ) : (
-                          <Calendar className="h-4 w-4" />
+                          <Clock className="h-4 w-4" />
                         )}
                       </div>
                       <div>
@@ -226,14 +230,14 @@ const Index = () => {
                         </p>
                       </div>
                     </div>
-                    {action.id && (
+                    {action.link && (
                       <Button
                         variant="ghost"
                         size="icon"
                         asChild
                         className="h-8 w-8"
                       >
-                        <Link to={`/alunos/${action.id}`}>
+                        <Link to={action.link}>
                           <ChevronRight className="h-4 w-4" />
                         </Link>
                       </Button>
@@ -245,49 +249,97 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Acesso Rápido</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <Button
-              asChild
-              className="w-full justify-start h-12"
-              variant="outline"
-            >
-              <Link to="/alunos">
-                <Users className="mr-2 h-5 w-5 text-primary" />
-                Gerenciar Alunos
-              </Link>
-            </Button>
-            <Button
-              asChild
-              className="w-full justify-start h-12"
-              variant="outline"
-            >
-              <Link to="/treinos">
-                <Dumbbell className="mr-2 h-5 w-5 text-primary" />
-                Criar Novo Treino
-              </Link>
-            </Button>
-            <Button
-              asChild
-              className="w-full justify-start h-12"
-              variant="outline"
-            >
-              <Link to="/dieta">
-                <Utensils className="mr-2 h-5 w-5 text-primary" />
-                Criar Nova Dieta
-              </Link>
-            </Button>
-            <Button
-              asChild
-              className="w-full justify-start h-12"
-              variant="outline"
-            >
-              <Link to="/financeiro">
-                <AlertTriangle className="mr-2 h-5 w-5 text-primary" />
-                Visão Financeira
-              </Link>
-            </Button>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Hoje na Agenda</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {todayEvents.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Agenda livre por hoje.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {todayEvents.slice(0, 5).map((e) => (
+                    <div
+                      key={e.id}
+                      className="flex items-center gap-3 p-2 rounded-lg border bg-card/50"
+                    >
+                      <div className="bg-blue-100 text-blue-700 p-2 rounded-md font-bold text-xs">
+                        {format(new Date(e.date), 'HH:mm')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {e.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {e.studentId
+                            ? clients.find((c) => c.id === e.studentId)?.name
+                            : 'Geral'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        asChild
+                        className="h-8 w-8"
+                      >
+                        <Link to="/agenda">
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Acesso Rápido</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                asChild
+                className="w-full justify-start h-12"
+                variant="outline"
+              >
+                <Link to="/alunos">
+                  <Users className="mr-2 h-5 w-5 text-primary" />
+                  Alunos
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="w-full justify-start h-12"
+                variant="outline"
+              >
+                <Link to="/treinos">
+                  <Dumbbell className="mr-2 h-5 w-5 text-primary" />
+                  Treinos
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="w-full justify-start h-12"
+                variant="outline"
+              >
+                <Link to="/dieta">
+                  <Utensils className="mr-2 h-5 w-5 text-primary" />
+                  Dieta
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="w-full justify-start h-12"
+                variant="outline"
+              >
+                <Link to="/agenda">
+                  <Calendar className="mr-2 h-5 w-5 text-primary" />
+                  Agenda
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

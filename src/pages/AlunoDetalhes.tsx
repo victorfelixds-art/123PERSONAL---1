@@ -1,13 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ArrowLeft,
   Mail,
@@ -15,20 +9,19 @@ import {
   Calendar,
   Trash2,
   Edit,
-  ExternalLink,
   MessageCircle,
   AlertTriangle,
   CreditCard,
   Ban,
   Plus,
-  Dumbbell,
-  Utensils,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -36,12 +29,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { StudentForm } from '@/components/forms/StudentForm'
-import { isBefore, parseISO, addMonths, addDays, format } from 'date-fns'
+import { isBefore, parseISO, addMonths, format, isSameDay } from 'date-fns'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -51,7 +52,9 @@ import {
 } from '@/components/ui/select'
 import { WorkoutForm } from '@/components/forms/WorkoutForm'
 import { DietForm } from '@/components/forms/DietForm'
-import { Workout, Diet } from '@/lib/types'
+import { Workout, Diet, CalendarEvent } from '@/lib/types'
+import { EventForm } from '@/components/forms/EventForm'
+import { cn } from '@/lib/utils'
 
 const AlunoDetalhes = () => {
   const { id } = useParams()
@@ -62,12 +65,10 @@ const AlunoDetalhes = () => {
     updateClient,
     workouts,
     addWorkout,
-    updateWorkout,
     removeWorkout,
     assignWorkout,
     diets,
     addDiet,
-    updateDiet,
     removeDiet,
     assignDiet,
     settings,
@@ -75,6 +76,7 @@ const AlunoDetalhes = () => {
     plans,
     events,
     addEvent,
+    updateEvent,
     removeEvent,
   } = useAppStore()
 
@@ -84,15 +86,23 @@ const AlunoDetalhes = () => {
   const [isAssignWorkoutOpen, setIsAssignWorkoutOpen] = useState(false)
   const [isAssignDietOpen, setIsAssignDietOpen] = useState(false)
   const [isEventFormOpen, setIsEventFormOpen] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>(
+    undefined,
+  )
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null)
 
   // Selection states
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
-  const [newEvent, setNewEvent] = useState({
-    title: '',
-    description: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    time: '10:00',
-  })
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState('dados')
+
+  // URL params handling for tab switching
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab')
+    if (tab) setActiveTab(tab)
+  }, [])
 
   const client = clients.find((c) => c.id === id)
   const clientWorkouts = workouts.filter((w) => w.clientId === id)
@@ -160,7 +170,6 @@ const AlunoDetalhes = () => {
       })
       toast.success('Plano encerrado.')
     } else {
-      // Logic for renew/change would ideally open a dialog. For MVP, we can re-open edit profile
       setIsEditingProfile(true)
       toast.info('Edite as informações do plano no perfil.')
     }
@@ -175,7 +184,7 @@ const AlunoDetalhes = () => {
       clientId: client.id,
       clientName: client.name,
       exercises: data.exercises || [],
-      isLifetime: true, // Default
+      isLifetime: true,
     } as Workout)
     setIsWorkoutFormOpen(false)
     toast.success('Treino criado para o aluno!')
@@ -223,19 +232,31 @@ const AlunoDetalhes = () => {
   }
 
   // Events
-  const handleAddEvent = () => {
-    if (!newEvent.title) return
-    const dateObj = new Date(`${newEvent.date}T${newEvent.time}`)
-    addEvent({
-      id: Math.random().toString(36).substr(2, 9),
-      title: newEvent.title,
-      description: newEvent.description,
-      date: dateObj,
-      type: 'meeting',
-      studentId: client.id,
-    })
+  const handleEventSave = (data: Omit<CalendarEvent, 'id'>) => {
+    if (editingEvent) {
+      updateEvent({ ...editingEvent, ...data })
+      toast.success('Compromisso atualizado')
+    } else {
+      addEvent({
+        id: Math.random().toString(36).substr(2, 9),
+        ...data,
+      })
+      toast.success('Compromisso agendado')
+    }
     setIsEventFormOpen(false)
-    toast.success('Evento agendado!')
+  }
+
+  const handleCompleteEvent = (event: CalendarEvent) => {
+    updateEvent({ ...event, completed: true })
+    toast.success('Marcado como concluído')
+  }
+
+  const handleDeleteEvent = () => {
+    if (deleteEventId) {
+      removeEvent(deleteEventId)
+      toast.success('Compromisso excluído')
+      setDeleteEventId(null)
+    }
   }
 
   return (
@@ -332,9 +353,13 @@ const AlunoDetalhes = () => {
 
         {/* Main Content Tabs */}
         <div className="md:w-2/3">
-          <Tabs defaultValue="dados" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="dados">Dados do Aluno</TabsTrigger>
+              <TabsTrigger value="dados">Dados</TabsTrigger>
               <TabsTrigger value="treinos">Treinos</TabsTrigger>
               <TabsTrigger value="dietas">Dietas</TabsTrigger>
               <TabsTrigger value="agenda">Agenda</TabsTrigger>
@@ -539,41 +564,123 @@ const AlunoDetalhes = () => {
             <TabsContent value="agenda" className="space-y-4 mt-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Agenda do Aluno</h3>
-                <Button size="sm" onClick={() => setIsEventFormOpen(true)}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingEvent(undefined)
+                    setIsEventFormOpen(true)
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" /> Agendar
                 </Button>
               </div>
 
               <div className="space-y-4">
                 {clientEvents.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
+                  <p className="text-muted-foreground text-center py-8 bg-muted/20 rounded-lg border border-dashed">
                     Nada agendado para este aluno.
                   </p>
                 ) : (
-                  clientEvents.map((e) => (
-                    <Card key={e.id}>
-                      <CardContent className="p-4 flex justify-between items-center">
-                        <div>
-                          <h4 className="font-semibold">{e.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {e.description}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1 text-xs font-medium">
-                            <Calendar className="h-3 w-3" />
-                            {format(e.date, 'dd/MM/yyyy HH:mm')}
+                  clientEvents.map((e) => {
+                    const isCompleted = e.completed
+                    const isOverdue =
+                      !isCompleted &&
+                      isBefore(new Date(e.date), new Date()) &&
+                      !isSameDay(new Date(e.date), new Date())
+
+                    return (
+                      <Card
+                        key={e.id}
+                        className={cn(
+                          'transition-colors',
+                          isCompleted ? 'opacity-70 bg-muted/50' : '',
+                        )}
+                      >
+                        <CardContent className="p-4 flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4
+                                className={cn(
+                                  'font-semibold',
+                                  isCompleted &&
+                                    'line-through text-muted-foreground',
+                                )}
+                              >
+                                {e.title}
+                              </h4>
+                              {isOverdue && (
+                                <Badge
+                                  variant="destructive"
+                                  className="text-[10px] h-5 px-1.5"
+                                >
+                                  Atrasado
+                                </Badge>
+                              )}
+                              {isCompleted && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] h-5 px-1.5 text-green-600 bg-green-50 border-green-200"
+                                >
+                                  Concluído
+                                </Badge>
+                              )}
+                            </div>
+
+                            {e.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {e.description}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-4 mt-2 text-xs font-medium text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(e.date), 'dd/MM/yyyy')}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {format(new Date(e.date), 'HH:mm')}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => removeEvent(e.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))
+                          <div className="flex items-center gap-1">
+                            {!isCompleted && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                onClick={() => handleCompleteEvent(e)}
+                                title="Concluir"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => {
+                                setEditingEvent(e)
+                                setIsEventFormOpen(true)
+                              }}
+                              title="Editar"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteEventId(e.id)}
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })
                 )}
               </div>
             </TabsContent>
@@ -692,56 +799,43 @@ const AlunoDetalhes = () => {
       <Dialog open={isEventFormOpen} onOpenChange={setIsEventFormOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Novo Evento para {client.name}</DialogTitle>
+            <DialogTitle>
+              {editingEvent
+                ? 'Editar Compromisso'
+                : `Novo Compromisso para ${client.name}`}
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Título</Label>
-              <Input
-                value={newEvent.title}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, title: e.target.value })
-                }
-                placeholder="Ex: Avaliação"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Descrição</Label>
-              <Textarea
-                value={newEvent.description}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Data</Label>
-                <Input
-                  type="date"
-                  value={newEvent.date}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, date: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Hora</Label>
-                <Input
-                  type="time"
-                  value={newEvent.time}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, time: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddEvent}>Salvar</Button>
-          </DialogFooter>
+          <EventForm
+            initialData={editingEvent}
+            preSelectedStudentId={client.id}
+            onSave={handleEventSave}
+            onCancel={() => setIsEventFormOpen(false)}
+          />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={!!deleteEventId}
+        onOpenChange={(open) => !open && setDeleteEventId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir compromisso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEvent}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -86,6 +86,7 @@ export interface CalendarEvent {
   type: 'workout' | 'meeting' | 'other'
   description?: string
   studentId?: string
+  completed: boolean
 }
 
 export interface Transaction {

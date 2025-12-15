@@ -218,6 +218,7 @@ export const mockEvents: CalendarEvent[] = [
     type: 'workout',
     description: 'Treino de Peito',
     studentId: '1',
+    completed: false,
   },
   {
     id: '2',
@@ -226,6 +227,7 @@ export const mockEvents: CalendarEvent[] = [
     type: 'meeting',
     description: 'Reavaliação mensal',
     studentId: '2',
+    completed: false,
   },
 ]
 
