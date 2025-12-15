@@ -94,29 +94,31 @@ const Configuracoes = () => {
   const themes: { id: AppTheme; label: string; previewClass: string }[] = [
     {
       id: 'dark-performance',
-      label: 'Dark Performance',
-      previewClass: 'bg-[#0E1116] border-[#2A3441]',
+      label: 'Dark Performance (Nike Style)',
+      previewClass: 'bg-[#0B0B0B] border-[#1A1A1A]',
     },
     {
-      id: 'light-clean',
-      label: 'Light Clean',
-      previewClass: 'bg-[#F9FAFB] border-[#E5E7EB]',
+      id: 'light-performance',
+      label: 'Light Performance',
+      previewClass: 'bg-[#FFFFFF] border-[#E5E7EB]',
     },
     {
       id: 'performance-blue',
-      label: 'Performance Blue',
-      previewClass: 'bg-[#0B1220] border-[#334155]',
+      label: 'Performance Blue (Tech)',
+      previewClass: 'bg-[#0E1625] border-[#1C2740]',
     },
   ]
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
+    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in max-w-5xl">
+      <h1 className="text-3xl font-bold tracking-tight uppercase">
+        Configurações
+      </h1>
 
-      <Tabs defaultValue="geral" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="geral">Geral</TabsTrigger>
-          <TabsTrigger value="planos">Modelos de Planos</TabsTrigger>
+      <Tabs defaultValue="geral" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-grid lg:grid-cols-4">
+          <TabsTrigger value="geral">Aparência</TabsTrigger>
+          <TabsTrigger value="planos">Planos</TabsTrigger>
           <TabsTrigger value="mensagens">Mensagens</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
         </TabsList>
@@ -124,54 +126,56 @@ const Configuracoes = () => {
         <TabsContent value="geral">
           <Card>
             <CardHeader>
-              <CardTitle>Aparência</CardTitle>
-              <CardDescription>Personalize o tema do app.</CardDescription>
+              <CardTitle>Tema do Aplicativo</CardTitle>
+              <CardDescription>
+                Escolha a identidade visual que melhor se adapta ao seu estilo.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Label>Tema Selecionado</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {themes.map((theme) => (
-                    <button
-                      key={theme.id}
-                      onClick={() => updateTheme(theme.id)}
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {themes.map((theme) => (
+                  <button
+                    key={theme.id}
+                    onClick={() => updateTheme(theme.id)}
+                    className={cn(
+                      'relative flex flex-col items-center gap-3 p-2 rounded-2xl border-2 transition-all group',
+                      settings.theme === theme.id
+                        ? 'border-primary ring-2 ring-primary/20 scale-[1.02]'
+                        : 'border-transparent hover:border-muted-foreground/20',
+                    )}
+                  >
+                    <div
                       className={cn(
-                        'relative flex flex-col items-center gap-2 p-1 rounded-xl border-2 transition-all',
-                        settings.theme === theme.id
-                          ? 'border-primary ring-2 ring-primary/20'
-                          : 'border-transparent hover:border-muted-foreground/20',
+                        'w-full aspect-video rounded-xl shadow-lg flex items-center justify-center border-2 border-border/10',
+                        theme.previewClass,
                       )}
                     >
-                      <div
-                        className={cn(
-                          'w-full h-24 rounded-lg shadow-sm flex items-center justify-center',
-                          theme.previewClass,
-                        )}
-                      >
-                        {settings.theme === theme.id && (
-                          <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
-                            <Check className="w-5 h-5" />
-                          </div>
-                        )}
+                      <div className="flex gap-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20"></div>
+                        <div className="w-16 h-8 rounded-md bg-muted/20"></div>
                       </div>
-                      <span className="text-sm font-medium">{theme.label}</span>
-                    </button>
-                  ))}
-                </div>
+                      {settings.theme === theme.id && (
+                        <div className="absolute top-4 right-4 bg-primary text-primary-foreground rounded-full p-1.5 shadow-xl animate-in zoom-in">
+                          <Check className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-bold">{theme.label}</span>
+                  </button>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ... (Other tabs remain similar but styled with new components) ... */}
 
         <TabsContent value="planos">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Modelos de Planos</CardTitle>
-                <CardDescription>
-                  Defina os modelos de planos para agilizar a atribuição aos
-                  alunos. (Apenas Templates)
-                </CardDescription>
+                <CardDescription>Templates para venda.</CardDescription>
               </div>
               <Button onClick={() => openPlanDialog()}>
                 <Plus className="mr-2 h-4 w-4" /> Novo Modelo
@@ -180,18 +184,18 @@ const Configuracoes = () => {
             <CardContent>
               <div className="space-y-4">
                 {plans.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-4">
+                  <p className="text-center text-muted-foreground py-12 border-2 border-dashed rounded-xl">
                     Nenhum modelo cadastrado.
                   </p>
                 ) : (
                   plans.map((plan) => (
                     <div
                       key={plan.id}
-                      className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/5 transition-colors"
+                      className="flex items-center justify-between p-6 border rounded-xl bg-card hover:bg-accent/5 transition-colors"
                     >
                       <div>
-                        <p className="font-semibold">{plan.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-bold text-lg">{plan.name}</p>
+                        <p className="text-sm text-muted-foreground font-medium">
                           {plan.durationInMonths} meses • R$ {plan.value}
                         </p>
                       </div>
@@ -223,25 +227,26 @@ const Configuracoes = () => {
         <TabsContent value="mensagens">
           <Card>
             <CardHeader>
-              <CardTitle>Comunicação (WhatsApp)</CardTitle>
+              <CardTitle>WhatsApp Padrão</CardTitle>
               <CardDescription>
-                Configure a mensagem padrão para seus alunos.
+                Configure a mensagem automática.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Modelo de Mensagem</Label>
+                <Label>Template</Label>
                 <Textarea
                   value={msgTemplate}
                   onChange={(e) => setMsgTemplate(e.target.value)}
                   placeholder="Digite sua mensagem padrão..."
                   rows={4}
+                  className="font-mono text-sm"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Variáveis disponíveis: {'{studentName}'}, {'{personalName}'}
+                <p className="text-xs text-muted-foreground font-medium">
+                  Variáveis: {'{studentName}'}, {'{personalName}'}
                 </p>
               </div>
-              <Button onClick={handleSaveMsg}>Salvar Modelo</Button>
+              <Button onClick={handleSaveMsg}>Salvar Alterações</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -251,12 +256,12 @@ const Configuracoes = () => {
             <CardHeader>
               <CardTitle>Preferências de Alerta</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Alertas de Treino</Label>
+                  <Label className="text-base">Treinos</Label>
                   <p className="text-sm text-muted-foreground">
-                    Treinos vencendo.
+                    Alertar sobre vencimentos de treino.
                   </p>
                 </div>
                 <Switch
@@ -266,9 +271,9 @@ const Configuracoes = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Pagamentos</Label>
+                  <Label className="text-base">Financeiro</Label>
                   <p className="text-sm text-muted-foreground">
-                    Vencimentos de planos.
+                    Alertar sobre pagamentos pendentes.
                   </p>
                 </div>
                 <Switch
@@ -278,9 +283,9 @@ const Configuracoes = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Mensagens</Label>
+                  <Label className="text-base">Mensagens</Label>
                   <p className="text-sm text-muted-foreground">
-                    Novas mensagens.
+                    Notificações de novas interações.
                   </p>
                 </div>
                 <Switch
@@ -300,7 +305,7 @@ const Configuracoes = () => {
               {editingPlan.id ? 'Editar Modelo' : 'Novo Modelo'}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
             <div className="grid gap-2">
               <Label>Nome do Modelo</Label>
               <Input

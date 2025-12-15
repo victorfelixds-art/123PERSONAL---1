@@ -234,9 +234,9 @@ const AlunoDetalhes = () => {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in pb-24">
+    <div className="container max-w-6xl mx-auto p-4 md:p-8 space-y-10 animate-fade-in pb-24">
       {/* Revised Header */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <Button
           variant="ghost"
           className="pl-0 text-muted-foreground hover:text-foreground"
@@ -245,26 +245,28 @@ const AlunoDetalhes = () => {
           <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para Alunos
         </Button>
 
-        <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
+        <div className="flex flex-col md:flex-row justify-between md:items-start gap-6 border-b pb-8">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground uppercase">
                 {client.name}
               </h1>
               {displayStatus === 'Ativo' ? (
-                <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-none">
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-none px-3 py-1">
                   Ativo
                 </Badge>
               ) : displayStatus === 'Atenção' ? (
-                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-none">
+                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-none px-3 py-1">
                   Atenção
                 </Badge>
               ) : (
-                <Badge variant="secondary">Inativo</Badge>
+                <Badge variant="secondary" className="px-3 py-1">
+                  Inativo
+                </Badge>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <CalendarIcon className="h-4 w-4" />
                 <span>
@@ -289,17 +291,17 @@ const AlunoDetalhes = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             <Button
-              className="bg-green-600 hover:bg-green-700 shadow-sm"
+              className="bg-[#25D366] hover:bg-[#128C7E] text-white shadow-md border-none"
               onClick={handleWhatsApp}
             >
-              <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
+              <MessageCircle className="mr-2 h-5 w-5" /> WhatsApp
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="px-3">
+                <Button variant="outline" className="px-4">
                   Ações <MoreHorizontal className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -348,88 +350,68 @@ const AlunoDetalhes = () => {
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="w-full space-y-6"
+        className="w-full space-y-8"
       >
         <div className="border-b pb-1 overflow-x-auto">
-          <TabsList className="bg-transparent h-auto p-0 space-x-6 justify-start">
-            <TabsTrigger
-              value="dados"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
-            >
-              Visão Geral
-            </TabsTrigger>
-            <TabsTrigger
-              value="plano"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
-            >
-              Plano
-            </TabsTrigger>
-            <TabsTrigger
-              value="treinos"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
-            >
-              Treinos
-            </TabsTrigger>
-            <TabsTrigger
-              value="dietas"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
-            >
-              Dietas
-            </TabsTrigger>
-            <TabsTrigger
-              value="agenda"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3"
-            >
-              Agenda
-            </TabsTrigger>
-            <TabsTrigger
-              value="entregaveis"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3 text-primary font-semibold"
-            >
-              Entregáveis
-            </TabsTrigger>
+          <TabsList className="bg-transparent h-auto p-0 space-x-8 justify-start">
+            {[
+              'Dados',
+              'Plano',
+              'Treinos',
+              'Dietas',
+              'Agenda',
+              'Entregáveis',
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab
+                  .toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')}
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-4 text-base font-semibold text-muted-foreground data-[state=active]:text-foreground transition-all"
+              >
+                {tab}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
 
         {/* DADOS TAB */}
         <TabsContent value="dados" className="space-y-8 animate-fade-in-up">
           <section>
-            <h3 className="text-lg font-semibold mb-4 tracking-tight">
-              Estatísticas Físicas
-            </h3>
             <StudentSummary client={client} />
           </section>
 
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">
+                <CardTitle className="text-lg">
                   Informações de Contato
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-muted rounded-full">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
+              <CardContent className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-secondary rounded-full">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                       Email
                     </p>
-                    <p className="text-sm font-medium">
+                    <p className="text-base font-medium text-foreground">
                       {client.email || 'Não informado'}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-muted rounded-full">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-secondary rounded-full">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                       Telefone
                     </p>
-                    <p className="text-sm font-medium">
+                    <p className="text-base font-medium text-foreground">
                       {client.phone || 'Não informado'}
                     </p>
                   </div>
@@ -439,41 +421,43 @@ const AlunoDetalhes = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Resumo do Plano</CardTitle>
+                <CardTitle className="text-lg">Resumo do Plano</CardTitle>
               </CardHeader>
               <CardContent>
                 {client.planName ? (
                   <>
-                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-between">
+                    <div className="p-6 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-primary">
+                        <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
                           Plano Atual
                         </p>
-                        <p className="text-xl font-bold">{client.planName}</p>
+                        <p className="text-2xl font-extrabold">
+                          {client.planName}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-muted-foreground">
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
                           Valor
                         </p>
-                        <p className="text-lg font-bold">
+                        <p className="text-2xl font-bold">
                           R$ {client.planValue?.toFixed(2)}
                         </p>
                       </div>
                     </div>
                     {client.planEndDate && (
-                      <p className="text-xs text-muted-foreground mt-3 text-center">
+                      <p className="text-sm font-medium text-muted-foreground mt-4 text-center">
                         Vence em{' '}
                         {format(parseISO(client.planEndDate), 'dd/MM/yyyy')}
                       </p>
                     )}
                   </>
                 ) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p>Sem plano ativo.</p>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="mb-2">Sem plano ativo.</p>
                     <Button
                       variant="link"
-                      size="sm"
                       onClick={() => setActiveTab('plano')}
+                      className="text-primary font-bold"
                     >
                       Adicionar agora
                     </Button>
@@ -493,14 +477,14 @@ const AlunoDetalhes = () => {
         <TabsContent value="treinos" className="space-y-6 animate-fade-in-up">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold tracking-tight">
-                Treinos Ativos
+              <h3 className="text-xl font-bold tracking-tight uppercase">
+                Treinos
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-medium">
                 Gerencie a rotina de exercícios
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 size="sm"
                 variant="outline"
@@ -514,11 +498,11 @@ const AlunoDetalhes = () => {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {clientWorkouts.length === 0 ? (
-              <div className="col-span-full py-12 text-center border border-dashed rounded-lg bg-muted/20">
-                <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">
+              <div className="col-span-full py-16 text-center border-2 border-dashed rounded-xl bg-muted/10">
+                <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground font-medium">
                   Nenhum treino atribuído a este aluno.
                 </p>
               </div>
@@ -526,13 +510,13 @@ const AlunoDetalhes = () => {
               clientWorkouts.map((w) => (
                 <Card
                   key={w.id}
-                  className="group hover:border-primary/50 transition-all shadow-sm"
+                  className="group hover:border-primary/50 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-primary"
                 >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <Badge
                         variant="outline"
-                        className="bg-blue-50 text-blue-700 border-blue-100"
+                        className="bg-secondary text-foreground border-border font-bold"
                       >
                         {w.level || 'Geral'}
                       </Badge>
@@ -545,15 +529,15 @@ const AlunoDetalhes = () => {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    <CardTitle className="text-lg leading-tight mt-2">
+                    <CardTitle className="text-xl leading-tight mt-3">
                       {w.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em] font-medium">
                       {w.objective}
                     </p>
-                    <div className="mt-4 flex items-center text-xs text-muted-foreground">
+                    <div className="mt-4 flex items-center text-xs text-muted-foreground font-bold uppercase tracking-wider">
                       <Clock className="h-3 w-3 mr-1" />
                       Criado em {format(new Date(w.createdAt), 'dd/MM/yyyy')}
                     </div>
@@ -568,14 +552,14 @@ const AlunoDetalhes = () => {
         <TabsContent value="dietas" className="space-y-6 animate-fade-in-up">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold tracking-tight">
-                Planos Alimentares
+              <h3 className="text-xl font-bold tracking-tight uppercase">
+                Dietas
               </h3>
-              <p className="text-sm text-muted-foreground">
-                Gerencie as dietas e nutrição
+              <p className="text-sm text-muted-foreground font-medium">
+                Gerencie os planos alimentares
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 size="sm"
                 variant="outline"
@@ -589,11 +573,11 @@ const AlunoDetalhes = () => {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {clientDiets.length === 0 ? (
-              <div className="col-span-full py-12 text-center border border-dashed rounded-lg bg-muted/20">
-                <Utensils className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">
+              <div className="col-span-full py-16 text-center border-2 border-dashed rounded-xl bg-muted/10">
+                <Utensils className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground font-medium">
                   Nenhuma dieta atribuída a este aluno.
                 </p>
               </div>
@@ -601,13 +585,13 @@ const AlunoDetalhes = () => {
               clientDiets.map((d) => (
                 <Card
                   key={d.id}
-                  className="group hover:border-primary/50 transition-all shadow-sm"
+                  className="group hover:border-primary/50 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-primary"
                 >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <Badge
                         variant="outline"
-                        className="bg-green-50 text-green-700 border-green-100"
+                        className="bg-secondary text-foreground border-border font-bold"
                       >
                         {d.type || 'Geral'}
                       </Badge>
@@ -620,15 +604,15 @@ const AlunoDetalhes = () => {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    <CardTitle className="text-lg leading-tight mt-2">
+                    <CardTitle className="text-xl leading-tight mt-3">
                       {d.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em] font-medium">
                       {d.objective}
                     </p>
-                    <div className="mt-4 flex items-center text-xs text-muted-foreground">
+                    <div className="mt-4 flex items-center text-xs text-muted-foreground font-bold uppercase tracking-wider">
                       <Clock className="h-3 w-3 mr-1" />
                       Criado em {format(new Date(d.createdAt), 'dd/MM/yyyy')}
                     </div>
@@ -643,11 +627,11 @@ const AlunoDetalhes = () => {
         <TabsContent value="agenda" className="space-y-6 animate-fade-in-up">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold tracking-tight">
-                Agenda do Aluno
+              <h3 className="text-xl font-bold tracking-tight uppercase">
+                Agenda
               </h3>
-              <p className="text-sm text-muted-foreground">
-                Compromissos e aulas agendadas
+              <p className="text-sm text-muted-foreground font-medium">
+                Compromissos e aulas
               </p>
             </div>
             <Button
@@ -661,11 +645,11 @@ const AlunoDetalhes = () => {
             </Button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {clientEvents.length === 0 ? (
-              <div className="py-12 text-center border border-dashed rounded-lg bg-muted/20">
-                <CalendarIcon className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">
+              <div className="py-16 text-center border-2 border-dashed rounded-xl bg-muted/10">
+                <CalendarIcon className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground font-medium">
                   Nenhum agendamento encontrado.
                 </p>
               </div>
@@ -674,40 +658,40 @@ const AlunoDetalhes = () => {
                 <div
                   key={e.id}
                   className={cn(
-                    'flex items-center justify-between p-4 rounded-lg border bg-card transition-all hover:shadow-sm',
+                    'flex items-center justify-between p-4 rounded-xl border bg-card transition-all hover:shadow-md',
                     e.completed && 'opacity-60 bg-muted/30',
                   )}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-6">
                     <div
                       className={cn(
-                        'flex flex-col items-center justify-center h-12 w-12 rounded-lg border',
+                        'flex flex-col items-center justify-center h-14 w-14 rounded-xl border-2',
                         e.completed
-                          ? 'bg-muted text-muted-foreground'
+                          ? 'bg-muted text-muted-foreground border-border'
                           : 'bg-primary/5 text-primary border-primary/20',
                       )}
                     >
-                      <span className="text-xs font-bold uppercase">
+                      <span className="text-[10px] font-black uppercase tracking-wider">
                         {format(new Date(e.date), 'MMM')}
                       </span>
-                      <span className="text-lg font-bold leading-none">
+                      <span className="text-xl font-black leading-none">
                         {format(new Date(e.date), 'dd')}
                       </span>
                     </div>
                     <div>
                       <p
                         className={cn(
-                          'font-semibold text-base',
-                          e.completed && 'line-through',
+                          'font-bold text-lg',
+                          e.completed && 'line-through decoration-2',
                         )}
                       >
                         {e.title}
                       </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                         <Clock className="h-3 w-3" />
                         {format(new Date(e.date), 'HH:mm')}
                         {e.completed && (
-                          <span className="text-green-600 font-medium ml-2">
+                          <span className="text-green-600 font-bold ml-2 uppercase text-xs">
                             • Concluído
                           </span>
                         )}
@@ -720,7 +704,7 @@ const AlunoDetalhes = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="h-10 w-10 text-green-600 hover:text-green-700 hover:bg-green-50"
                         onClick={() => updateEvent({ ...e, completed: true })}
                         title="Concluir"
                       >
@@ -730,7 +714,7 @@ const AlunoDetalhes = () => {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => setDeleteEventId(e.id)}
                       title="Excluir"
                     >

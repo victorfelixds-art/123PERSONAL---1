@@ -180,7 +180,10 @@ export interface UserProfile {
   avatar: string
 }
 
-export type AppTheme = 'dark-performance' | 'light-clean' | 'performance-blue'
+export type AppTheme =
+  | 'dark-performance'
+  | 'light-performance'
+  | 'performance-blue'
 
 export interface AppSettings {
   theme: AppTheme

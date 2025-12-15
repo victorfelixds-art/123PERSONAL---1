@@ -105,16 +105,19 @@ const Agenda = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Agenda</h1>
+    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in max-w-5xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+        <h1 className="text-4xl font-extrabold tracking-tight uppercase">
+          Agenda
+        </h1>
         <Button
+          size="lg"
           onClick={() => {
             setEditingEvent(undefined)
             setIsFormOpen(true)
           }}
         >
-          <Plus className="mr-2 h-4 w-4" /> Criar Compromisso
+          <Plus className="mr-2 h-5 w-5" /> Novo Evento
         </Button>
       </div>
 
@@ -122,18 +125,21 @@ const Agenda = () => {
         <Button
           variant={filter === 'hoje' ? 'default' : 'outline'}
           onClick={() => setFilter('hoje')}
+          className="font-bold rounded-lg px-6"
         >
           Hoje
         </Button>
         <Button
           variant={filter === 'proximos' ? 'default' : 'outline'}
           onClick={() => setFilter('proximos')}
+          className="font-bold rounded-lg px-6"
         >
-          Próximos 7 dias
+          Semana
         </Button>
         <Button
           variant={filter === 'todos' ? 'default' : 'outline'}
           onClick={() => setFilter('todos')}
+          className="font-bold rounded-lg px-6"
         >
           Todos
         </Button>
@@ -141,9 +147,11 @@ const Agenda = () => {
 
       <div className="grid gap-4">
         {filteredEvents.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground border border-dashed rounded-lg">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum compromisso encontrado para este período.</p>
+          <div className="text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
+            <CalendarIcon className="h-16 w-16 mx-auto mb-4 opacity-20" />
+            <p className="text-lg font-medium">
+              Nenhum compromisso para este período.
+            </p>
           </div>
         ) : (
           filteredEvents.map((event) => {
@@ -158,7 +166,7 @@ const Agenda = () => {
                 className={cn(
                   'transition-all hover:shadow-md border-l-4',
                   status === 'concluido'
-                    ? 'border-l-green-500 opacity-80'
+                    ? 'border-l-green-500 opacity-60'
                     : status === 'atrasado'
                       ? 'border-l-red-500'
                       : status === 'hoje'
@@ -166,12 +174,12 @@ const Agenda = () => {
                         : 'border-l-gray-300',
                 )}
               >
-                <CardContent className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
+                <CardContent className="p-6 flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <h3
                         className={cn(
-                          'font-semibold text-lg',
+                          'font-bold text-xl',
                           status === 'concluido' &&
                             'line-through text-muted-foreground',
                         )}
@@ -181,43 +189,37 @@ const Agenda = () => {
                       {status === 'atrasado' && (
                         <Badge
                           variant="destructive"
-                          className="flex items-center gap-1"
+                          className="font-bold uppercase"
                         >
-                          <AlertCircle className="h-3 w-3" /> Atrasado
+                          Atrasado
                         </Badge>
                       )}
                       {status === 'hoje' && (
                         <Badge
                           variant="secondary"
-                          className="bg-blue-100 text-blue-800"
+                          className="bg-blue-100 text-blue-800 font-bold uppercase"
                         >
                           Hoje
                         </Badge>
                       )}
-                      {status === 'concluido' && (
-                        <Badge
-                          variant="outline"
-                          className="text-green-600 border-green-200 bg-green-50"
-                        >
-                          Concluído
-                        </Badge>
-                      )}
                     </div>
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <CalendarIcon className="h-3 w-3" />
-                        {format(new Date(event.date), "dd 'de' MMMM", {
-                          locale: ptBR,
-                        })}
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground font-medium">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-primary" />
+                        <span className="uppercase">
+                          {format(new Date(event.date), "d 'de' MMM", {
+                            locale: ptBR,
+                          })}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {format(new Date(event.date), 'HH:mm')}
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span>{format(new Date(event.date), 'HH:mm')}</span>
                       </div>
                       {clientName && (
-                        <div className="flex items-center gap-1 text-primary">
-                          <User className="h-3 w-3" />
+                        <div className="flex items-center gap-2 text-foreground font-bold">
+                          <User className="h-4 w-4" />
                           {clientName}
                         </div>
                       )}
@@ -232,34 +234,35 @@ const Agenda = () => {
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     {status !== 'concluido' && (
                       <Button
-                        size="sm"
+                        size="icon"
                         variant="ghost"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50 h-10 w-10"
                         onClick={() => handleComplete(event)}
-                        title="Marcar como concluído"
+                        title="Concluir"
                       >
-                        <CheckCircle2 className="h-5 w-5" />
+                        <CheckCircle2 className="h-6 w-6" />
                       </Button>
                     )}
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
+                      className="h-10 w-10"
                       onClick={() => {
                         setEditingEvent(event)
                         setIsFormOpen(true)
                       }}
                       title="Editar"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-5 w-5" />
                     </Button>
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 h-10 w-10"
                       onClick={() => setDeleteEventId(event.id)}
                       title="Excluir"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </Button>
                   </div>
                 </CardContent>
@@ -273,7 +276,7 @@ const Agenda = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingEvent ? 'Editar Compromisso' : 'Novo Compromisso'}
+              {editingEvent ? 'Editar Evento' : 'Novo Evento'}
             </DialogTitle>
           </DialogHeader>
           <EventForm
@@ -290,7 +293,7 @@ const Agenda = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir compromisso?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir evento?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>

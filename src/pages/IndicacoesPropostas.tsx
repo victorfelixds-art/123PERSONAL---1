@@ -85,76 +85,79 @@ const IndicacoesPropostas = () => {
   }
 
   const handleExportPDF = (proposal: Proposal) => {
-    generateProposalPDF(proposal, profile, settings.themeColor)
+    generateProposalPDF(proposal, profile, settings.theme)
     toast.success('PDF da proposta gerado!')
   }
 
   const handleShareProposal = (proposal: Proposal) => {
-    // In a real app, this would point to a public proposal view
-    // For now, we simulate sharing a message
     const message = `Olá ${proposal.clientName}, aqui está sua proposta de consultoria: [Link da Proposta]`
     shareViaWhatsApp('', message)
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight">
+    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in max-w-7xl">
+      <h1 className="text-4xl font-extrabold tracking-tight uppercase border-b pb-6">
         Indicações & Propostas
       </h1>
 
-      <Tabs defaultValue="indicacoes" className="space-y-6">
+      <Tabs defaultValue="indicacoes" className="space-y-8">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-          <TabsTrigger value="indicacoes">Indicações</TabsTrigger>
-          <TabsTrigger value="propostas">Propostas</TabsTrigger>
+          <TabsTrigger value="indicacoes" className="font-bold">
+            Indicações
+          </TabsTrigger>
+          <TabsTrigger value="propostas" className="font-bold">
+            Propostas
+          </TabsTrigger>
         </TabsList>
 
         {/* INDICAÇÕES TAB */}
         <TabsContent value="indicacoes" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Referral Link Card */}
-            <Card className="col-span-2 md:col-span-1">
+            <Card className="col-span-2 md:col-span-1 border-l-4 border-l-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 uppercase">
                   <Share2 className="h-5 w-5 text-primary" />
                   Link de Indicação
                 </CardTitle>
                 <CardDescription>
-                  Divulgue seu trabalho! Compartilhe este link em redes sociais.
+                  Compartilhe seu trabalho e receba novos alunos.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-muted rounded-md border text-sm break-all font-mono">
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-secondary rounded-lg border border-border text-sm break-all font-mono">
                   {referralLink}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-primary/5 p-3 rounded-lg text-center border border-primary/10">
-                    <div className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
-                      <Eye className="h-5 w-5" /> {referralViews}
+                  <div className="bg-muted/30 p-4 rounded-xl text-center border border-border">
+                    <div className="text-3xl font-extrabold text-foreground flex items-center justify-center gap-2">
+                      <Eye className="h-6 w-6 text-muted-foreground" />{' '}
+                      {referralViews}
                     </div>
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mt-1">
                       Visualizações
                     </p>
                   </div>
-                  <div className="bg-green-50 p-3 rounded-lg text-center border border-green-100">
-                    <div className="text-2xl font-bold text-green-600 flex items-center justify-center gap-2">
-                      <MessageCircle className="h-5 w-5" />{' '}
+                  <div className="bg-primary/5 p-4 rounded-xl text-center border border-primary/20">
+                    <div className="text-3xl font-extrabold text-primary flex items-center justify-center gap-2">
+                      <MessageCircle className="h-6 w-6" />{' '}
                       {referralConversions}
                     </div>
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">
-                      Cliques no WhatsApp
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mt-1">
+                      Cliques
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-2">
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 font-bold"
                     onClick={() => copyToClipboard(referralLink)}
                   >
                     <Copy className="mr-2 h-4 w-4" /> Copiar
                   </Button>
                   <Button
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1 font-bold bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
                     onClick={() =>
                       shareViaWhatsApp(
                         referralLink,
@@ -174,98 +177,96 @@ const IndicacoesPropostas = () => {
         <TabsContent value="propostas" className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Propostas Comerciais</h2>
-              <p className="text-sm text-muted-foreground">
-                Crie e envie propostas profissionais para fechar mais alunos.
+              <h2 className="text-xl font-bold uppercase">
+                Propostas Comerciais
+              </h2>
+              <p className="text-sm text-muted-foreground font-medium">
+                Envie propostas para fechar mais alunos.
               </p>
             </div>
-            <Button onClick={() => setIsProposalDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Criar Proposta
+            <Button size="lg" onClick={() => setIsProposalDialogOpen(true)}>
+              <Plus className="mr-2 h-5 w-5" /> Nova Proposta
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {proposals.length === 0 ? (
-              <div className="col-span-full text-center py-12 text-muted-foreground border border-dashed rounded-lg bg-muted/20">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhuma proposta criada ainda.</p>
+              <div className="col-span-full text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
+                <FileText className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-medium">Nenhuma proposta criada.</p>
                 <Button
                   variant="link"
                   onClick={() => setIsProposalDialogOpen(true)}
+                  className="font-bold text-primary mt-2"
                 >
-                  Criar minha primeira proposta
+                  Criar agora
                 </Button>
               </div>
             ) : (
               proposals.map((proposal) => (
-                <Card key={proposal.id} className="flex flex-col">
-                  <CardHeader className="pb-2">
+                <Card
+                  key={proposal.id}
+                  className="flex flex-col hover:border-primary/50 transition-all border-l-4 border-l-transparent hover:border-l-primary"
+                >
+                  <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">
+                      <CardTitle className="text-xl font-bold truncate pr-2">
                         {proposal.clientName}
                       </CardTitle>
                       <div className="flex items-center gap-1">
                         {proposal.status === 'accepted' && (
-                          <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> Aceita
+                          <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded uppercase tracking-wide">
+                            Aceita
                           </span>
                         )}
                         {proposal.status === 'rejected' && (
-                          <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded-full flex items-center gap-1">
-                            <XCircle className="h-3 w-3" /> Recusada
+                          <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-1 rounded uppercase tracking-wide">
+                            Recusada
                           </span>
                         )}
                         {proposal.status === 'sent' && (
-                          <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded uppercase tracking-wide">
                             Enviada
                           </span>
                         )}
                       </div>
                     </div>
                     <CardDescription className="flex items-center flex-wrap gap-2 mt-1">
-                      <span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">
                         {new Date(proposal.createdAt).toLocaleDateString(
                           'pt-BR',
                         )}
                       </span>
-                      {proposal.type === 'transformation' && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] h-5 px-1"
-                        >
-                          Projeto (Antigo)
-                        </Badge>
-                      )}
-                      {proposal.type === 'conversion70' && (
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] h-5 px-1 bg-primary/10 text-primary hover:bg-primary/20 border-none"
-                        >
-                          Conversão 70%
-                        </Badge>
-                      )}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Plano:</span>
-                      <span className="font-medium">{proposal.planName}</span>
+                  <CardContent className="flex-1 space-y-3 text-sm">
+                    <div className="flex justify-between items-center border-b border-border pb-2">
+                      <span className="text-muted-foreground font-bold text-xs uppercase">
+                        Plano
+                      </span>
+                      <span className="font-bold truncate max-w-[150px]">
+                        {proposal.planName}
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valor:</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between items-center border-b border-border pb-2">
+                      <span className="text-muted-foreground font-bold text-xs uppercase">
+                        Valor
+                      </span>
+                      <span className="font-extrabold text-primary text-lg">
                         R$ {proposal.value.toFixed(2)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Status:</span>
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-muted-foreground font-bold text-xs uppercase">
+                        Status
+                      </span>
                       <Select
                         defaultValue={proposal.status}
                         onValueChange={(val: any) =>
                           updateProposal({ ...proposal, status: val })
                         }
                       >
-                        <SelectTrigger className="h-6 w-[100px] text-xs">
+                        <SelectTrigger className="h-8 w-[110px] text-xs font-bold">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -276,30 +277,30 @@ const IndicacoesPropostas = () => {
                       </Select>
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-2 border-t grid grid-cols-3 gap-1 p-2">
+                  <CardFooter className="pt-4 border-t bg-muted/10 grid grid-cols-3 gap-2">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="text-xs flex flex-col h-auto py-2 gap-1"
+                      className="text-xs font-bold"
                       onClick={() => handleExportPDF(proposal)}
                     >
-                      <Download className="h-4 w-4" /> PDF
+                      <Download className="h-3.5 w-3.5 mr-1" /> PDF
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="text-xs flex flex-col h-auto py-2 gap-1 text-green-600 hover:text-green-700"
+                      className="text-xs font-bold text-green-600 hover:text-green-700 hover:bg-green-50"
                       onClick={() => handleShareProposal(proposal)}
                     >
-                      <Share2 className="h-4 w-4" /> Whats
+                      <Share2 className="h-3.5 w-3.5 mr-1" /> Whats
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs flex flex-col h-auto py-2 gap-1 text-destructive hover:text-destructive"
+                      className="text-xs font-bold text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => removeProposal(proposal.id)}
                     >
-                      <Trash2 className="h-4 w-4" /> Excluir
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </CardFooter>
                 </Card>
@@ -315,7 +316,7 @@ const IndicacoesPropostas = () => {
       >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Proposta Comercial</DialogTitle>
+            <DialogTitle>Nova Proposta</DialogTitle>
           </DialogHeader>
           <ProposalForm
             onSave={handleCreateProposal}

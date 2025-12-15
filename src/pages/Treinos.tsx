@@ -18,6 +18,8 @@ import {
   Download,
   UserPlus,
   Share2,
+  Dumbbell,
+  MoreVertical,
 } from 'lucide-react'
 import {
   Dialog,
@@ -25,6 +27,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,7 +84,6 @@ const Treinos = () => {
     const workoutData = {
       ...data,
       exercises: data.exercises || [],
-      // Ensure required fields are set for type safety, though logic should prevent this
       objective: data.objective || '',
       level: data.level || 'Iniciante',
       observations: data.observations || '',
@@ -90,7 +97,7 @@ const Treinos = () => {
         ...workoutData,
         id: Math.random().toString(36).substr(2, 9),
         createdAt: new Date().toISOString(),
-        clientId: undefined, // Explicitly template
+        clientId: undefined,
         isLifetime: true,
       } as Workout)
       toast.success('Treino criado com sucesso!')
@@ -107,58 +114,160 @@ const Treinos = () => {
   }
 
   const handleDownload = (workout: Workout) => {
-    generateWorkoutPDF(workout, profile, settings.themeColor)
+    generateWorkoutPDF(workout, profile, settings.theme)
     toast.success('PDF do treino gerado!')
   }
 
   const handleWhatsApp = (workout: Workout) => {
-    const template =
-      settings.whatsappMessageTemplate ||
-      'Olá {studentName}! Aqui é o {personalName}.'
-    const linkPlaceholder = '{link}'
-
-    // Since we don't have a real public link for workouts yet, we simulate a text message
-    let message = template
-      .replace('{studentName}', workout.clientName || 'Aluno')
-      .replace('{personalName}', profile.name)
-
-    if (message.includes(linkPlaceholder)) {
-      message = message.replace(linkPlaceholder, '[Link do PDF enviado]')
-    } else {
-      message += ' Segue seu treino.'
-    }
-
+    const message = `Olá! Segue o treino: ${workout.title}`
     const encodedMessage = encodeURIComponent(message)
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank')
   }
 
   const getStatus = (workout: Workout) => {
     if (!workout.clientId)
-      return { label: 'Sem Aluno', color: 'bg-gray-200 text-gray-800' }
+      return { label: 'MODELO', color: 'bg-muted text-muted-foreground' }
 
     if (
       !workout.isLifetime &&
       workout.expirationDate &&
       isBefore(parseISO(workout.expirationDate), new Date())
     ) {
-      return { label: 'Vencido', color: 'bg-red-100 text-red-800' }
+      return { label: 'VENCIDO', color: 'bg-red-100 text-red-800' }
     }
 
-    return { label: 'Ativo (Atribuído)', color: 'bg-green-100 text-green-800' }
+    return { label: 'ATIVO', color: 'bg-green-100 text-green-800' }
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Treinos</h1>
-        <Button onClick={handleOpenNew}>
-          <Plus className="mr-2 h-4 w-4" /> Criar Nova Treino
+    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+        <h1 className="text-4xl font-extrabold tracking-tight uppercase">
+          Treinos
+        </h1>
+        <Button size="lg" onClick={handleOpenNew}>
+          <Plus className="mr-2 h-5 w-5" /> Criar Treino
         </Button>
       </div>
 
-      {/* Form Dialog */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {workouts.length === 0 ? (
+          <div className="col-span-full text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
+            <Dumbbell className="h-16 w-16 mx-auto mb-4 opacity-20" />
+            <p className="text-lg font-medium">Nenhum treino criado.</p>
+          </div>
+        ) : (
+          workouts.map((workout) => {
+            const status = getStatus(workout)
+            return (
+              <Card
+                key={workout.id}
+                className="flex flex-col h-full hover:border-primary/60 transition-all border-l-4 border-l-transparent hover:border-l-primary"
+              >
+                <CardHeader className="pb-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <Badge
+                      variant="outline"
+                      className={`${status.color} font-bold border-transparent`}
+                    >
+                      {status.label}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 -mr-2"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => setAssignWorkoutId(workout.id)}
+                        >
+                          <UserPlus className="mr-2 h-4 w-4" /> Atribuir
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => duplicateWorkout(workout.id)}
+                        >
+                          <Copy className="mr-2 h-4 w-4" /> Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDownload(workout)}
+                        >
+                          <Download className="mr-2 h-4 w-4" /> PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setDeleteWorkoutId(workout.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <CardTitle className="text-xl leading-tight line-clamp-1 uppercase">
+                    {workout.title}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1 font-medium">
+                    {workout.level}
+                  </p>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase text-muted-foreground mb-1">
+                      Objetivo
+                    </p>
+                    <p className="text-sm font-medium">
+                      {workout.objective || '-'}
+                    </p>
+                  </div>
+                  {workout.clientName && (
+                    <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
+                      <p className="text-xs font-bold uppercase text-primary mb-1 flex items-center gap-1">
+                        <UserPlus className="h-3 w-3" /> Aluno
+                      </p>
+                      <p className="text-sm font-bold truncate">
+                        {workout.clientName}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                    <Clock className="h-3.5 w-3.5" />
+                    {workout.isLifetime
+                      ? 'Vitalício'
+                      : workout.expirationDate
+                        ? `Vence: ${new Date(workout.expirationDate).toLocaleDateString()}`
+                        : '-'}
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-4 border-t bg-muted/10">
+                  <div className="flex justify-between w-full gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 font-bold"
+                      onClick={() => handleOpenEdit(workout)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" /> Editar
+                    </Button>
+                    <Button
+                      className="flex-1 font-bold bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                      onClick={() => handleWhatsApp(workout)}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" /> Whats
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            )
+          })
+        )}
+      </div>
+
+      {/* Dialogs */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingWorkout ? 'Editar Treino' : 'Novo Treino'}
@@ -172,155 +281,34 @@ const Treinos = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Assignment Dialog */}
       <WorkoutAssignmentDialog
         workoutId={assignWorkoutId}
         open={!!assignWorkoutId}
         onOpenChange={(open) => !open && setAssignWorkoutId(null)}
       />
 
-      {/* Delete Alert */}
       <AlertDialog
         open={!!deleteWorkoutId}
         onOpenChange={(open) => !open && setDeleteWorkoutId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Treino?</AlertDialogTitle>
             <AlertDialogDescription>
-              Essa ação não pode ser desfeita. Isso excluirá permanentemente o
-              treino e removerá a associação com alunos, se houver.
+              Esta ação é irreversível. O treino será removido permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive"
             >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {workouts.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-muted-foreground border border-dashed rounded-lg">
-            <p>Nenhum treino criado ainda.</p>
-          </div>
-        ) : (
-          workouts.map((workout) => {
-            const status = getStatus(workout)
-            return (
-              <Card
-                key={workout.id}
-                className="flex flex-col h-full hover:border-primary/50 transition-colors"
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="outline" className={status.color}>
-                      {status.label}
-                    </Badge>
-                    <div className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">
-                      {workout.level || 'Nível N/A'}
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl line-clamp-1">
-                    {workout.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Objetivo
-                    </p>
-                    <p className="text-sm">{workout.objective || '-'}</p>
-                  </div>
-                  {workout.clientName && (
-                    <div className="flex items-center gap-2 text-sm text-primary font-medium bg-primary/10 p-2 rounded">
-                      <UserPlus className="h-4 w-4" />
-                      Aluno: {workout.clientName}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {workout.isLifetime
-                        ? 'Vitalício'
-                        : workout.expirationDate
-                          ? `Vence: ${new Date(workout.expirationDate).toLocaleDateString()}`
-                          : '-'}
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {workout.exercises.length} exercícios cadastrados
-                  </p>
-                </CardContent>
-                <CardFooter className="pt-2 border-t grid grid-cols-5 gap-1 p-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Atribuir"
-                    onClick={() => setAssignWorkoutId(workout.id)}
-                    className="h-8 w-full"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Duplicar"
-                    onClick={() => duplicateWorkout(workout.id)}
-                    className="h-8 w-full"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Editar"
-                    onClick={() => handleOpenEdit(workout)}
-                    className="h-8 w-full"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Compartilhar WhatsApp"
-                    onClick={() => handleWhatsApp(workout)}
-                    className="h-8 w-full text-green-600 hover:text-green-700"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                  <div className="relative group">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title="Baixar PDF"
-                      onClick={() => handleDownload(workout)}
-                      className="h-8 w-full"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardFooter>
-                <div className="px-2 pb-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteWorkoutId(workout.id)}
-                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-8"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                  </Button>
-                </div>
-              </Card>
-            )
-          })
-        )}
-      </div>
     </div>
   )
 }

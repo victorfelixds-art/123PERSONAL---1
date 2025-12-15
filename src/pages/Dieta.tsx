@@ -18,6 +18,8 @@ import {
   Download,
   UserPlus,
   Share2,
+  Utensils,
+  MoreVertical,
 } from 'lucide-react'
 import {
   Dialog,
@@ -25,6 +27,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,7 +82,6 @@ const Dieta = () => {
     const dietData = {
       ...data,
       meals: data.meals || [],
-      // Ensure strings for required fields
       objective: data.objective || 'Geral',
       type: data.type || 'Balanceada',
       observations: data.observations || '',
@@ -104,53 +111,151 @@ const Dieta = () => {
   }
 
   const handleDownload = (diet: Diet) => {
-    generateDietPDF(diet, profile, settings.themeColor)
+    generateDietPDF(diet, profile, settings.theme)
     toast.success('PDF da dieta gerado!')
   }
 
   const handleWhatsApp = (diet: Diet) => {
-    const template =
-      settings.whatsappMessageTemplate ||
-      'Olá {studentName}! Aqui é o {personalName}.'
-    const linkPlaceholder = '{link}'
-
-    // Simulate sending PDF
-    let message = template
-      .replace('{studentName}', diet.clientName || 'Aluno')
-      .replace('{personalName}', profile.name)
-
-    if (message.includes(linkPlaceholder)) {
-      message = message.replace(linkPlaceholder, '[PDF da Dieta Anexado]')
-    } else {
-      message += ' Segue sua dieta.'
-    }
-
+    const message = `Olá! Segue a dieta: ${diet.title}`
     const encodedMessage = encodeURIComponent(message)
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank')
   }
 
   const getStatus = (diet: Diet) => {
     if (!diet.clientId)
-      return { label: 'Sem Aluno', color: 'bg-gray-200 text-gray-800' }
+      return { label: 'MODELO', color: 'bg-muted text-muted-foreground' }
 
     if (
       !diet.isLifetime &&
       diet.expirationDate &&
       isBefore(parseISO(diet.expirationDate), new Date())
     ) {
-      return { label: 'Vencida', color: 'bg-red-100 text-red-800' }
+      return { label: 'VENCIDA', color: 'bg-red-100 text-red-800' }
     }
 
-    return { label: 'Ativa', color: 'bg-green-100 text-green-800' }
+    return { label: 'ATIVA', color: 'bg-green-100 text-green-800' }
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Dietas</h1>
-        <Button onClick={handleOpenNew}>
-          <Plus className="mr-2 h-4 w-4" /> Criar Nova Dieta
+    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+        <h1 className="text-4xl font-extrabold tracking-tight uppercase">
+          Dietas
+        </h1>
+        <Button size="lg" onClick={handleOpenNew}>
+          <Plus className="mr-2 h-5 w-5" /> Criar Dieta
         </Button>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {diets.length === 0 ? (
+          <div className="col-span-full text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
+            <Utensils className="h-16 w-16 mx-auto mb-4 opacity-20" />
+            <p className="text-lg font-medium">Nenhuma dieta criada.</p>
+          </div>
+        ) : (
+          diets.map((diet) => {
+            const status = getStatus(diet)
+            return (
+              <Card
+                key={diet.id}
+                className="flex flex-col h-full hover:border-primary/60 transition-all border-l-4 border-l-transparent hover:border-l-primary"
+              >
+                <CardHeader className="pb-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <Badge
+                      variant="outline"
+                      className={`${status.color} font-bold border-transparent`}
+                    >
+                      {status.label}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 -mr-2"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => setAssignDietId(diet.id)}
+                        >
+                          <UserPlus className="mr-2 h-4 w-4" /> Atribuir
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => duplicateDiet(diet.id)}
+                        >
+                          <Copy className="mr-2 h-4 w-4" /> Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDownload(diet)}>
+                          <Download className="mr-2 h-4 w-4" /> PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setDeleteDietId(diet.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <CardTitle className="text-xl leading-tight line-clamp-1 uppercase">
+                    {diet.title}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1 font-medium">
+                    {diet.type}
+                  </p>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase text-muted-foreground mb-1">
+                      Objetivo
+                    </p>
+                    <p className="text-sm font-medium">{diet.objective}</p>
+                  </div>
+                  {diet.clientName && (
+                    <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
+                      <p className="text-xs font-bold uppercase text-primary mb-1 flex items-center gap-1">
+                        <UserPlus className="h-3 w-3" /> Aluno
+                      </p>
+                      <p className="text-sm font-bold truncate">
+                        {diet.clientName}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                    <Clock className="h-3.5 w-3.5" />
+                    {diet.isLifetime
+                      ? 'Vitalícia'
+                      : diet.expirationDate
+                        ? `Vence: ${new Date(diet.expirationDate).toLocaleDateString()}`
+                        : '-'}
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-4 border-t bg-muted/10">
+                  <div className="flex justify-between w-full gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 font-bold"
+                      onClick={() => handleOpenEdit(diet)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" /> Editar
+                    </Button>
+                    <Button
+                      className="flex-1 font-bold bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                      onClick={() => handleWhatsApp(diet)}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" /> Whats
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            )
+          })
+        )}
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -180,139 +285,22 @@ const Dieta = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Dieta?</AlertDialogTitle>
             <AlertDialogDescription>
-              Essa ação não pode ser desfeita. Isso excluirá permanentemente a
-              dieta e removerá a associação com alunos, se houver.
+              Esta ação é irreversível. A dieta será removida permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive"
             >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {diets.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-muted-foreground border border-dashed rounded-lg">
-            <p>Nenhuma dieta criada ainda.</p>
-          </div>
-        ) : (
-          diets.map((diet) => {
-            const status = getStatus(diet)
-            return (
-              <Card
-                key={diet.id}
-                className="flex flex-col h-full hover:border-primary/50 transition-colors"
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="outline" className={status.color}>
-                      {status.label}
-                    </Badge>
-                    <div className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">
-                      {diet.type}
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl line-clamp-1">
-                    {diet.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Objetivo
-                    </p>
-                    <p className="text-sm">{diet.objective}</p>
-                  </div>
-                  {diet.clientName && (
-                    <div className="flex items-center gap-2 text-sm text-primary font-medium bg-primary/10 p-2 rounded">
-                      <UserPlus className="h-4 w-4" />
-                      Aluno: {diet.clientName}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {diet.isLifetime
-                        ? 'Vitalícia'
-                        : diet.expirationDate
-                          ? `Vence: ${new Date(diet.expirationDate).toLocaleDateString()}`
-                          : '-'}
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {diet.meals.length} refeições cadastradas
-                  </p>
-                </CardContent>
-                <CardFooter className="pt-2 border-t grid grid-cols-5 gap-1 p-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Atribuir"
-                    onClick={() => setAssignDietId(diet.id)}
-                    className="h-8 w-full"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Duplicar"
-                    onClick={() => duplicateDiet(diet.id)}
-                    className="h-8 w-full"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Editar"
-                    onClick={() => handleOpenEdit(diet)}
-                    className="h-8 w-full"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Compartilhar WhatsApp"
-                    onClick={() => handleWhatsApp(diet)}
-                    className="h-8 w-full text-green-600 hover:text-green-700"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Visualizar/Imprimir"
-                    onClick={() => handleDownload(diet)}
-                    className="h-8 w-full"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-                <div className="px-2 pb-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteDietId(diet.id)}
-                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-8"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                  </Button>
-                </div>
-              </Card>
-            )
-          })
-        )}
-      </div>
     </div>
   )
 }

@@ -173,14 +173,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     root.classList.remove(
       'dark',
       'theme-dark-performance',
-      'theme-light-clean',
+      'theme-light-performance',
       'theme-performance-blue',
     )
 
     // Add new classes
     root.classList.add(`theme-${theme}`)
 
-    // Handle .dark class for compatibility with some Tailwind utilities if needed
+    // Handle .dark class for compatibility with some Tailwind utilities
     if (theme === 'dark-performance' || theme === 'performance-blue') {
       root.classList.add('dark')
     }

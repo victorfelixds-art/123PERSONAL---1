@@ -280,158 +280,157 @@ const Financeiro = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-        <Button onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" /> Exportar Relatório
+    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in pb-24 max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+        <h1 className="text-4xl font-extrabold tracking-tight uppercase">
+          Financeiro
+        </h1>
+        <Button onClick={handleExport} size="lg">
+          <Download className="mr-2 h-5 w-5" /> Exportar Relatório
         </Button>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Filter className="h-4 w-4" /> Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label>Período</Label>
-            <Select value={periodFilter} onValueChange={setPeriodFilter}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="current_month">Mês Atual</SelectItem>
-                <SelectItem value="last_3_months">Últimos 3 Meses</SelectItem>
-                <SelectItem value="last_6_months">Últimos 6 Meses</SelectItem>
-                <SelectItem value="custom">Intervalo Personalizado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {periodFilter === 'custom' && (
-            <div className="space-y-2 sm:col-span-2 lg:col-span-1 flex items-end gap-2">
-              <div className="flex-1">
-                <Label className="text-xs">Início</Label>
-                <Input
-                  type="date"
-                  value={customRange.start}
-                  onChange={(e) =>
-                    setCustomRange({ ...customRange, start: e.target.value })
-                  }
-                />
-              </div>
-              <div className="flex-1">
-                <Label className="text-xs">Fim</Label>
-                <Input
-                  type="date"
-                  value={customRange.end}
-                  onChange={(e) =>
-                    setCustomRange({ ...customRange, end: e.target.value })
-                  }
-                />
-              </div>
+        <CardContent className="pt-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-2">
+              <Label>Período</Label>
+              <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="current_month">Mês Atual</SelectItem>
+                  <SelectItem value="last_3_months">Últimos 3 Meses</SelectItem>
+                  <SelectItem value="last_6_months">Últimos 6 Meses</SelectItem>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="paid">Pago</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="overdue">Vencido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Plano</Label>
-            <Select value={planFilter} onValueChange={setPlanFilter}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {plans.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {periodFilter === 'custom' && (
+              <div className="space-y-2 sm:col-span-2 lg:col-span-1 flex items-end gap-2">
+                <div className="flex-1">
+                  <Label className="text-xs">Início</Label>
+                  <Input
+                    type="date"
+                    value={customRange.start}
+                    onChange={(e) =>
+                      setCustomRange({ ...customRange, start: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label className="text-xs">Fim</Label>
+                  <Input
+                    type="date"
+                    value={customRange.end}
+                    onChange={(e) =>
+                      setCustomRange({ ...customRange, end: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="paid">Pago</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="overdue">Vencido</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Plano</Label>
+              <Select value={planFilter} onValueChange={setPlanFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Receita Total
+            </CardTitle>
+            <DollarSign className="h-5 w-5 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-3xl font-extrabold text-green-500">
               R$ {metrics.totalRevenue.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              No período selecionado
-            </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">MRR</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              MRR
+            </CardTitle>
+            <DollarSign className="h-5 w-5 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-3xl font-extrabold text-blue-500">
               R$ {metrics.mrr.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Receita recorrente mensal
-            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Alunos Ativos
+            </CardTitle>
+            <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-extrabold">
               {metrics.activeStudentsCount}
             </div>
-            <p className="text-xs text-muted-foreground">Total atual</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Ticket Médio
+            </CardTitle>
+            <DollarSign className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-extrabold">
               R$ {metrics.avgTicket.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">Por aluno ativo</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1 md:col-span-2 lg:col-span-1">
           <CardHeader>
-            <CardTitle>Receita ao longo do tempo</CardTitle>
-            <CardDescription>Valores pagos por mês</CardDescription>
+            <CardTitle className="uppercase">Receita</CardTitle>
+            <CardDescription>Valores recebidos por mês</CardDescription>
           </CardHeader>
-          <CardContent className="pl-0">
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <BarChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
@@ -461,11 +460,11 @@ const Financeiro = () => {
 
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Status de Pagamentos</CardTitle>
-            <CardDescription>Distribuição por status</CardDescription>
+            <CardTitle className="uppercase">Status</CardTitle>
+            <CardDescription>Pagamentos</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <PieChart>
                 <Pie
                   data={statusData}
@@ -473,8 +472,8 @@ const Financeiro = () => {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={70}
+                  outerRadius={90}
                   paddingAngle={5}
                 >
                   {statusData.map((entry, index) => (
@@ -487,57 +486,35 @@ const Financeiro = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-
-        <Card className="col-span-1 md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Distribuição por Plano</CardTitle>
-            <CardDescription>Receita gerada por tipo de plano</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <BarChart data={planData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tickLine={false}
-                  axisLine={false}
-                  width={100}
-                  fontSize={12}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="value"
-                  fill="var(--color-revenue)"
-                  radius={[0, 4, 4, 0]}
-                  name="Receita"
-                  barSize={20}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Transactions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Pagamentos</CardTitle>
-          <CardDescription>
-            Gerencie os pagamentos dos seus alunos.
-          </CardDescription>
+          <CardTitle className="uppercase">Transações</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Aluno</TableHead>
-                <TableHead>Plano</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="uppercase font-bold text-xs">
+                  Aluno
+                </TableHead>
+                <TableHead className="uppercase font-bold text-xs">
+                  Plano
+                </TableHead>
+                <TableHead className="uppercase font-bold text-xs">
+                  Valor
+                </TableHead>
+                <TableHead className="uppercase font-bold text-xs">
+                  Vencimento
+                </TableHead>
+                <TableHead className="uppercase font-bold text-xs">
+                  Status
+                </TableHead>
+                <TableHead className="text-right uppercase font-bold text-xs">
+                  Ações
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -557,11 +534,13 @@ const Financeiro = () => {
                     isBefore(parseISO(t.dueDate), new Date())
                   return (
                     <TableRow key={t.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-bold">
                         {t.studentName || '-'}
                       </TableCell>
                       <TableCell>{t.planName || '-'}</TableCell>
-                      <TableCell>R$ {t.amount.toFixed(2)}</TableCell>
+                      <TableCell className="font-medium">
+                        R$ {t.amount.toFixed(2)}
+                      </TableCell>
                       <TableCell>
                         {format(parseISO(t.dueDate), 'dd/MM/yyyy')}
                         {isOverdue && t.status !== 'paid' && (
@@ -573,12 +552,12 @@ const Financeiro = () => {
                       <TableCell>
                         <span
                           className={cn(
-                            'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase',
+                            'inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide',
                             t.status === 'paid'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                              ? 'bg-green-100 text-green-800'
                               : isOverdue
-                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800',
                           )}
                         >
                           {t.status === 'paid'
@@ -591,9 +570,9 @@ const Financeiro = () => {
                       <TableCell className="text-right space-x-2">
                         {t.status !== 'paid' && (
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="outline"
-                            className="h-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                             onClick={() => markTransactionAsPaid(t.id)}
                             title="Marcar como Pago"
                           >
@@ -601,9 +580,9 @@ const Financeiro = () => {
                           </Button>
                         )}
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
-                          className="h-8"
+                          className="h-8 w-8"
                           onClick={() => {
                             setEditingTransaction(t.id)
                             setNewDueDate(t.dueDate)

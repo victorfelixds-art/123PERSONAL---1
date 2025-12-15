@@ -32,7 +32,6 @@ const Index = () => {
   // --- Metrics ---
   const totalClients = clients.length
   const activeClients = clients.filter((c) => c.status === 'active').length
-  const inactiveClients = clients.filter((c) => c.status === 'inactive').length
 
   // Plans Attention: Active clients expiring in next 7 days or Overdue
   const plansAttention = clients.filter((c) => {
@@ -52,7 +51,6 @@ const Index = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   // --- Actions Generation ---
-
   const planActions = plansAttention.map((c) => {
     const endDate = parseISO(c.planEndDate!)
     const daysLeft = differenceInDays(endDate, today)
@@ -70,264 +68,164 @@ const Index = () => {
       link: `/alunos/${c.id}?tab=plano`,
       actionLabel: 'Renovar',
       icon: CreditCard,
-      colorClass: 'text-orange-600 bg-orange-100',
+      colorClass:
+        'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30',
     }
   })
 
-  const weightActions = events
-    .filter(
-      (e) =>
-        !e.completed &&
-        e.type === 'other' &&
-        e.title.toLowerCase().includes('peso') &&
-        (isSameDay(new Date(e.date), today) ||
-          isBefore(new Date(e.date), today)),
-    )
-    .map((e) => ({
-      id: `weight-${e.id}`,
-      type: 'weight',
-      priority: 2,
-      title: 'Atualização de Peso',
-      studentName:
-        clients.find((c) => c.id === e.studentId)?.name || 'Aluno não ident.',
-      detail: isSameDay(new Date(e.date), today)
-        ? 'Hoje'
-        : `Atrasado ${differenceInDays(today, new Date(e.date))} dias`,
-      link: e.studentId ? `/alunos/${e.studentId}` : '/alunos',
-      actionLabel: 'Atualizar',
-      icon: Scale,
-      colorClass: 'text-blue-600 bg-blue-100',
-    }))
-
-  const scheduleActions = todayEvents
-    .filter((e) => !e.completed)
-    .map((e) => ({
-      id: `event-${e.id}`,
-      type: 'event',
-      priority: 3,
-      title: 'Compromisso do Dia',
-      studentName: e.title,
-      detail: format(new Date(e.date), 'HH:mm'),
-      link: '/agenda',
-      actionLabel: 'Ver Agenda',
-      icon: Clock,
-      colorClass: 'text-purple-600 bg-purple-100',
-    }))
-
-  const paymentActions = transactions
-    .filter(
-      (t) =>
-        (t.status === 'overdue' ||
-          (t.status === 'pending' &&
-            isBefore(parseISO(t.dueDate), today) &&
-            !isSameDay(parseISO(t.dueDate), today))) &&
-        t.type === 'income',
-    )
-    .map((t) => ({
-      id: `payment-${t.id}`,
-      type: 'payment',
-      priority: 4,
-      title: 'Pagamento Pendente',
-      studentName: t.studentName || 'Aluno',
-      detail: `R$ ${t.amount.toFixed(2)} - Venceu ${format(parseISO(t.dueDate), 'dd/MM')}`,
-      link: '/financeiro',
-      actionLabel: 'Resolver',
-      icon: DollarSign,
-      colorClass: 'text-red-600 bg-red-100',
-    }))
-
-  const requiredActions = [
-    ...planActions,
-    ...weightActions,
-    ...scheduleActions,
-    ...paymentActions,
-  ].sort((a, b) => a.priority - b.priority)
+  const requiredActions = [...planActions].sort(
+    (a, b) => a.priority - b.priority,
+  )
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in pb-20">
+    <div className="container mx-auto p-4 md:p-8 space-y-10 animate-fade-in pb-24 max-w-7xl">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground uppercase">
             Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Olá, {profile.name.split(' ')[0]}!
+          <p className="text-lg text-muted-foreground mt-2 font-medium">
+            Bem-vindo, {profile.name.split(' ')[0]}. Foco no resultado.
           </p>
         </div>
-        <div className="text-sm font-medium text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full border">
+        <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           {format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </div>
       </div>
 
-      {/* 1. Alerts Section (Planos Vencendo) */}
-      {planActions.length > 0 && (
+      {/* 1. Key Metrics - Large Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-primary hover:border-l-primary/80 transition-all">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+              Alunos Ativos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-6xl font-extrabold tracking-tighter text-foreground">
+              {activeClients}
+            </div>
+            <p className="text-sm font-medium text-muted-foreground mt-2">
+              De {totalClients} totais
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-500 hover:border-l-blue-500/80 transition-all">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+              Agenda Hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-6xl font-extrabold tracking-tighter text-foreground">
+              {todayEvents.length}
+            </div>
+            <p className="text-sm font-medium text-muted-foreground mt-2">
+              Compromissos
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 2. Alerts Section - Large Impact */}
+      {requiredActions.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold tracking-tight flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-5 w-5" />
-            PLANOS VENCENDO
+          <h2 className="text-xl font-bold tracking-tight uppercase flex items-center gap-2">
+            <AlertCircle className="h-6 w-6 text-destructive" />
+            Atenção Necessária
           </h2>
-          <div className="grid gap-3">
-            {planActions.map((action) => (
-              <div
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {requiredActions.map((action) => (
+              <Card
                 key={action.id}
-                className="flex items-center justify-between p-4 rounded-xl border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 transition-colors"
+                className="border-destructive/30 bg-destructive/5"
               >
-                <div className="flex items-center gap-4">
-                  <div className="p-2.5 rounded-lg bg-destructive/10 text-destructive">
-                    <AlertCircle className="h-5 w-5" />
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase text-destructive tracking-widest mb-1">
+                        {action.title}
+                      </p>
+                      <h3 className="text-xl font-bold text-foreground">
+                        {action.studentName}
+                      </h3>
+                      <p className="text-sm font-medium text-muted-foreground mt-1">
+                        {action.detail}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-destructive/10 rounded-full text-destructive">
+                      <action.icon className="h-6 w-6" />
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-sm">{action.studentName}</p>
-                    <p className="text-xs text-destructive font-medium">
-                      {action.detail}
-                    </p>
+                  <div className="mt-6">
+                    <Button className="w-full" variant="destructive" asChild>
+                      <Link to={action.link}>{action.actionLabel}</Link>
+                    </Button>
                   </div>
-                </div>
-                <Button size="sm" variant="destructive" asChild>
-                  <Link to={action.link}>Renovar</Link>
-                </Button>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       )}
 
-      {/* 2. Actions List */}
+      {/* 3. Today's Agenda - Minimalist List */}
       <div className="space-y-4">
-        <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-primary" />
-          AÇÕES NECESSÁRIAS
-        </h2>
-        {requiredActions.filter((a) => a.type !== 'plan').length === 0 ? (
-          <Card className="bg-muted/10 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-              <CheckCircle2 className="h-8 w-8 text-green-500 mb-2 opacity-80" />
-              <p className="font-medium text-foreground text-sm">
-                Tudo em dia!
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold tracking-tight uppercase">
+            Agenda do Dia
+          </h2>
+          <Button variant="ghost" asChild className="font-semibold">
+            <Link to="/agenda">
+              Ver completa <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+
+        {todayEvents.length === 0 ? (
+          <Card className="border-dashed bg-transparent shadow-none">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <Calendar className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <p className="font-medium text-muted-foreground">
+                Agenda livre hoje.
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3">
-            {requiredActions
-              .filter((a) => a.type !== 'plan')
-              .map((action) => (
-                <div
-                  key={action.id}
-                  className="group flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-sm transition-all hover:border-primary/20"
-                >
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {todayEvents.map((event) => (
+              <Card
+                key={event.id}
+                className="hover:border-primary/50 transition-colors"
+              >
+                <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div
-                      className={cn(
-                        'p-2.5 rounded-lg shrink-0',
-                        action.colorClass,
-                      )}
-                    >
-                      <action.icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm">
-                        {action.studentName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {action.title} • {action.detail}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                    className="shrink-0"
-                  >
-                    <Link
-                      to={action.link}
-                      className="flex items-center gap-1 text-primary hover:text-primary/80"
-                    >
-                      <span className="hidden sm:inline">
-                        {action.actionLabel}
+                    <div className="flex flex-col items-center justify-center min-w-[60px] h-[60px] bg-secondary rounded-lg border border-border">
+                      <span className="text-xs font-bold uppercase text-muted-foreground">
+                        Hora
                       </span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Status Cards (Alunos) */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeClients}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalClients} cadastrados no total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Agenda Hoje</CardTitle>
-            <Calendar className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayEvents.length}</div>
-            <p className="text-xs text-muted-foreground">Compromissos</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 4. Agenda List */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold tracking-tight">AGENDA DO DIA</h2>
-        <Card>
-          <CardContent className="p-0">
-            {todayEvents.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>Agenda livre hoje.</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {todayEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex items-center p-4 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="w-16 shrink-0 text-sm font-bold text-muted-foreground">
-                      {format(new Date(event.date), 'HH:mm')}
+                      <span className="text-xl font-bold text-foreground">
+                        {format(new Date(event.date), 'HH:mm')}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
+                    <div className="flex-1 min-w-0 pt-1">
+                      <h3 className="text-lg font-bold truncate">
                         {event.title}
-                      </p>
+                      </h3>
                       {event.studentId && (
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-sm font-medium text-muted-foreground truncate">
                           {clients.find((c) => c.id === event.studentId)?.name}
                         </p>
                       )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            <div className="p-2 border-t bg-muted/20">
-              <Button
-                variant="ghost"
-                className="w-full text-xs text-muted-foreground hover:text-foreground h-8"
-                asChild
-              >
-                <Link to="/agenda">Ver agenda completa</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

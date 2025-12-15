@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Search, User, ChevronRight, AlertCircle } from 'lucide-react'
+import {
+  Plus,
+  Search,
+  ChevronRight,
+  AlertCircle,
+  TrendingUp,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   Dialog,
@@ -17,7 +23,7 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { isBefore, addDays, parseISO } from 'date-fns'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 
 const Alunos = () => {
   const { clients, addClient } = useAppStore()
@@ -30,14 +36,10 @@ const Alunos = () => {
 
   const getClientStatus = (client: Client) => {
     if (client.status === 'inactive') return 'inactive'
-
-    // Check for nearing expiration (Attention)
-    // Only check if planEndDate exists, otherwise inactive or just active without plan?
-    // If status is active but no plan, it's just 'active' (e.g. newly created).
     if (client.planEndDate) {
       const endDate = parseISO(client.planEndDate)
       const today = new Date()
-      if (isBefore(endDate, today)) return 'inactive' // Expired
+      if (isBefore(endDate, today)) return 'inactive'
       if (isBefore(endDate, addDays(today, 5))) return 'attention'
     }
     return 'active'
@@ -76,7 +78,6 @@ const Alunos = () => {
       profileStatus: 'incomplete',
       linkActive: false,
       since: new Date().toISOString().split('T')[0],
-      // No plan initially
     }
 
     addClient(newClient)
@@ -86,46 +87,111 @@ const Alunos = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Alunos</h1>
+    <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+        <h1 className="text-4xl font-extrabold tracking-tight uppercase">
+          Alunos
+        </h1>
         <Button
+          size="lg"
           onClick={() => {
             setNewClientName('')
             setIsDialogOpen(true)
           }}
         >
-          <Plus className="mr-2 h-4 w-4" /> Adicionar Aluno
+          <Plus className="mr-2 h-5 w-5" /> Adicionar
         </Button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar alunos..."
-              className="pl-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
-            {(['todos', 'ativos', 'inativos', 'atencao'] as const).map(
-              (type) => (
-                <Button
-                  key={type}
-                  variant={filterType === type ? 'default' : 'outline'}
-                  onClick={() => setFilterType(type)}
-                  className="capitalize whitespace-nowrap"
-                >
-                  {type === 'atencao' ? 'Atenção' : type}
-                </Button>
-              ),
-            )}
-          </div>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar aluno..."
+            className="pl-10 h-12"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+          {(['todos', 'ativos', 'inativos', 'atencao'] as const).map((type) => (
+            <Button
+              key={type}
+              variant={filterType === type ? 'default' : 'outline'}
+              onClick={() => setFilterType(type)}
+              className="capitalize whitespace-nowrap h-12 px-6 rounded-lg font-bold"
+            >
+              {type === 'atencao' ? 'Atenção' : type}
+            </Button>
+          ))}
         </div>
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredClients.map((client) => {
+          const status = getClientStatus(client)
+          return (
+            <Link
+              key={client.id}
+              to={`/alunos/${client.id}`}
+              className="block h-full"
+            >
+              <Card className="h-full hover:border-primary/60 transition-all cursor-pointer group border-l-4 border-l-transparent hover:border-l-primary hover:-translate-y-1">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold truncate pr-2">
+                        {client.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {client.objective || 'Sem objetivo definido'}
+                      </p>
+                    </div>
+                    {status === 'attention' && (
+                      <div className="animate-pulse text-yellow-500">
+                        <AlertCircle className="h-6 w-6" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="flex gap-2">
+                      <Badge
+                        variant={status === 'active' ? 'default' : 'secondary'}
+                        className="font-bold"
+                      >
+                        {status === 'active'
+                          ? 'ATIVO'
+                          : status === 'attention'
+                            ? 'ATENÇÃO'
+                            : 'INATIVO'}
+                      </Badge>
+                      {client.planName && (
+                        <Badge
+                          variant="outline"
+                          className="font-medium bg-transparent"
+                        >
+                          {client.planName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-muted-foreground group-hover:text-primary transition-colors">
+                      <ChevronRight className="h-5 w-5" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
+      </div>
+
+      {filteredClients.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-muted/5 border-2 border-dashed rounded-xl">
+          <TrendingUp className="h-16 w-16 mb-4 opacity-20" />
+          <p className="text-lg font-medium">Nenhum aluno encontrado.</p>
+        </div>
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-sm">
@@ -135,7 +201,7 @@ const Alunos = () => {
 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Nome do Aluno</Label>
+              <Label htmlFor="name">Nome Completo</Label>
               <Input
                 id="name"
                 value={newClientName}
@@ -143,10 +209,6 @@ const Alunos = () => {
                 placeholder="Ex: João Silva"
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateClient()}
               />
-              <p className="text-xs text-muted-foreground">
-                Você poderá preencher o restante dos dados depois ou enviar o
-                link para o aluno.
-              </p>
             </div>
           </div>
 
@@ -154,78 +216,10 @@ const Alunos = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateClient}>Criar Aluno</Button>
+            <Button onClick={handleCreateClient}>Criar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredClients.map((client) => {
-          const status = getClientStatus(client)
-          return (
-            <Link key={client.id} to={`/alunos/${client.id}`}>
-              <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full relative overflow-hidden group">
-                <CardContent className="p-6 flex items-center space-x-4">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12 bg-muted">
-                      <AvatarFallback className="text-lg">
-                        {client.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {status === 'attention' && (
-                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-white rounded-full p-0.5 border-2 border-background animate-pulse">
-                        <AlertCircle className="h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {client.name}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 mt-1">
-                      <span
-                        className={cn(
-                          'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase',
-                          status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : status === 'attention'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800',
-                        )}
-                      >
-                        {status === 'active'
-                          ? 'Ativo'
-                          : status === 'attention'
-                            ? 'Atenção'
-                            : 'Inativo'}
-                      </span>
-                      {client.profileStatus === 'incomplete' &&
-                        status !== 'inactive' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase bg-blue-100 text-blue-800">
-                            Incompleto
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          )
-        })}
-      </div>
-      {filteredClients.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>Nenhum aluno encontrado para o filtro selecionado.</p>
-        </div>
-      )}
     </div>
   )
 }
