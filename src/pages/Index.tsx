@@ -20,6 +20,7 @@ import {
   differenceInDays,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 const Index = () => {
   const { clients, workouts, events, profile, diets, plans } = useAppStore()
