@@ -1,43 +1,33 @@
-import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card'
-import { Clock, LogOut } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/use-auth'
+import { Clock } from 'lucide-react'
 
 export default function AccountPending() {
   const { signOut } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = async () => {
-    await signOut()
-    navigate('/login')
-  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 animate-fade-in">
-      <Card className="w-full max-w-md text-center border-l-4 border-l-yellow-500 shadow-lg">
+    <div className="flex h-screen w-full items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md text-center">
         <CardHeader>
-          <div className="mx-auto bg-yellow-500/10 p-4 rounded-full w-fit mb-4">
-            <Clock className="h-10 w-10 text-yellow-600" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/10">
+            <Clock className="h-6 w-6 text-yellow-500" />
           </div>
-          <CardTitle className="text-2xl font-bold">Conta em Análise</CardTitle>
-          <CardDescription className="text-base mt-2">
-            Sua conta foi criada com sucesso e está aguardando aprovação do
-            administrador.
+          <CardTitle>Aprovação Pendente</CardTitle>
+          <CardDescription>
+            Sua conta está aguardando aprovação. Você receberá um email assim
+            que o acesso for liberado.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-6">
-            Você receberá uma notificação assim que seu acesso for liberado.
-          </p>
-          <Button variant="outline" onClick={handleLogout} className="w-full">
-            <LogOut className="mr-2 h-4 w-4" /> Sair
+          <Button variant="outline" onClick={() => signOut()}>
+            Voltar para o Login
           </Button>
         </CardContent>
       </Card>

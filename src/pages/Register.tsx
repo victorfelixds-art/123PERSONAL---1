@@ -18,39 +18,32 @@ import { Loader2 } from 'lucide-react'
 export default function Register() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!name || !email || !password) {
+    if (!email || !password || !confirmPassword) {
       toast.error('Preencha todos os campos')
       return
     }
 
-    if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres')
+    if (password !== confirmPassword) {
+      toast.error('As senhas não coincidem')
       return
     }
 
     setLoading(true)
-    const { error } = await signUp(email, password, name)
+    const { error } = await signUp(email, password)
     setLoading(false)
 
     if (error) {
       toast.error(error.message || 'Erro ao criar conta')
     } else {
-      // Supabase auto-signs in or sends confirmation email.
-      // Assuming auto-sign in or redirect to check email.
-      // If auto-signed in, `useAuth` will handle redirect to pending based on status.
-      // If email confirmation is required, we should inform user.
-      toast.success('Conta criada com sucesso!')
-      // Navigate to pending which will be handled by ProtectedRoute or directly if session active
-      // For safety, push to pending page directly if no error, though auth state change will likely trigger redirect.
-      navigate('/account/pending')
+      toast.success('Conta criada com sucesso! Verifique seu email.')
+      navigate('/login')
     }
   }
 
@@ -62,23 +55,11 @@ export default function Register() {
             Criar Conta
           </CardTitle>
           <CardDescription>
-            Cadastro exclusivo para Personal Trainers
+            Comece sua jornada com o Meu Personal
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome Completo</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Seu nome"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-                required
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -96,9 +77,21 @@ export default function Register() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
                 required
               />
@@ -123,7 +116,7 @@ export default function Register() {
               to="/login"
               className="text-primary font-bold hover:underline"
             >
-              Fazer login
+              Entrar
             </Link>
           </p>
         </CardFooter>

@@ -1,54 +1,18 @@
 import { PageHeader } from '@/components/PageHeader'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { DollarSign } from 'lucide-react'
 
 export default function Financeiro() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Financeiro"
-        description="Controle seus ganhos e despesas."
-        action={
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Nova Transação
-          </Button>
-        }
+        description="Acompanhe seus rendimentos e pendências."
       />
-
-      <div className="grid gap-4 md:grid-cols-3 animate-fade-in-up">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Entradas</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">R$ 0,00</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saídas</CardTitle>
-            <ArrowDownRight className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">R$ 0,00</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">R$ 0,00</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardContent className="py-10 text-center text-muted-foreground">
-          Histórico de transações vazio.
+      <Card className="h-[400px] flex items-center justify-center border-dashed">
+        <CardContent className="flex flex-col items-center gap-2 text-muted-foreground">
+          <DollarSign className="h-8 w-8 opacity-50" />
+          <p>Dashboard financeiro será exibido aqui</p>
         </CardContent>
       </Card>
     </div>
