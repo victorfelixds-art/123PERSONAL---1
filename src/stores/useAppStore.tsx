@@ -1,23 +1,18 @@
-import { createContext, useContext, createElement, type ReactNode } from 'react'
+import { create } from 'zustand'
+import { UserProfile } from '@/lib/types'
 
-interface AppContextType {
-  version: string
+interface AppState {
+  userProfile: UserProfile | null
+  setUserProfile: (profile: UserProfile | null) => void
+  isLoadingProfile: boolean
+  setIsLoadingProfile: (loading: boolean) => void
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined)
+export const useAppStore = create<AppState>((set) => ({
+  userProfile: null,
+  setUserProfile: (profile) => set({ userProfile: profile }),
+  isLoadingProfile: true,
+  setIsLoadingProfile: (loading) => set({ isLoadingProfile: loading }),
+}))
 
-export const useAppStore = () => {
-  const context = useContext(AppContext)
-  if (context === undefined) {
-    throw new Error('useAppStore must be used within an AppProvider')
-  }
-  return context
-}
-
-export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const value = {
-    version: '1.0.0',
-  }
-
-  return createElement(AppContext.Provider, { value }, children)
-}
+export default useAppStore

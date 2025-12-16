@@ -1,90 +1,92 @@
 import {
-  Calendar,
-  Dumbbell,
-  LayoutDashboard,
-  Settings,
-  User,
-  Users,
-  Utensils,
-  DollarSign,
-  Share2,
-  LogOut,
-  CreditCard,
-  UserCheck,
-  UserCog,
-} from 'lucide-react'
-import {
-  Sidebar,
+  Sidebar as SidebarPrimitive,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
+  SidebarHeader,
+  SidebarFooter,
 } from '@/components/ui/sidebar'
 import { Link, useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import {
+  Users,
+  LayoutDashboard,
+  Calendar,
+  Dumbbell,
+  Utensils,
+  CreditCard,
+  Settings,
+  UserCircle,
+  LogOut,
+  UserPlus,
+  FileText,
+  ShieldCheck,
+  Home,
+} from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { Button } from '@/components/ui/button'
+import useAppStore from '@/stores/useAppStore'
 
-const personalItems = [
-  { title: 'Início', url: '/', icon: LayoutDashboard },
-  { title: 'Agenda', url: '/agenda', icon: Calendar },
-  { title: 'Alunos', url: '/alunos', icon: Users },
-  { title: 'Treinos', url: '/treinos', icon: Dumbbell },
-  { title: 'Dieta', url: '/dieta', icon: Utensils },
-  { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
-  { title: 'Indicações & Propostas', url: '/indicacoes', icon: Share2 },
-]
-
-const adminItems = [
-  { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
-  { title: 'Gestão de Personais', url: '/admin/personais', icon: UserCog },
-  { title: 'Personais Pendentes', url: '/admin/pendentes', icon: UserCheck },
-  { title: 'Gestão de Planos', url: '/admin/planos', icon: CreditCard },
-]
-
-export function AppSidebar() {
+export function Sidebar() {
   const location = useLocation()
-  const { signOut, profile } = useAuth()
+  const { signOut } = useAuth()
+  const { userProfile } = useAppStore()
+  const pathname = location.pathname
 
-  const items = profile?.role === 'ADMIN' ? adminItems : personalItems
-  const menuLabel =
-    profile?.role === 'ADMIN' ? 'Painel Administrativo' : 'Menu Principal'
+  const isAdmin = userProfile?.role === 'ADMIN'
+
+  const adminLinks = [
+    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Personais', href: '/admin/personals', icon: Users },
+    { name: 'Pendentes', href: '/admin/pending', icon: UserPlus },
+    { name: 'Planos', href: '/admin/plans', icon: FileText },
+  ]
+
+  const personalLinks = [
+    { name: 'Alunos', href: '/students', icon: Users },
+    { name: 'Treinos', href: '/workouts', icon: Dumbbell },
+    { name: 'Dieta', href: '/diet', icon: Utensils },
+    { name: 'Agenda', href: '/agenda', icon: Calendar },
+    { name: 'Financeiro', href: '/finance', icon: CreditCard },
+    { name: 'Indicações', href: '/referrals', icon: ShieldCheck },
+  ]
+
+  const commonLinks = [
+    { name: 'Configurações', href: '/settings', icon: Settings },
+    { name: 'Perfil', href: '/profile', icon: UserCircle },
+  ]
+
+  const links = isAdmin ? adminLinks : personalLinks
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4">
-        <h1 className="text-xl font-bold tracking-tight text-primary">
-          MEU PERSONAL
-        </h1>
+    <SidebarPrimitive>
+      <SidebarHeader className="p-4 border-b">
+        <div className="flex items-center gap-2 px-2">
+          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold">M</span>
+          </div>
+          <span className="font-bold text-lg">Meu Personal</span>
+        </div>
       </SidebarHeader>
-      <SidebarSeparator />
+
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{menuLabel}</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
-                const isActive =
-                  item.url === '/' || item.url === '/admin'
-                    ? location.pathname === item.url
-                    : location.pathname.startsWith(item.url)
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+              {links.map((link) => (
+                <SidebarMenuItem key={link.href}>
+                  <SidebarMenuButton asChild isActive={pathname === link.href}>
+                    <Link to={link.href}>
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -93,50 +95,39 @@ export function AppSidebar() {
           <SidebarGroupLabel>Conta</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {commonLinks.map((link) => (
+                <SidebarMenuItem key={link.href}>
+                  <SidebarMenuButton asChild isActive={pathname === link.href}>
+                    <Link to={link.href}>
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname === '/perfil'}
-                >
-                  <Link to="/perfil">
-                    <User className="h-4 w-4" />
-                    <span>Perfil</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname === '/configuracoes'}
-                >
-                  <Link to="/configuracoes">
-                    <Settings className="h-4 w-4" />
-                    <span>Configurações</span>
-                  </Link>
+                <SidebarMenuButton onClick={() => signOut()}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4">
-        <div className="flex flex-col gap-2">
-          {profile && (
-            <div className="text-xs text-muted-foreground truncate">
-              Logado como: {profile.name}
-            </div>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => signOut()}
-            className="w-full justify-start gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+
+      <SidebarFooter className="p-4 border-t">
+        <div className="flex items-center gap-2 px-2">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">
+              {userProfile?.name || 'Usuário'}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {userProfile?.role || '...'}
+            </span>
+          </div>
         </div>
       </SidebarFooter>
-    </Sidebar>
+    </SidebarPrimitive>
   )
 }
