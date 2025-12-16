@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Plus, Trash2, Dumbbell } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Switch } from '@/components/ui/switch'
 
 interface WorkoutFormProps {
   initialData?: Partial<Workout>
@@ -31,6 +31,8 @@ export function WorkoutForm({
     level: 'Iniciante',
     observations: '',
     exercises: [],
+    isLifetime: true,
+    expirationDate: '',
   })
 
   useEffect(() => {
@@ -38,6 +40,10 @@ export function WorkoutForm({
       setFormData({
         ...initialData,
         exercises: initialData.exercises || [],
+        isLifetime: initialData.isLifetime ?? true,
+        expirationDate: initialData.expirationDate
+          ? initialData.expirationDate.split('T')[0]
+          : '',
       })
     }
   }, [initialData])
@@ -69,7 +75,10 @@ export function WorkoutForm({
   }
 
   const handleSubmit = () => {
-    onSave(formData)
+    onSave({
+      ...formData,
+      expirationDate: formData.isLifetime ? null : formData.expirationDate,
+    })
   }
 
   return (
@@ -129,6 +138,41 @@ export function WorkoutForm({
             }
             placeholder="Instruções gerais para o aluno..."
           />
+        </div>
+
+        <div className="grid gap-4 py-2 border rounded-lg p-4 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="isLifetime">Acesso Vitalício</Label>
+              <p className="text-xs text-muted-foreground">
+                O treino não terá data de validade
+              </p>
+            </div>
+            <Switch
+              id="isLifetime"
+              checked={formData.isLifetime}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, isLifetime: checked }))
+              }
+            />
+          </div>
+
+          {!formData.isLifetime && (
+            <div className="grid gap-2 animate-fade-in">
+              <Label htmlFor="expirationDate">Data de Vencimento</Label>
+              <Input
+                id="expirationDate"
+                type="date"
+                value={formData.expirationDate || ''}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    expirationDate: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">

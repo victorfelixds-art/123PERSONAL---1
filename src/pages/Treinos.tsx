@@ -87,6 +87,8 @@ const Treinos = () => {
       objective: data.objective || '',
       level: data.level || 'Iniciante',
       observations: data.observations || '',
+      isLifetime: data.isLifetime ?? true,
+      expirationDate: data.isLifetime ? null : data.expirationDate,
     }
 
     if (editingWorkout) {
@@ -98,7 +100,6 @@ const Treinos = () => {
         id: Math.random().toString(36).substr(2, 9),
         createdAt: new Date().toISOString(),
         clientId: undefined,
-        isLifetime: true,
       } as Workout)
       toast.success('Treino criado com sucesso!')
     }
