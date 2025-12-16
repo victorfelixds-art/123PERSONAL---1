@@ -14,22 +14,11 @@ import { UserProfile } from '@/lib/types'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ShieldCheck } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ShieldCheck, UserX } from 'lucide-react'
 
 export default function PendingPersonals() {
   const [data, setData] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
 
   const fetchData = async () => {
     setLoading(true)
@@ -37,15 +26,15 @@ export default function PendingPersonals() {
       const { data: users, error } = await supabase
         .from('users_profile')
         .select('*')
-        .eq('role', 'PERSONAL')
         .eq('status', 'PENDENTE')
+        .eq('role', 'PERSONAL')
         .order('created_at', { ascending: false })
 
       if (error) throw error
       setData(users as UserProfile[])
     } catch (error) {
       console.error(error)
-      toast.error('Erro ao carregar personais pendentes')
+      toast.error('Erro ao carregar solicitações')
     } finally {
       setLoading(false)
     }
@@ -55,21 +44,23 @@ export default function PendingPersonals() {
     fetchData()
   }, [])
 
-  const handleApprove = async () => {
-    if (!selectedUser) return
+  const handleAction = async (id: string, action: 'approve' | 'reject') => {
     try {
+      const newStatus = action === 'approve' ? 'ATIVO' : 'INATIVO'
       const { error } = await supabase
         .from('users_profile')
-        .update({ status: 'ATIVO' })
-        .eq('id', selectedUser.id)
+        .update({ status: newStatus })
+        .eq('id', id)
 
       if (error) throw error
-      toast.success('Conta aprovada com sucesso!')
+
+      toast.success(
+        action === 'approve' ? 'Usuário aprovado!' : 'Solicitação rejeitada.',
+      )
       fetchData()
-    } catch (err) {
-      toast.error('Erro ao aprovar conta.')
-    } finally {
-      setSelectedUser(null)
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao processar ação')
     }
   }
 
@@ -77,10 +68,10 @@ export default function PendingPersonals() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Personais Pendentes
+          Solicitações Pendentes
         </h1>
         <p className="text-muted-foreground">
-          Aprove o cadastro de novos personal trainers.
+          Aprove ou rejeite novos cadastros de personal trainers.
         </p>
       </div>
 
@@ -90,22 +81,21 @@ export default function PendingPersonals() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Cadastro</TableHead>
+              <TableHead>Data Cadastro</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={4} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  Nenhum personal pendente.
+                <TableCell colSpan={4} className="text-center py-8">
+                  Nenhuma solicitação pendente.
                 </TableCell>
               </TableRow>
             ) : (
@@ -114,21 +104,27 @@ export default function PendingPersonals() {
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{user.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(user.created_at), 'dd/MM/yyyy', {
+                    {format(new Date(user.created_at), 'dd/MM/yyyy HH:mm', {
                       locale: ptBR,
                     })}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      onClick={() => setSelectedUser(user)}
-                      className="gap-2"
-                    >
-                      <ShieldCheck className="h-4 w-4" /> Aprovar
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleAction(user.id, 'reject')}
+                      >
+                        <UserX className="h-4 w-4 mr-1" /> Rejeitar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleAction(user.id, 'approve')}
+                      >
+                        <ShieldCheck className="h-4 w-4 mr-1" /> Aprovar
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -136,27 +132,6 @@ export default function PendingPersonals() {
           </TableBody>
         </Table>
       </div>
-
-      <AlertDialog
-        open={!!selectedUser}
-        onOpenChange={(open) => !open && setSelectedUser(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Aprovar cadastro</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja aprovar o cadastro de {selectedUser?.name}?
-              O usuário terá acesso imediato ao sistema.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleApprove}>
-              Confirmar Aprovação
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

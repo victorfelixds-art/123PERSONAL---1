@@ -1,31 +1,32 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Utensils, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Utensils, Plus } from 'lucide-react'
 
 export default function Dieta() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Utensils className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dieta</h1>
-            <p className="text-muted-foreground">Elabore planos alimentares.</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Planos Alimentares
+          </h1>
+          <p className="text-muted-foreground">
+            Gerencie dietas e modelos de refeição.
+          </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Plano
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Nova Dieta
         </Button>
       </div>
 
-      <Card className="min-h-[400px] flex items-center justify-center border-dashed">
-        <CardContent className="text-center">
-          <p className="text-muted-foreground">
-            Nenhum plano alimentar criado.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="flex h-[300px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-fade-in-up">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <Utensils className="h-6 w-6 text-foreground" />
+        </div>
+        <h3 className="mt-4 text-lg font-semibold">Sem planos alimentares</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          Crie modelos de dieta para atribuir facilmente aos seus alunos.
+        </p>
+      </div>
     </div>
   )
 }

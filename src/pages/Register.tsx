@@ -1,151 +1,171 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card'
-import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+
+const formSchema = z
+  .object({
+    name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres'),
+    email: z.string().email('Email inválido'),
+    password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
 
 export default function Register() {
-  const { signUp, session } = useAuth()
+  const { signUp } = useAuth()
   const navigate = useNavigate()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (session) {
-      navigate('/')
-    }
-  }, [session, navigate])
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!name.trim()) {
-      toast.error('O nome é obrigatório')
-      return
-    }
-    if (!email) {
-      toast.error('O email é obrigatório')
-      return
-    }
-    if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres')
-      return
-    }
-    if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem')
-      return
-    }
-
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
-    const { error } = await signUp(email, password, name)
-    setLoading(false)
+    try {
+      // Pass metadata for the trigger to use
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            name: values.name,
+            role: 'PERSONAL', // Default role for registration
+          },
+        },
+      })
 
-    if (error) {
-      toast.error(error.message || 'Erro ao criar conta')
-    } else {
-      toast.success('Conta criada com sucesso!')
-      navigate('/pending')
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      if (data.user) {
+        toast.success(
+          'Conta criada com sucesso! Verifique seu email se necessário.',
+        )
+        navigate('/login')
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Ocorreu um erro inesperado.')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 animate-fade-in">
-      <Card className="w-full max-w-md shadow-lg border-primary/10">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl font-extrabold uppercase tracking-tight">
-            Criar Conta Personal
-          </CardTitle>
-          <CardDescription>
-            Comece sua jornada com o Meu Personal
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-md animate-fade-in-up">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Criar Conta</CardTitle>
+          <CardDescription className="text-center">
+            Cadastre-se como Personal Trainer
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleRegister} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome Completo</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Seu Nome"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Completo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Seu nome" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                required
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="seu@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                required
-                minLength={6}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="******" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={loading}
-                required
-                minLength={6}
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmar Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="******" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <Button
-              type="submit"
-              className="w-full font-bold"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                'Cadastrar'
-              )}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  'Cadastrar'
+                )}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Já tem uma conta?{' '}
-            <Link
-              to="/login"
-              className="text-primary font-bold hover:underline"
-            >
-              Entrar
+            <Link to="/login" className="text-primary hover:underline">
+              Fazer login
             </Link>
           </p>
         </CardFooter>
