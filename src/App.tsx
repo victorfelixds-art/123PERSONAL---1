@@ -39,6 +39,9 @@ function App() {
               element={<PublicRegistration />}
             />
             <Route path="/public/student" element={<PublicStudent />} />
+
+            {/* Status Based Routes (Access controlled by ProtectedRoute logic usually, 
+                but available directly if redirected) */}
             <Route path="/inactive" element={<AccountInactive />} />
             <Route path="/pending" element={<AccountPending />} />
 

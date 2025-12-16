@@ -49,23 +49,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error fetching profile:', error)
+        // If error (e.g. no profile found yet), we might want to set profile to null
+        setProfile(null)
       } else if (data) {
-        // Map DB profile to App UserProfile (merging with defaults for fields not in DB yet)
-        setProfile({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          role: data.role,
-          status: data.status,
-          // Defaults for fields not in DB migration yet
-          specialization: 'Personal Trainer',
-          phone: '',
-          bio: '',
-          avatar: '',
-        })
+        setProfile(data as UserProfile)
       }
     } catch (err) {
       console.error('Unexpected error fetching profile:', err)
+      setProfile(null)
     }
   }
 
@@ -108,10 +99,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          name: name, // Passed to trigger
+          name: name, // Passed to metadata, can be used by trigger
         },
       },
     })
+
+    // If successful, the trigger will create the profile.
+    // We don't need to manually insert into users_profile.
+
     return { error }
   }
 

@@ -18,6 +18,7 @@ import { Loader2 } from 'lucide-react'
 export default function Register() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -25,25 +26,38 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password || !confirmPassword) {
-      toast.error('Preencha todos os campos')
+
+    // Validation
+    if (!name.trim()) {
+      toast.error('O nome é obrigatório')
       return
     }
-
+    if (!email) {
+      toast.error('O email é obrigatório')
+      return
+    }
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres')
+      return
+    }
     if (password !== confirmPassword) {
       toast.error('As senhas não coincidem')
       return
     }
 
     setLoading(true)
-    const { error } = await signUp(email, password)
+    const { error } = await signUp(email, password, name)
     setLoading(false)
 
     if (error) {
       toast.error(error.message || 'Erro ao criar conta')
     } else {
-      toast.success('Conta criada com sucesso! Verifique seu email.')
-      navigate('/login')
+      toast.success('Conta criada com sucesso!')
+      // Automatically redirect to pending screen via protected route mechanism
+      // If auto-login works, navigating to / will trigger protection which sends to /pending
+      // If email confirmation is needed, user can't login yet, so send to login.
+      // User Story says "automatically redirected to the 'Conta em Análise' screen", implying logged in state.
+      navigate('/pending')
     }
   }
 
@@ -52,14 +66,26 @@ export default function Register() {
       <Card className="w-full max-w-md shadow-lg border-primary/10">
         <CardHeader className="text-center space-y-2">
           <CardTitle className="text-2xl font-extrabold uppercase tracking-tight">
-            Criar Conta
+            Criar Conta Personal
           </CardTitle>
           <CardDescription>
-            Comece sua jornada com o Meu Personal
+            Comece sua jornada com o 123 Personal
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome Completo</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Seu Nome"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -82,6 +108,7 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
+                minLength={6}
               />
             </div>
             <div className="space-y-2">
@@ -94,6 +121,7 @@ export default function Register() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
                 required
+                minLength={6}
               />
             </div>
             <Button

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,11 +16,18 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 export default function Login() {
-  const { signIn } = useAuth()
+  const { signIn, session } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (session) {
+      navigate('/')
+    }
+  }, [session, navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,10 +41,14 @@ export default function Login() {
     setLoading(false)
 
     if (error) {
-      toast.error(error.message || 'Erro ao realizar login')
+      toast.error(
+        error.message === 'Invalid login credentials'
+          ? 'Credenciais inválidas'
+          : error.message || 'Erro ao realizar login',
+      )
     } else {
+      // Navigation handled by useEffect or global auth state
       toast.success('Login realizado com sucesso!')
-      navigate('/')
     }
   }
 
@@ -106,7 +117,7 @@ export default function Login() {
               to="/register"
               className="text-primary font-bold hover:underline"
             >
-              Criar conta
+              Criar conta (Personal)
             </Link>
           </p>
         </CardFooter>
