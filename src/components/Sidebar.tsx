@@ -9,8 +9,10 @@ import {
   FileText,
   User,
   Settings,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/use-auth'
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -30,14 +32,16 @@ const navItems = [
 
 export function Sidebar() {
   const location = useLocation()
+  const { signOut } = useAuth()
 
   return (
     <div className="hidden md:flex h-screen w-64 flex-col fixed inset-y-0 left-0 bg-sidebar border-r border-sidebar-border z-30 shadow-xl transition-colors duration-300">
       <div className="p-6 flex items-center justify-center gap-3">
         <img
           src="/logo.png"
-          alt="123personal Logo"
+          alt="Logo"
           className="h-10 w-auto object-contain"
+          onError={(e) => (e.currentTarget.style.display = 'none')}
         />
         <h1 className="text-2xl font-bold text-sidebar-primary tracking-tight">
           123personal
@@ -74,9 +78,16 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center justify-between px-2 py-2 text-sm text-muted-foreground">
-          <span className="text-xs font-medium">v0.0.31</span>
+      <div className="p-4 border-t border-sidebar-border space-y-2">
+        <button
+          onClick={() => signOut()}
+          className="flex w-full items-center px-4 py-3 text-sm font-medium rounded-lg text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 group"
+        >
+          <LogOut className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-destructive" />
+          Sair
+        </button>
+        <div className="flex items-center justify-between px-2 py-1 text-sm text-muted-foreground">
+          <span className="text-xs font-medium">v0.0.32</span>
           <span className="text-[10px] opacity-60">© 2024</span>
         </div>
       </div>

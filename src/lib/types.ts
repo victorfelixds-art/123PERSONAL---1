@@ -198,6 +198,9 @@ export interface Proposal {
   status: 'sent' | 'accepted' | 'rejected'
 }
 
+export type UserRole = 'ADMIN' | 'PERSONAL'
+export type UserStatus = 'PENDENTE' | 'ATIVO' | 'INATIVO'
+
 export interface UserProfile {
   id: string
   name: string
@@ -206,6 +209,8 @@ export interface UserProfile {
   phone: string
   bio: string
   avatar: string
+  role?: UserRole
+  status?: UserStatus
 }
 
 export type AppTheme =

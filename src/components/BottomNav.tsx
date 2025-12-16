@@ -10,6 +10,7 @@ import {
   DollarSign,
   FileText,
   Settings,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -20,6 +21,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet'
+import { useAuth } from '@/hooks/use-auth'
 
 const mainNavItems = [
   { name: 'Início', path: '/', icon: LayoutDashboard },
@@ -38,6 +40,7 @@ const moreNavItems = [
 
 export function BottomNav() {
   const location = useLocation()
+  const { signOut } = useAuth()
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border h-16 z-50 flex items-center justify-around shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
@@ -69,11 +72,11 @@ export function BottomNav() {
             <span className="text-[10px] font-medium">Mais</span>
           </button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-[60vh] rounded-t-xl">
+        <SheetContent side="bottom" className="h-[70vh] rounded-t-xl">
           <SheetHeader className="mb-4">
             <SheetTitle>Menu Completo</SheetTitle>
           </SheetHeader>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 mb-6">
             {moreNavItems.map((item) => (
               <SheetClose key={item.path} asChild>
                 <Link
@@ -101,6 +104,16 @@ export function BottomNav() {
               </SheetClose>
             ))}
           </div>
+
+          <SheetClose asChild>
+            <button
+              onClick={() => signOut()}
+              className="w-full flex items-center justify-center p-4 rounded-lg border border-destructive/20 bg-destructive/5 text-destructive font-bold hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="mr-2 h-5 w-5" />
+              Sair da Conta
+            </button>
+          </SheetClose>
         </SheetContent>
       </Sheet>
     </div>
