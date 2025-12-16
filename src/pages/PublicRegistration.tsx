@@ -1,189 +1,34 @@
-import { useState } from 'react'
-import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card'
-import { toast } from 'sonner'
-import { CheckCircle2, Dumbbell } from 'lucide-react'
-import { Client } from '@/lib/types'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-const PublicRegistration = () => {
-  const { addClient } = useAppStore()
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    weight: '',
-    height: '',
-    objective: '',
-  })
-  const [submitted, setSubmitted] = useState(false)
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const newClient: Client = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      status: 'active', // Pending activation normally, but active for demo
-      since: new Date().toISOString().split('T')[0],
-      linkId: Math.random().toString(36).substr(2, 9),
-      planName: 'A Definir',
-      planValue: 0,
-      weight: formData.weight ? parseFloat(formData.weight) : undefined,
-      height: formData.height ? parseFloat(formData.height) : undefined,
-      objective: formData.objective,
-      // Avatar removed as per User Story
-      linkActive: true, // Default to true for new public registrations
-      profileStatus: 'incomplete', // Will be incomplete until trainer reviews or full data is set
-    }
-
-    // Check completeness for new registration
-    if (newClient.weight && newClient.height && newClient.objective) {
-      newClient.profileStatus = 'complete'
-    }
-
-    addClient(newClient)
-    setSubmitted(true)
-    toast.success('Cadastro realizado com sucesso!')
-  }
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center shadow-lg border-primary/20 bg-card">
-          <CardHeader>
-            <div className="mx-auto bg-green-900 p-4 rounded-full w-fit mb-4 animate-in zoom-in">
-              <CheckCircle2 className="h-10 w-10 text-white" />
-            </div>
-            <CardTitle className="text-2xl">Cadastro Recebido!</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Obrigado, {formData.name}. Seus dados já foram enviados para o
-              Personal Trainer. Em breve entraremos em contato.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
-  }
-
+export default function PublicRegistration() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 animate-fade-in">
-      <Card className="w-full max-w-lg shadow-lg bg-card">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-            <Dumbbell className="h-8 w-8 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-2xl">Ficha de Cadastro</CardTitle>
-            <CardDescription>
-              Preencha seus dados para iniciar seu acompanhamento.
-            </CardDescription>
-          </div>
+    <div className="min-h-screen bg-background p-4 flex items-center justify-center animate-fade-in">
+      <Card className="w-full max-w-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Cadastro de Aluno</CardTitle>
+          <CardDescription>Preencha seus dados para iniciar.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome Completo *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="Seu nome"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="phone">WhatsApp *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="(00) 00000-0000"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder="seu@email.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="weight">Peso (kg)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.1"
-                  value={formData.weight}
-                  onChange={(e) =>
-                    setFormData({ ...formData, weight: e.target.value })
-                  }
-                  placeholder="Ex: 75"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="height">Altura (m)</Label>
-                <Input
-                  id="height"
-                  type="number"
-                  step="0.01"
-                  value={formData.height}
-                  onChange={(e) =>
-                    setFormData({ ...formData, height: e.target.value })
-                  }
-                  placeholder="Ex: 1.75"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="objective">Qual seu principal objetivo?</Label>
-              <Textarea
-                id="objective"
-                value={formData.objective}
-                onChange={(e) =>
-                  setFormData({ ...formData, objective: e.target.value })
-                }
-                placeholder="Ex: Emagrecer, ganhar massa muscular, saúde..."
-                rows={3}
-              />
-            </div>
-
-            <Button type="submit" className="w-full size-lg mt-4">
-              Enviar Cadastro
-            </Button>
-          </form>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nome Completo</Label>
+            <Input id="name" placeholder="Seu nome" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="seu@email.com" />
+          </div>
+          <Button className="w-full">Confirmar Cadastro</Button>
         </CardContent>
       </Card>
     </div>
   )
 }
-
-export default PublicRegistration
