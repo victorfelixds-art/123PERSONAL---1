@@ -1,39 +1,39 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Calendar, Users, Dumbbell, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Calendar, Dumbbell, Home, Users } from 'lucide-react'
 
 export function BottomNav() {
   const location = useLocation()
 
   const items = [
-    { href: '/agenda', icon: Calendar, label: 'Agenda' },
-    { href: '/alunos', icon: Users, label: 'Alunos' },
-    { href: '/treinos', icon: Dumbbell, label: 'Treinos' },
-    { href: '/perfil', icon: User, label: 'Perfil' },
+    { title: 'Início', url: '/', icon: Home },
+    { title: 'Agenda', url: '/agenda', icon: Calendar },
+    { title: 'Alunos', url: '/alunos', icon: Users },
+    { title: 'Treinos', url: '/treinos', icon: Dumbbell },
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background p-2 md:hidden">
-      <div className="flex justify-around">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background p-2 md:hidden">
+      <div className="flex justify-around items-center">
         {items.map((item) => {
-          const Icon = item.icon
-          const isActive = location.pathname.startsWith(item.href)
-
+          const isActive = location.pathname === item.url
           return (
             <Link
-              key={item.href}
-              to={item.href}
+              key={item.title}
+              to={item.url}
               className={cn(
-                'flex flex-col items-center justify-center space-y-1 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
-                isActive ? 'text-primary' : 'text-muted-foreground',
+                'flex flex-col items-center justify-center p-2 rounded-lg transition-colors',
+                isActive
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <item.icon className="h-5 w-5" />
+              <span className="text-xs mt-1">{item.title}</span>
             </Link>
           )
         })}
       </div>
-    </nav>
+    </div>
   )
 }

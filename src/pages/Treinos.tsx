@@ -1,18 +1,21 @@
-import { PageHeader } from '@/components/PageHeader'
-import { Card, CardContent } from '@/components/ui/card'
-import { Dumbbell } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Treinos() {
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Treinos"
-        description="Biblioteca de treinos e atribuições."
-      />
-      <Card className="h-[400px] flex items-center justify-center border-dashed">
-        <CardContent className="flex flex-col items-center gap-2 text-muted-foreground">
-          <Dumbbell className="h-8 w-8 opacity-50" />
-          <p>Biblioteca de treinos será exibida aqui</p>
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Treinos</h1>
+        <p className="text-muted-foreground">
+          Crie e gerencie fichas de treino.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Biblioteca de Treinos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Em construção...</p>
         </CardContent>
       </Card>
     </div>

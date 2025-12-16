@@ -1,29 +1,32 @@
 import {
   SidebarProvider,
-  SidebarInset,
   SidebarTrigger,
+  SidebarInset,
 } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/Sidebar'
-import { BottomNav } from '@/components/BottomNav'
 import { Outlet } from 'react-router-dom'
 import { Separator } from '@/components/ui/separator'
+import { BottomNav } from '@/components/BottomNav'
 
 export default function Layout() {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 bg-background">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-          </div>
-        </header>
-        <main className="flex-1 p-4 pb-20 md:p-6 md:pb-6 bg-muted/10">
-          <Outlet />
-        </main>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
+        <SidebarInset className="flex w-full flex-col">
+          <header className="flex h-14 items-center gap-2 border-b bg-background px-4 lg:h-[60px]">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="h-6" />
+            <div className="flex-1">
+              <span className="font-semibold">Meu Personal</span>
+            </div>
+          </header>
+          <main className="flex-1 p-4 md:p-6 mb-16 md:mb-0">
+            <Outlet />
+          </main>
+        </SidebarInset>
         <BottomNav />
-      </SidebarInset>
+      </div>
     </SidebarProvider>
   )
 }

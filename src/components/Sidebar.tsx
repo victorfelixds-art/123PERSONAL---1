@@ -1,4 +1,16 @@
 import {
+  Calendar,
+  Dumbbell,
+  LayoutDashboard,
+  Settings,
+  User,
+  Users,
+  Utensils,
+  DollarSign,
+  Share2,
+  LogOut,
+} from 'lucide-react'
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -9,54 +21,62 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
+  SidebarSeparator,
 } from '@/components/ui/sidebar'
-import {
-  Calendar,
-  Users,
-  Dumbbell,
-  Utensils,
-  DollarSign,
-  FileText,
-  User,
-  Settings,
-  LogOut,
-} from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+
+const items = [
+  {
+    title: 'Início',
+    url: '/',
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Agenda',
+    url: '/agenda',
+    icon: Calendar,
+  },
+  {
+    title: 'Alunos',
+    url: '/alunos',
+    icon: Users,
+  },
+  {
+    title: 'Treinos',
+    url: '/treinos',
+    icon: Dumbbell,
+  },
+  {
+    title: 'Dieta',
+    url: '/dieta',
+    icon: Utensils,
+  },
+  {
+    title: 'Financeiro',
+    url: '/financeiro',
+    icon: DollarSign,
+  },
+  {
+    title: 'Indicações & Propostas',
+    url: '/indicacoes',
+    icon: Share2,
+  },
+]
 
 export function AppSidebar() {
   const location = useLocation()
-  const { signOut, user } = useAuth()
-
-  const items = [
-    { title: 'Agenda', url: '/agenda', icon: Calendar },
-    { title: 'Alunos', url: '/alunos', icon: Users },
-    { title: 'Treinos', url: '/treinos', icon: Dumbbell },
-    { title: 'Dieta', url: '/dieta', icon: Utensils },
-    { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
-    { title: 'Propostas', url: '/indicacoes', icon: FileText },
-  ]
-
-  const footerItems = [
-    { title: 'Perfil', url: '/perfil', icon: User },
-    { title: 'Configurações', url: '/configuracoes', icon: Settings },
-  ]
+  const { signOut, profile } = useAuth()
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Dumbbell className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-semibold">Meu Personal</span>
-            <span className="text-xs text-muted-foreground">Trainer App</span>
-          </div>
-        </div>
+    <Sidebar>
+      <SidebarHeader className="p-4">
+        <h1 className="text-xl font-bold tracking-tight text-primary">
+          MEU PERSONAL
+        </h1>
       </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
@@ -66,11 +86,10 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname.startsWith(item.url)}
-                    tooltip={item.title}
+                    isActive={location.pathname === item.url}
                   >
                     <Link to={item.url}>
-                      <item.icon />
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -80,48 +99,54 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-auto">
+        <SidebarGroup>
           <SidebarGroupLabel>Conta</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {footerItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname.startsWith(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => signOut()} tooltip="Sair">
-                  <LogOut />
-                  <span>Sair</span>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname === '/perfil'}
+                >
+                  <Link to="/perfil">
+                    <User className="h-4 w-4" />
+                    <span>Perfil</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname === '/configuracoes'}
+                >
+                  <Link to="/configuracoes">
+                    <Settings className="h-4 w-4" />
+                    <span>Configurações</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback>
-              {user?.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col gap-0.5 overflow-hidden text-xs group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-medium">{user?.email}</span>
-          </div>
+      <SidebarFooter className="p-4">
+        <div className="flex flex-col gap-2">
+          {profile && (
+            <div className="text-xs text-muted-foreground truncate">
+              Logado como: {profile.name}
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => signOut()}
+            className="w-full justify-start gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
         </div>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }

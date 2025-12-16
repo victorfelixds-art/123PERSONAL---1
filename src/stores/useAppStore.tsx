@@ -1,29 +1,12 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, ReactNode } from 'react'
 
-interface AppState {
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
-  isLoading: boolean
-  setLoading: (loading: boolean) => void
+interface AppContextType {
+  version: string
 }
 
-const AppContext = createContext<AppState | undefined>(undefined)
+const AppContext = createContext<AppContextType | undefined>(undefined)
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [isLoading, setLoading] = useState(false)
-
-  const value = {
-    sidebarOpen,
-    setSidebarOpen,
-    isLoading,
-    setLoading,
-  }
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
-}
-
-const useAppStore = () => {
+export const useAppStore = () => {
   const context = useContext(AppContext)
   if (context === undefined) {
     throw new Error('useAppStore must be used within an AppProvider')
@@ -31,4 +14,10 @@ const useAppStore = () => {
   return context
 }
 
-export default useAppStore
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const value = {
+    version: '1.0.0',
+  }
+
+  return React.createElement(AppContext.Provider, { value }, children)
+}

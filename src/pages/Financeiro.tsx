@@ -1,18 +1,21 @@
-import { PageHeader } from '@/components/PageHeader'
-import { Card, CardContent } from '@/components/ui/card'
-import { DollarSign } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Financeiro() {
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Financeiro"
-        description="Acompanhe seus rendimentos e pendências."
-      />
-      <Card className="h-[400px] flex items-center justify-center border-dashed">
-        <CardContent className="flex flex-col items-center gap-2 text-muted-foreground">
-          <DollarSign className="h-8 w-8 opacity-50" />
-          <p>Dashboard financeiro será exibido aqui</p>
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
+        <p className="text-muted-foreground">
+          Controle seus ganhos e despesas.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumo Financeiro</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Em construção...</p>
         </CardContent>
       </Card>
     </div>
