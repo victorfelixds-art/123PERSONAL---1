@@ -2,6 +2,7 @@ import { useState } from 'react'
 import useAppStore from '@/stores/useAppStore'
 import { Diet } from '@/lib/types'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
@@ -20,6 +21,8 @@ import {
   Share2,
   Utensils,
   MoreVertical,
+  Search,
+  Flame,
 } from 'lucide-react'
 import {
   Dialog,
@@ -48,7 +51,7 @@ import { generateDietPDF } from '@/lib/pdfGenerator'
 import { DietForm } from '@/components/forms/DietForm'
 import { DietAssignmentDialog } from '@/components/DietAssignmentDialog'
 import { Badge } from '@/components/ui/badge'
-import { isBefore, parseISO } from 'date-fns'
+import { isBefore, parseISO, addDays } from 'date-fns'
 
 const Dieta = () => {
   const {
@@ -61,6 +64,10 @@ const Dieta = () => {
     settings,
   } = useAppStore()
 
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState<
+    'todos' | 'modelos' | 'atribuidas'
+  >('todos')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingDiet, setEditingDiet] = useState<Diet | undefined>(undefined)
   const [assignDietId, setAssignDietId] = useState<string | null>(null)
@@ -85,6 +92,9 @@ const Dieta = () => {
       objective: data.objective || 'Geral',
       type: data.type || 'Balanceada',
       observations: data.observations || '',
+      calories: data.calories,
+      isLifetime: data.isLifetime ?? true,
+      expirationDate: data.isLifetime ? null : data.expirationDate,
     }
 
     if (editingDiet) {
@@ -95,7 +105,6 @@ const Dieta = () => {
         ...dietData,
         id: Math.random().toString(36).substr(2, 9),
         createdAt: new Date().toISOString(),
-        isLifetime: true,
       } as Diet)
       toast.success('Dieta criada com sucesso!')
     }
@@ -125,16 +134,38 @@ const Dieta = () => {
     if (!diet.clientId)
       return { label: 'MODELO', color: 'bg-muted text-muted-foreground' }
 
-    if (
-      !diet.isLifetime &&
-      diet.expirationDate &&
-      isBefore(parseISO(diet.expirationDate), new Date())
-    ) {
-      return { label: 'VENCIDA', color: 'bg-red-900 text-white' }
+    if (diet.isLifetime)
+      return { label: 'VITALÍCIA', color: 'bg-blue-900 text-white' }
+
+    if (diet.expirationDate) {
+      const expiration = parseISO(diet.expirationDate)
+      const today = new Date()
+
+      if (isBefore(expiration, today)) {
+        return { label: 'VENCIDA', color: 'bg-red-900 text-white' }
+      }
+
+      if (isBefore(expiration, addDays(today, 7))) {
+        return { label: 'VENCENDO', color: 'bg-yellow-600 text-white' }
+      }
     }
 
     return { label: 'ATIVA', color: 'bg-green-900 text-white' }
   }
+
+  const filteredDiets = diets.filter((diet) => {
+    const matchesSearch =
+      diet.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      diet.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      diet.objective.toLowerCase().includes(searchTerm.toLowerCase())
+
+    if (!matchesSearch) return false
+
+    if (filterType === 'modelos') return !diet.clientId
+    if (filterType === 'atribuidas') return !!diet.clientId
+
+    return true
+  })
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8 animate-fade-in max-w-7xl">
@@ -147,14 +178,38 @@ const Dieta = () => {
         </Button>
       </div>
 
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar dieta por nome, aluno ou objetivo..."
+            className="pl-10 h-12"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+          {(['todos', 'modelos', 'atribuidas'] as const).map((type) => (
+            <Button
+              key={type}
+              variant={filterType === type ? 'default' : 'outline'}
+              onClick={() => setFilterType(type)}
+              className="capitalize whitespace-nowrap h-12 px-6 rounded-lg font-bold"
+            >
+              {type}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {diets.length === 0 ? (
+        {filteredDiets.length === 0 ? (
           <div className="col-span-full text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/5">
             <Utensils className="h-16 w-16 mx-auto mb-4 opacity-20" />
-            <p className="text-lg font-medium">Nenhuma dieta criada.</p>
+            <p className="text-lg font-medium">Nenhuma dieta encontrada.</p>
           </div>
         ) : (
-          diets.map((diet) => {
+          filteredDiets.map((diet) => {
             const status = getStatus(diet)
             return (
               <Card
@@ -216,6 +271,12 @@ const Dieta = () => {
                     </p>
                     <p className="text-sm font-medium">{diet.objective}</p>
                   </div>
+                  {diet.calories && (
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Flame className="h-4 w-4 text-orange-500" />
+                      {diet.calories} kcal
+                    </div>
+                  )}
                   {diet.clientName && (
                     <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
                       <p className="text-xs font-bold uppercase text-primary mb-1 flex items-center gap-1">

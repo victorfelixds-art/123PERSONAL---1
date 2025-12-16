@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Diet, Meal, FoodItem } from '@/lib/types'
+import { Diet } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,11 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Plus, Trash2, Utensils, AlertCircle } from 'lucide-react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { cn } from '@/lib/utils'
 
 interface DietFormProps {
   initialData?: Partial<Diet>
@@ -27,7 +27,10 @@ const dietSchema = z.object({
   title: z.string().min(1, 'Nome é obrigatório'),
   objective: z.string().min(1, 'Objetivo é obrigatório'),
   type: z.string().min(1, 'Tipo é obrigatório'),
+  calories: z.coerce.number().min(0).optional(),
   observations: z.string().optional(),
+  isLifetime: z.boolean().default(true),
+  expirationDate: z.string().optional().nullable(),
   meals: z.array(
     z.object({
       id: z.string(),
@@ -52,18 +55,25 @@ export function DietForm({ initialData, onSave, onCancel }: DietFormProps) {
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<DietFormValues>({
     resolver: zodResolver(dietSchema),
     defaultValues: {
       title: '',
       objective: '',
       type: '',
+      calories: undefined,
       observations: '',
+      isLifetime: true,
+      expirationDate: '',
       meals: [],
     },
   })
+
+  const isLifetime = watch('isLifetime')
 
   const {
     fields: mealFields,
@@ -80,14 +90,22 @@ export function DietForm({ initialData, onSave, onCancel }: DietFormProps) {
         title: initialData.title || '',
         objective: initialData.objective || '',
         type: initialData.type || '',
+        calories: initialData.calories,
         observations: initialData.observations || '',
+        isLifetime: initialData.isLifetime ?? true,
+        expirationDate: initialData.expirationDate
+          ? initialData.expirationDate.split('T')[0]
+          : '',
         meals: initialData.meals || [],
       })
     }
   }, [initialData, reset])
 
   const onSubmit = (data: DietFormValues) => {
-    onSave(data as Partial<Diet>)
+    onSave({
+      ...data,
+      expirationDate: data.isLifetime ? null : data.expirationDate,
+    } as Partial<Diet>)
   }
 
   // Helper to get nested field array for items within a meal
@@ -251,6 +269,22 @@ export function DietForm({ initialData, onSave, onCancel }: DietFormProps) {
         </div>
 
         <div className="grid gap-2">
+          <Label htmlFor="calories">Calorias Estimadas (kcal)</Label>
+          <Controller
+            name="calories"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                type="number"
+                placeholder="Ex: 2000"
+                value={field.value || ''}
+              />
+            )}
+          />
+        </div>
+
+        <div className="grid gap-2">
           <Label htmlFor="observations">Observações Gerais</Label>
           <Controller
             name="observations"
@@ -263,6 +297,46 @@ export function DietForm({ initialData, onSave, onCancel }: DietFormProps) {
               />
             )}
           />
+        </div>
+
+        <div className="grid gap-4 py-2 border rounded-lg p-4 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="isLifetime">Acesso Vitalício</Label>
+              <p className="text-xs text-muted-foreground">
+                A dieta não terá data de validade
+              </p>
+            </div>
+            <Controller
+              name="isLifetime"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="isLifetime"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </div>
+
+          {!isLifetime && (
+            <div className="grid gap-2 animate-fade-in">
+              <Label htmlFor="expirationDate">Data de Vencimento</Label>
+              <Controller
+                name="expirationDate"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="expirationDate"
+                    type="date"
+                    value={field.value || ''}
+                  />
+                )}
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">

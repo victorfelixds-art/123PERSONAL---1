@@ -10,18 +10,15 @@ import {
   Dumbbell,
   Utensils,
   Scale,
-  UserX,
   Clock,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   format,
   isBefore,
-  addDays,
   isSameDay,
   parseISO,
   differenceInDays,
-  isAfter,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -73,18 +70,24 @@ const Index = () => {
       }
     })
 
-  // 2. Expired Workouts
+  // 2. Expired or Expiring Workouts
   workouts.forEach((w) => {
     if (w.clientId && !w.isLifetime && w.expirationDate) {
       const expDate = parseISO(w.expirationDate)
-      if (isBefore(expDate, today)) {
+      const daysLeft = differenceInDays(expDate, today)
+      const isExpired = isBefore(expDate, today)
+      const isExpiringSoon = daysLeft >= 0 && daysLeft <= 7
+
+      if (isExpired || isExpiringSoon) {
         requiredActions.push({
           id: `workout-${w.id}`,
           type: 'workout',
           priority: 3,
-          title: 'Treino Vencido',
+          title: isExpired ? 'Treino Vencido' : 'Treino Vencendo',
           studentName: w.clientName || 'Aluno',
-          detail: `Venceu em ${format(expDate, 'dd/MM')}`,
+          detail: isExpired
+            ? `Venceu em ${format(expDate, 'dd/MM')}`
+            : `Vence em ${daysLeft === 0 ? 'hoje' : `${daysLeft} dias`}`,
           link: `/alunos/${w.clientId}?tab=treinos`,
           actionLabel: 'Atualizar',
           icon: Dumbbell,
@@ -93,18 +96,24 @@ const Index = () => {
     }
   })
 
-  // 3. Expired Diets
+  // 3. Expired or Expiring Diets
   diets.forEach((d) => {
     if (d.clientId && !d.isLifetime && d.expirationDate) {
       const expDate = parseISO(d.expirationDate)
-      if (isBefore(expDate, today)) {
+      const daysLeft = differenceInDays(expDate, today)
+      const isExpired = isBefore(expDate, today)
+      const isExpiringSoon = daysLeft >= 0 && daysLeft <= 7
+
+      if (isExpired || isExpiringSoon) {
         requiredActions.push({
           id: `diet-${d.id}`,
           type: 'diet',
           priority: 3,
-          title: 'Dieta Vencida',
+          title: isExpired ? 'Dieta Vencida' : 'Dieta Vencendo',
           studentName: d.clientName || 'Aluno',
-          detail: `Venceu em ${format(expDate, 'dd/MM')}`,
+          detail: isExpired
+            ? `Venceu em ${format(expDate, 'dd/MM')}`
+            : `Vence em ${daysLeft === 0 ? 'hoje' : `${daysLeft} dias`}`,
           link: `/alunos/${d.clientId}?tab=dietas`,
           actionLabel: 'Atualizar',
           icon: Utensils,
