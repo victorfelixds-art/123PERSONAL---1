@@ -95,6 +95,7 @@ export function PlanTab({ client }: PlanTabProps) {
         value: template.value,
         durationInMonths: template.durationInMonths,
         startDate: customPlan.startDate,
+        type: 'fixed' as const,
       }
     } else {
       planData = {
@@ -102,6 +103,7 @@ export function PlanTab({ client }: PlanTabProps) {
         value: Number(customPlan.value),
         durationInMonths: Number(customPlan.duration),
         startDate: customPlan.startDate,
+        type: 'individual' as const,
       }
     }
 
@@ -341,6 +343,11 @@ export function PlanTab({ client }: PlanTabProps) {
                                   : 'Histórico'}
                           </span>
                         )}
+                        {item.type === 'individual' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full uppercase font-bold bg-blue-700 text-white">
+                            Avulso
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {format(parseISO(item.startDate), 'dd/MM/yy')} até{' '}
@@ -389,7 +396,7 @@ export function PlanTab({ client }: PlanTabProps) {
           >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="fixed">Usar Modelo</TabsTrigger>
-              <TabsTrigger value="custom">Personalizado</TabsTrigger>
+              <TabsTrigger value="custom">Avulso (Individual)</TabsTrigger>
             </TabsList>
 
             <div className="py-4 space-y-4">
@@ -659,8 +666,8 @@ export function PlanTab({ client }: PlanTabProps) {
               </h3>
               <p className="text-muted-foreground text-sm max-w-sm">
                 Você tem certeza de que deseja cancelar este plano? A entrada
-                financeira será estornada, e o status do plano será alterado
-                para 'Cancelado'.
+                financeira será estornada (negativada), e o status do plano será
+                alterado para 'Cancelado'.
               </p>
             </div>
           </div>

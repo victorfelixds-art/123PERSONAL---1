@@ -218,19 +218,6 @@ const Financeiro = () => {
     return Object.entries(grouped).map(([name, value]) => ({ name, value }))
   }, [filteredTransactions])
 
-  const planData = useMemo(() => {
-    const grouped = filteredTransactions.reduce(
-      (acc, t) => {
-        const key = t.planName || 'Outros'
-        acc[key] = (acc[key] || 0) + t.amount
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
-  }, [filteredTransactions])
-
   const statusData = useMemo(() => {
     const counts = { paid: 0, pending: 0, overdue: 0 }
     filteredTransactions.forEach((t) => {
@@ -244,9 +231,17 @@ const Financeiro = () => {
     })
 
     return [
-      { name: 'paid', value: counts.paid, fill: 'var(--color-paid)' },
-      { name: 'pending', value: counts.pending, fill: 'var(--color-pending)' },
-      { name: 'overdue', value: counts.overdue, fill: 'var(--color-overdue)' },
+      { name: 'Pago', value: counts.paid, fill: 'hsl(var(--primary))' },
+      {
+        name: 'Pendente',
+        value: counts.pending,
+        fill: 'hsl(var(--secondary))',
+      },
+      {
+        name: 'Vencido',
+        value: counts.overdue,
+        fill: 'hsl(var(--destructive))',
+      },
     ]
   }, [filteredTransactions])
 
@@ -537,7 +532,14 @@ const Financeiro = () => {
                       <TableCell className="font-bold">
                         {t.studentName || '-'}
                       </TableCell>
-                      <TableCell>{t.planName || '-'}</TableCell>
+                      <TableCell>
+                        {t.planName || '-'}
+                        {t.planType === 'individual' && (
+                          <span className="ml-2 text-[10px] text-blue-500 font-bold uppercase">
+                            (Avulso)
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">
                         R$ {t.amount.toFixed(2)}
                       </TableCell>

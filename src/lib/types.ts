@@ -20,6 +20,7 @@ export interface PlanHistoryItem {
   endDate: string
   paymentStatus: 'paid' | 'pending' | 'refunded'
   status?: 'active' | 'completed' | 'cancelled' | 'expired' | 'renewed'
+  type?: 'fixed' | 'individual'
 }
 
 export interface CustomField {
@@ -44,6 +45,7 @@ export interface Client {
   planStartDate?: string
   planEndDate?: string
   planDuration?: number // in months
+  planType?: 'fixed' | 'individual'
   planHistory?: PlanHistoryItem[]
 
   weight?: number // Current weight
@@ -137,6 +139,7 @@ export interface Transaction {
   studentName?: string
   planId?: string
   planName?: string
+  planType?: 'fixed' | 'individual'
   status: 'paid' | 'pending' | 'overdue' | 'cancelled'
   dueDate: string
   paidAt?: string

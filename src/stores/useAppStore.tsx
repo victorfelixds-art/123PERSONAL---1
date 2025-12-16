@@ -65,6 +65,7 @@ interface AppContextType {
       value: number
       durationInMonths: number
       startDate: string
+      type: 'fixed' | 'individual'
     },
   ) => void
   renewPlan: (
@@ -216,7 +217,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const root = document.documentElement
     const theme = settings.theme
 
-    // Remove old classes
     root.classList.remove(
       'dark',
       'theme-dark-performance',
@@ -224,11 +224,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       'theme-performance-blue',
       'theme-white',
     )
-
-    // Add new classes
     root.classList.add(`theme-${theme}`)
-
-    // Handle .dark class for compatibility with some Tailwind utilities
     if (theme !== 'white') {
       root.classList.add('dark')
     }
@@ -242,6 +238,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       value: number
       durationInMonths: number
       startDate: string
+      type: 'fixed' | 'individual'
     },
   ) => {
     const client = clients.find((c) => c.id === clientId)
@@ -261,9 +258,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       studentName: client.name,
       planId: planData.id,
       planName: planData.name,
-      status: 'paid',
+      planType: planData.type,
+      status: 'pending',
       dueDate: planData.startDate,
-      paidAt: planData.startDate,
+      paidAt: undefined,
     }
 
     setTransactions((prev) => [...prev, newTransaction])
@@ -274,6 +272,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const history: PlanHistoryItem[] = c.planHistory
             ? [...c.planHistory]
             : []
+          // Move current active plan to history if exists
           if (c.planName && c.planStartDate && c.planEndDate) {
             history.push({
               id: Math.random().toString(36).substr(2, 9),
@@ -281,8 +280,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               value: c.planValue || 0,
               startDate: c.planStartDate,
               endDate: c.planEndDate,
-              paymentStatus: 'paid',
+              paymentStatus: 'paid', // Assuming past plans were resolved
               status: 'renewed',
+              type: c.planType,
             })
           }
 
@@ -294,6 +294,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             planStartDate: planData.startDate,
             planDuration: planData.durationInMonths,
             planEndDate: endDateStr,
+            planType: planData.type,
             planHistory: history,
             status: 'active',
           }
@@ -326,6 +327,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       : newConditions?.value || 0
     const name = client.planName || 'Plano'
     const planId = client.planId
+    const type = client.planType || 'fixed'
 
     assignPlan(clientId, {
       id: planId,
@@ -333,6 +335,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       value,
       durationInMonths: duration,
       startDate: newStartDateStr,
+      type,
     })
   }
 
@@ -355,6 +358,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               endDate: format(new Date(), 'yyyy-MM-dd'),
               paymentStatus: 'paid',
               status: 'completed',
+              type: c.planType,
             })
           }
 
@@ -366,6 +370,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             planStartDate: undefined,
             planEndDate: undefined,
             planDuration: undefined,
+            planType: undefined,
             status: 'inactive',
             planHistory: history,
           }
@@ -384,11 +389,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         id: Math.random().toString(36).substr(2, 9),
         description: `Estorno - ${client.planName} - ${client.name}`,
         amount: -Math.abs(client.planValue),
-        type: 'income',
+        type: 'income', // Negative income works as refund
         category: 'Estorno',
         studentId: client.id,
         studentName: client.name,
         planName: client.planName,
+        planType: client.planType,
         status: 'paid',
         dueDate: format(new Date(), 'yyyy-MM-dd'),
         paidAt: format(new Date(), 'yyyy-MM-dd'),
@@ -411,6 +417,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               endDate: format(new Date(), 'yyyy-MM-dd'),
               paymentStatus: 'refunded',
               status: 'cancelled',
+              type: c.planType,
             })
           }
 
@@ -422,6 +429,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             planStartDate: undefined,
             planEndDate: undefined,
             planDuration: undefined,
+            planType: undefined,
             status: 'inactive',
             planHistory: history,
           }
@@ -442,6 +450,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ...client,
         planEndDate: endDateStr,
         planDuration: duration,
+        planType: client.planType || 'fixed',
       }
 
       setClients((prev) => [...prev, clientWithPlanDates])
@@ -456,9 +465,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         studentName: client.name,
         planId: client.planId,
         planName: client.planName,
-        status: 'paid',
+        planType: client.planType || 'fixed',
+        status: 'pending',
         dueDate: client.planStartDate,
-        paidAt: client.planStartDate,
       }
       setTransactions((prev) => [...prev, newTransaction])
     } else {

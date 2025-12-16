@@ -461,7 +461,7 @@ export const generateFinancialPDF = (
           <thead>
             <tr style="background: var(--bg-light);">
               <th>Aluno</th>
-              <th>Descrição</th>
+              <th>Plano</th>
               <th>Vencimento</th>
               <th>Valor</th>
               <th>Status</th>
@@ -473,7 +473,7 @@ export const generateFinancialPDF = (
                 (t) => `
               <tr>
                 <td><strong>${t.studentName || '-'}</strong></td>
-                <td>${t.description}</td>
+                <td>${t.planName || '-'}${t.planType === 'individual' ? ' (Avulso)' : ''}</td>
                 <td>${format(new Date(t.dueDate), 'dd/MM/yy')}</td>
                 <td>R$ ${t.amount.toFixed(2)}</td>
                 <td style="text-transform: uppercase; font-size: 11px; font-weight: 700;">${t.status === 'paid' ? 'PAGO' : t.status === 'overdue' ? 'VENCIDO' : 'PENDENTE'}</td>

@@ -39,6 +39,7 @@ export function StudentForm({
     objective: '',
     planName: '',
     planValue: 0,
+    planType: 'fixed',
     status: 'active',
     planStartDate: new Date().toISOString().split('T')[0],
     customFields: [],
@@ -58,6 +59,7 @@ export function StudentForm({
         planId: selectedPlan.id,
         planName: selectedPlan.name,
         planValue: selectedPlan.value,
+        planType: 'fixed',
       })
     }
   }
@@ -99,6 +101,7 @@ export function StudentForm({
     const dataToSave = { ...formData }
     if (!dataToSave.planName) {
       dataToSave.planName = 'Personalizado'
+      dataToSave.planType = 'individual'
     }
 
     if (dataToSave.weight && dataToSave.height && dataToSave.objective) {
