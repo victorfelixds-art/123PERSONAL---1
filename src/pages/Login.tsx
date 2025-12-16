@@ -54,7 +54,7 @@ export default function Login() {
             />
           </div>
           <CardTitle className="text-2xl font-extrabold uppercase tracking-tight">
-            Meu Personal
+            123 Personal
           </CardTitle>
           <CardDescription>
             Entre com suas credenciais para acessar
