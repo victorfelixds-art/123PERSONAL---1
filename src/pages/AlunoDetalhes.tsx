@@ -37,6 +37,9 @@ import {
   Dumbbell,
   Utensils,
   Clock,
+  RefreshCw,
+  PowerOff,
+  ClipboardCopy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { StudentForm } from '@/components/forms/StudentForm'
@@ -88,6 +91,8 @@ const AlunoDetalhes = () => {
     updateEvent,
     removeEvent,
     generateStudentLink,
+    regenerateStudentLink,
+    deactivateStudentLink,
     settings,
     profile,
   } = useAppStore()
@@ -134,7 +139,7 @@ const AlunoDetalhes = () => {
     if (client.planEndDate) {
       const endDate = parseISO(client.planEndDate)
       const today = new Date()
-      if (isBefore(endDate, today)) return 'Inativo' // Should be handled by store but safe check
+      if (isBefore(endDate, today)) return 'Inativo'
       if (isBefore(endDate, addDays(today, 5))) return 'Atenção'
     }
     return 'Ativo'
@@ -154,15 +159,27 @@ const AlunoDetalhes = () => {
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank')
   }
 
-  const handleLinkAction = () => {
-    if (!client.linkId || !client.linkActive) {
-      generateStudentLink(client.id)
-      toast.success('Link gerado!')
-    } else {
+  const handleGenerateLink = () => {
+    generateStudentLink(client.id)
+    toast.success('Link gerado com sucesso!')
+  }
+
+  const handleCopyLink = () => {
+    if (client.linkId && client.linkActive) {
       const link = `${window.location.origin}/p/${client.linkId}`
       navigator.clipboard.writeText(link)
       toast.success('Link copiado!')
     }
+  }
+
+  const handleRegenerateLink = () => {
+    regenerateStudentLink(client.id)
+    toast.success('Novo link gerado! O anterior foi invalidado.')
+  }
+
+  const handleDeactivateLink = () => {
+    deactivateStudentLink(client.id)
+    toast.success('Link desativado.')
   }
 
   const handleDeleteClient = () => {
@@ -310,10 +327,30 @@ const AlunoDetalhes = () => {
                 <DropdownMenuItem onClick={() => setIsEditingProfile(true)}>
                   <Edit className="mr-2 h-4 w-4" /> Editar Dados
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLinkAction}>
-                  <LinkIcon className="mr-2 h-4 w-4" />
-                  {client.linkId ? 'Copiar Link Público' : 'Gerar Link Público'}
-                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuLabel>Link de Preenchimento</DropdownMenuLabel>
+                {client.linkId && client.linkActive ? (
+                  <>
+                    <DropdownMenuItem onClick={handleCopyLink}>
+                      <ClipboardCopy className="mr-2 h-4 w-4" /> Copiar Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleRegenerateLink}>
+                      <RefreshCw className="mr-2 h-4 w-4" /> Regenerar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleDeactivateLink}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <PowerOff className="mr-2 h-4 w-4" /> Desativar Link
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={handleGenerateLink}>
+                    <LinkIcon className="mr-2 h-4 w-4" /> Gerar Link Público
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() =>
@@ -465,6 +502,28 @@ const AlunoDetalhes = () => {
                 )}
               </CardContent>
             </Card>
+
+            {client.customFields && client.customFields.length > 0 && (
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Informações Adicionais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {client.customFields.map((field) => (
+                    <div key={field.id} className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
+                        {field.label}
+                      </p>
+                      <p className="text-base font-medium text-foreground">
+                        {field.value}
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -740,7 +799,7 @@ const AlunoDetalhes = () => {
 
       {/* Dialogs */}
       <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Perfil</DialogTitle>
           </DialogHeader>

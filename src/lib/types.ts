@@ -22,6 +22,12 @@ export interface PlanHistoryItem {
   status?: 'active' | 'completed' | 'cancelled' | 'expired' | 'renewed'
 }
 
+export interface CustomField {
+  id: string
+  label: string
+  value: string
+}
+
 export interface Client {
   id: string
   name: string
@@ -48,6 +54,9 @@ export interface Client {
   linkId?: string
   linkActive: boolean
   weightHistory?: WeightEntry[]
+
+  // Custom/Dynamic Fields
+  customFields?: CustomField[]
 }
 
 export interface Exercise {

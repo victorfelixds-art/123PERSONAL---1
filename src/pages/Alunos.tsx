@@ -4,7 +4,6 @@ import { Client } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Plus,
   Search,
@@ -18,12 +17,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { isBefore, addDays, parseISO } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
+import { StudentForm } from '@/components/forms/StudentForm'
 
 const Alunos = () => {
   const { clients, addClient } = useAppStore()
@@ -32,7 +30,6 @@ const Alunos = () => {
   const [filterType, setFilterType] = useState<
     'todos' | 'ativos' | 'inativos' | 'atencao'
   >('todos')
-  const [newClientName, setNewClientName] = useState('')
 
   const getClientStatus = (client: Client) => {
     if (client.status === 'inactive') return 'inactive'
@@ -63,26 +60,26 @@ const Alunos = () => {
     return matchesSearch && matchesStatus
   })
 
-  const handleCreateClient = () => {
-    if (!newClientName.trim()) {
+  const handleCreateClient = (data: Partial<Client>) => {
+    if (!data.name?.trim()) {
       toast.error('Nome é obrigatório')
       return
     }
 
     const newClient: Client = {
       id: Math.random().toString(36).substr(2, 9),
-      name: newClientName,
-      email: '',
-      phone: '',
-      status: 'active',
-      profileStatus: 'incomplete',
+      name: data.name,
+      email: data.email || '',
+      phone: data.phone || '',
+      status: data.status || 'active',
+      profileStatus: data.profileStatus || 'incomplete',
       linkActive: false,
       since: new Date().toISOString().split('T')[0],
-    }
+      ...data,
+    } as Client
 
     addClient(newClient)
     toast.success('Aluno adicionado com sucesso!')
-    setNewClientName('')
     setIsDialogOpen(false)
   }
 
@@ -95,7 +92,6 @@ const Alunos = () => {
         <Button
           size="lg"
           onClick={() => {
-            setNewClientName('')
             setIsDialogOpen(true)
           }}
         >
@@ -194,30 +190,14 @@ const Alunos = () => {
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Novo Aluno</DialogTitle>
           </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome Completo</Label>
-              <Input
-                id="name"
-                value={newClientName}
-                onChange={(e) => setNewClientName(e.target.value)}
-                placeholder="Ex: João Silva"
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateClient()}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleCreateClient}>Criar</Button>
-          </DialogFooter>
+          <StudentForm
+            onSave={handleCreateClient}
+            onCancel={() => setIsDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
