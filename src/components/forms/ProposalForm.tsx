@@ -45,7 +45,7 @@ const DEFAULT_SERVICES: ProposalService[] = [
   },
   {
     id: '4',
-    title: 'AVALIAÇÃO ALIMENTAR (opcional)',
+    title: 'AVALIAÇÃO ALIMENTAR',
     description:
       'Orientações básicas para potencializar seus resultados (não substitui nutricionista).',
   },
@@ -54,21 +54,31 @@ const DEFAULT_SERVICES: ProposalService[] = [
 export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
   const [proposalType] = useState<ProposalType>('conversion70')
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('online')
-  const [discountedValue, setDiscountedValue] = useState('')
+
+  // Custom Editable Fields State
+  const [customHeaderTitle, setCustomHeaderTitle] = useState(
+    'Especialista em Treino e Acompanhamento',
+  )
+  const [introText, setIntroText] = useState(
+    'Onde você está hoje vs onde pode chegar',
+  )
+  const [deadline, setDeadline] = useState('3 meses')
+  const [summary, setSummary] = useState('')
+  const [discountedValue, setDiscountedValue] = useState('') // "De R$..."
 
   const [formData, setFormData] = useState({
     clientName: '',
     clientAge: '',
     clientHeight: '',
     clientWeight: '',
-    clientTargetWeight: '', // Meta
+    clientTargetWeight: '',
     clientObjective: '',
     description: '',
     planName: '',
-    value: '',
+    value: '', // "Por R$..."
     duration: '',
     observations: '',
-    validityDate: '',
+    validityDate: '2 dias',
   })
 
   const [services, setServices] = useState<ProposalService[]>(DEFAULT_SERVICES)
@@ -80,6 +90,10 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
     onSave({
       ...formData,
       type: proposalType,
+      customHeaderTitle,
+      introText,
+      deadline,
+      summary: summary || undefined,
       value: Number(formData.value),
       discountedValue: discountedValue ? Number(discountedValue) : undefined,
       deliveryType: deliveryType,
@@ -111,20 +125,40 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-2">
-        <Label>Tipo de Proposta</Label>
-        <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed">
-          Modelo 01 — 70% de conversão
+    <form onSubmit={handleSubmit} className="space-y-8 p-1">
+      <div className="space-y-4 border rounded-md p-4 bg-muted/10">
+        <h3 className="font-bold text-base uppercase border-b pb-2">
+          Cabeçalho e Introdução
+        </h3>
+        <div className="grid gap-2">
+          <Label htmlFor="customHeaderTitle">
+            Subtítulo do Header (Especialidade)
+          </Label>
+          <Input
+            id="customHeaderTitle"
+            value={customHeaderTitle}
+            onChange={(e) => setCustomHeaderTitle(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="introText">
+            Texto de Introdução (Grande Destaque)
+          </Label>
+          <Textarea
+            id="introText"
+            value={introText}
+            onChange={(e) => setIntroText(e.target.value)}
+            rows={2}
+          />
         </div>
       </div>
 
-      <div className="grid gap-4 p-4 border rounded-md bg-muted/20">
-        <h3 className="font-semibold text-sm text-muted-foreground mb-2">
+      <div className="space-y-4 border rounded-md p-4 bg-muted/20">
+        <h3 className="font-bold text-base uppercase border-b pb-2">
           Ficha Técnica
         </h3>
         <div className="grid gap-2">
-          <Label htmlFor="clientName">Nome do Potencial Cliente *</Label>
+          <Label htmlFor="clientName">Nome do Aluno *</Label>
           <Input
             id="clientName"
             value={formData.clientName}
@@ -137,7 +171,7 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         </div>
 
         <div className="grid gap-2">
-          <Label>Tipo de Entrega</Label>
+          <Label>Formato do Serviço</Label>
           <Select
             value={deliveryType}
             onValueChange={(val: DeliveryType) => setDeliveryType(val)}
@@ -204,6 +238,16 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
         </div>
 
         <div className="grid gap-2">
+          <Label htmlFor="deadline">Prazo Estimado (Gráfico)</Label>
+          <Input
+            id="deadline"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            placeholder="Ex: 3 meses"
+          />
+        </div>
+
+        <div className="grid gap-2">
           <Label htmlFor="clientObjective">Objetivo Principal</Label>
           <Input
             id="clientObjective"
@@ -218,14 +262,14 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label>Lista de Serviços (Editável)</Label>
+          <Label className="text-base">Serviços Inclusos (Editável)</Label>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={addService}
           >
-            <Plus className="h-4 w-4 mr-2" /> Adicionar Serviço
+            <Plus className="h-4 w-4 mr-2" /> Adicionar
           </Button>
         </div>
         <div className="space-y-3">
@@ -260,73 +304,83 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
               </CardContent>
             </Card>
           ))}
-          {services.length === 0 && (
-            <div className="text-center p-4 border border-dashed rounded text-sm text-muted-foreground">
-              Nenhum serviço listado.
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="planName">Plano Oferecido / Nome do Projeto</Label>
-          <Input
-            id="planName"
-            value={formData.planName}
-            onChange={(e) =>
-              setFormData({ ...formData, planName: e.target.value })
-            }
-            placeholder="Ex: Consultoria Trimestral"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="duration">Duração do Projeto</Label>
-          <Input
-            id="duration"
-            value={formData.duration}
-            onChange={(e) =>
-              setFormData({ ...formData, duration: e.target.value })
-            }
-            placeholder="Ex: 3 meses"
-          />
         </div>
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="validityDate">Data de Validade (Proposta)</Label>
-        <Input
-          id="validityDate"
-          value={formData.validityDate}
-          onChange={(e) =>
-            setFormData({ ...formData, validityDate: e.target.value })
-          }
-          placeholder="Ex: 15 dias"
+        <Label htmlFor="summary">Resumo (Opcional)</Label>
+        <Textarea
+          id="summary"
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          placeholder="Texto adicional que aparecerá somente se preenchido..."
+          rows={3}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4 border rounded-md p-4 bg-muted/10">
+        <h3 className="font-bold text-base uppercase border-b pb-2">
+          Investimento
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="planName">Nome do Projeto</Label>
+            <Input
+              id="planName"
+              value={formData.planName}
+              onChange={(e) =>
+                setFormData({ ...formData, planName: e.target.value })
+              }
+              placeholder="Ex: Consultoria Trimestral"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="duration">Duração</Label>
+            <Input
+              id="duration"
+              value={formData.duration}
+              onChange={(e) =>
+                setFormData({ ...formData, duration: e.target.value })
+              }
+              placeholder="Ex: 6 meses"
+            />
+          </div>
+        </div>
+
         <div className="grid gap-2">
-          <Label htmlFor="discountedValue">Valor sem desconto (R$)</Label>
+          <Label htmlFor="validityDate">Validade da Proposta</Label>
           <Input
-            id="discountedValue"
-            type="number"
-            value={discountedValue}
-            onChange={(e) => setDiscountedValue(e.target.value)}
-            placeholder="0.00"
+            id="validityDate"
+            value={formData.validityDate}
+            onChange={(e) =>
+              setFormData({ ...formData, validityDate: e.target.value })
+            }
           />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="value">Valor Real (com desconto)</Label>
-          <Input
-            id="value"
-            type="number"
-            value={formData.value}
-            onChange={(e) =>
-              setFormData({ ...formData, value: e.target.value })
-            }
-            placeholder="0.00"
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="discountedValue">Valor "De" (R$)</Label>
+            <Input
+              id="discountedValue"
+              type="number"
+              value={discountedValue}
+              onChange={(e) => setDiscountedValue(e.target.value)}
+              placeholder="Ex: 700.00"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="value">Valor "Por" (R$)</Label>
+            <Input
+              id="value"
+              type="number"
+              value={formData.value}
+              onChange={(e) =>
+                setFormData({ ...formData, value: e.target.value })
+              }
+              placeholder="Ex: 235.00"
+            />
+          </div>
         </div>
       </div>
 
@@ -335,7 +389,7 @@ export function ProposalForm({ onSave, onCancel }: ProposalFormProps) {
           Cancelar
         </Button>
         <Button type="submit" disabled={!formData.clientName}>
-          Gerar Proposta
+          Gerar Proposta PDF
         </Button>
       </div>
     </form>

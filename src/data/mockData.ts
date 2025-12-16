@@ -348,16 +348,39 @@ export const mockProposals: Proposal[] = [
   {
     id: '1',
     type: 'default',
+    customHeaderTitle: 'Especialista em Treino e Acompanhamento',
     clientName: 'Ana Clara',
     clientObjective: 'Definição e Perda de Gordura',
+    clientAge: '28',
+    clientHeight: '1.65',
+    clientWeight: '68',
+    clientTargetWeight: '62',
+    introText: 'Onde você está hoje vs onde pode chegar',
+    deadline: '3 meses',
     description:
       'Acompanhamento online com treinos personalizados e ajuste de dieta mensal.',
     planName: 'Consultoria Trimestral',
     value: 600,
+    discountedValue: 750,
     duration: '3 meses',
     observations: 'Início imediato após confirmação.',
     createdAt: format(subMonths(today, 0), 'yyyy-MM-dd'),
     status: 'sent',
+    validityDate: '2 dias',
+    services: [
+      {
+        id: '1',
+        title: 'AVALIAÇÃO FÍSICA',
+        description:
+          'Análise completa da composição corporal, postura e mobilidade para definir o ponto de partida.',
+      },
+      {
+        id: '2',
+        title: 'PRESCRIÇÃO DO TREINO',
+        description:
+          'Planilha de treino personalizada, ajustada para sua rotina, local de treino e nível de experiência.',
+      },
+    ],
   },
 ]
 

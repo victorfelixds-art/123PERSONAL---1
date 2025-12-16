@@ -164,6 +164,10 @@ export type DeliveryType = 'online' | 'presencial' | 'hybrid'
 export interface Proposal {
   id: string
   type: ProposalType
+  // Header Info
+  customHeaderTitle?: string
+
+  // Technical Sheet
   clientName: string
   clientObjective: string
   clientAge?: string
@@ -171,14 +175,25 @@ export interface Proposal {
   clientWeight?: string
   clientTargetWeight?: string
   deliveryType?: DeliveryType
-  discountedValue?: number
-  validityDate?: string
-  description: string
+
+  // Content
+  introText?: string
+  deadline?: string // Prazo
+  summary?: string // Optional Summary
+
+  // Investment
   planName: string
-  value: number
+  value: number // Final Price
+  discountedValue?: number // Original/List Price
   duration: string
+  validityDate?: string
+
+  // Details
+  description: string // Keeping for compatibility, usually mapped to intro or specific block
   observations?: string
   services?: ProposalService[]
+
+  // System
   createdAt: string
   status: 'sent' | 'accepted' | 'rejected'
 }
