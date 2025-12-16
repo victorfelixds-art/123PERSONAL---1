@@ -1,4 +1,3 @@
-/* Sheet Component primitives - A component that displays a sheet (a modal that slides in from the side) - from shadcn/ui (exposes Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription) */
 import * as React from 'react'
 import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'

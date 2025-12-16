@@ -172,6 +172,7 @@ export interface Proposal {
 }
 
 export interface UserProfile {
+  id: string
   name: string
   specialization: string
   email: string

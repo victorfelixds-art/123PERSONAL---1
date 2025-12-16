@@ -12,6 +12,8 @@ import {
 } from '@/lib/types'
 import { addDays, subMonths, format } from 'date-fns'
 
+const today = new Date()
+
 export const mockPlans: Plan[] = [
   { id: '1', name: 'Mensal', value: 200, durationInMonths: 1 },
   { id: '2', name: 'Trimestral', value: 550, durationInMonths: 3 },
@@ -276,8 +278,6 @@ export const mockEvents: CalendarEvent[] = [
   },
 ]
 
-const today = new Date()
-
 export const mockTransactions: Transaction[] = [
   {
     id: '1',
@@ -362,6 +362,7 @@ export const mockProposals: Proposal[] = [
 ]
 
 export const mockProfile: UserProfile = {
+  id: 'trainer-1',
   name: 'Carlos Personal',
   specialization: 'Musculação e Funcional',
   email: 'carlos@123personal.com',

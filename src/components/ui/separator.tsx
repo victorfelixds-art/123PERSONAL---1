@@ -1,4 +1,3 @@
-/* Separator Component - A component that displays a separator - from shadcn/ui (exposes Separator) */
 import * as React from 'react'
 import * as SeparatorPrimitive from '@radix-ui/react-separator'
 

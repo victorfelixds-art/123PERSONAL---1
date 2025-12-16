@@ -8,12 +8,12 @@ import {
   AppTheme,
 } from '@/lib/types'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 const THEME_COLORS: Record<AppTheme, { primary: string; secondary: string }> = {
   'dark-performance': { primary: '#00E676', secondary: '#121212' }, // Lime Green
   'light-performance': { primary: '#16A34A', secondary: '#F5F5F5' }, // Green
   'performance-blue': { primary: '#3B82F6', secondary: '#131E32' }, // Blue
+  white: { primary: '#000000', secondary: '#ffffff' }, // Black/White
 }
 
 const ICONS = {

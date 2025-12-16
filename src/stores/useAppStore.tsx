@@ -131,20 +131,67 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
+// Custom hook for persisted state
+function usePersistedState<T>(key: string, initialValue: T) {
+  const [state, setState] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key)
+      return item ? JSON.parse(item) : initialValue
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error)
+      return initialValue
+    }
+  })
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(state))
+    } catch (error) {
+      console.error(`Error setting localStorage key "${key}":`, error)
+    }
+  }, [key, state])
+
+  return [state, setState] as const
+}
+
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [clients, setClients] = useState<Client[]>(mockClients)
-  const [workouts, setWorkouts] = useState<Workout[]>(mockWorkouts)
-  const [diets, setDiets] = useState<Diet[]>(mockDiets)
-  const [events, setEvents] = useState<CalendarEvent[]>(mockEvents)
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(mockTransactions)
-  const [links, setLinks] = useState<LinkItem[]>(mockLinks)
-  const [profile, setProfile] = useState<UserProfile>(mockProfile)
-  const [settings, setSettings] = useState<AppSettings>(mockSettings)
-  const [plans, setPlans] = useState<Plan[]>(mockPlans)
-  const [proposals, setProposals] = useState<Proposal[]>(mockProposals)
-  const [referralViews, setReferralViews] = useState(15)
-  const [referralConversions, setReferralConversions] = useState(3)
+  const [clients, setClients] = usePersistedState<Client[]>(
+    'mp-clients',
+    mockClients,
+  )
+  const [workouts, setWorkouts] = usePersistedState<Workout[]>(
+    'mp-workouts',
+    mockWorkouts,
+  )
+  const [diets, setDiets] = usePersistedState<Diet[]>('mp-diets', mockDiets)
+  const [events, setEvents] = usePersistedState<CalendarEvent[]>(
+    'mp-events',
+    mockEvents,
+  )
+  const [transactions, setTransactions] = usePersistedState<Transaction[]>(
+    'mp-transactions',
+    mockTransactions,
+  )
+  const [links, setLinks] = usePersistedState<LinkItem[]>('mp-links', mockLinks)
+  const [profile, setProfile] = usePersistedState<UserProfile>(
+    'mp-profile',
+    mockProfile,
+  )
+  const [settings, setSettings] = usePersistedState<AppSettings>(
+    'mp-settings',
+    mockSettings,
+  )
+  const [plans, setPlans] = usePersistedState<Plan[]>('mp-plans', mockPlans)
+  const [proposals, setProposals] = usePersistedState<Proposal[]>(
+    'mp-proposals',
+    mockProposals,
+  )
+  const [referralViews, setReferralViews] = usePersistedState<number>(
+    'mp-ref-views',
+    15,
+  )
+  const [referralConversions, setReferralConversions] =
+    usePersistedState<number>('mp-ref-conv', 3)
 
   // Status Check Effect
   useEffect(() => {
@@ -162,7 +209,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return client
       }),
     )
-  }, [])
+  }, [setClients])
 
   // Apply Theme Effect
   useEffect(() => {
@@ -182,7 +229,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     root.classList.add(`theme-${theme}`)
 
     // Handle .dark class for compatibility with some Tailwind utilities
-    // All themes except 'white' are considered dark based on the requirements
     if (theme !== 'white') {
       root.classList.add('dark')
     }

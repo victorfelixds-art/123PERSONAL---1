@@ -18,8 +18,6 @@ import {
   MessageCircle,
   Download,
   Trash2,
-  CheckCircle2,
-  XCircle,
 } from 'lucide-react'
 import {
   Dialog,
@@ -39,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 
 const IndicacoesPropostas = () => {
   const {
@@ -56,8 +53,7 @@ const IndicacoesPropostas = () => {
 
   // Link Generation Logic
   const baseUrl = window.location.origin
-  // Mock trainer ID for now (in a real app this would be profile.id)
-  const trainerId = 'trainer-123'
+  const trainerId = profile.id || 'trainer-123'
 
   const referralLink = `${baseUrl}/ref/${trainerId}`
 
