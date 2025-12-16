@@ -9,6 +9,9 @@ import {
   DollarSign,
   Share2,
   LogOut,
+  CreditCard,
+  UserCheck,
+  UserCog,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -27,47 +30,30 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 
-const items = [
-  {
-    title: 'Início',
-    url: '/',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'Agenda',
-    url: '/agenda',
-    icon: Calendar,
-  },
-  {
-    title: 'Alunos',
-    url: '/alunos',
-    icon: Users,
-  },
-  {
-    title: 'Treinos',
-    url: '/treinos',
-    icon: Dumbbell,
-  },
-  {
-    title: 'Dieta',
-    url: '/dieta',
-    icon: Utensils,
-  },
-  {
-    title: 'Financeiro',
-    url: '/financeiro',
-    icon: DollarSign,
-  },
-  {
-    title: 'Indicações & Propostas',
-    url: '/indicacoes',
-    icon: Share2,
-  },
+const personalItems = [
+  { title: 'Início', url: '/', icon: LayoutDashboard },
+  { title: 'Agenda', url: '/agenda', icon: Calendar },
+  { title: 'Alunos', url: '/alunos', icon: Users },
+  { title: 'Treinos', url: '/treinos', icon: Dumbbell },
+  { title: 'Dieta', url: '/dieta', icon: Utensils },
+  { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
+  { title: 'Indicações & Propostas', url: '/indicacoes', icon: Share2 },
+]
+
+const adminItems = [
+  { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
+  { title: 'Gestão de Personais', url: '/admin/personais', icon: UserCog },
+  { title: 'Personais Pendentes', url: '/admin/pendentes', icon: UserCheck },
+  { title: 'Gestão de Planos', url: '/admin/planos', icon: CreditCard },
 ]
 
 export function AppSidebar() {
   const location = useLocation()
   const { signOut, profile } = useAuth()
+
+  const items = profile?.role === 'ADMIN' ? adminItems : personalItems
+  const menuLabel =
+    profile?.role === 'ADMIN' ? 'Painel Administrativo' : 'Menu Principal'
 
   return (
     <Sidebar>
@@ -79,13 +65,13 @@ export function AppSidebar() {
       <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel>{menuLabel}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
                 const isActive =
-                  item.url === '/'
-                    ? location.pathname === '/'
+                  item.url === '/' || item.url === '/admin'
+                    ? location.pathname === item.url
                     : location.pathname.startsWith(item.url)
 
                 return (

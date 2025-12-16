@@ -13,6 +13,7 @@ import PublicStudent from '@/pages/PublicStudent'
 
 import Layout from '@/components/Layout'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import ProtectedAdminRoute from '@/components/ProtectedAdminRoute'
 import Index from '@/pages/Index'
 import Agenda from '@/pages/Agenda'
 import Alunos from '@/pages/Alunos'
@@ -23,6 +24,11 @@ import Financeiro from '@/pages/Financeiro'
 import IndicacoesPropostas from '@/pages/IndicacoesPropostas'
 import Perfil from '@/pages/Perfil'
 import Configuracoes from '@/pages/Configuracoes'
+
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import ManagePersonals from '@/pages/admin/ManagePersonals'
+import PendingPersonals from '@/pages/admin/PendingPersonals'
+import ManagePlans from '@/pages/admin/ManagePlans'
 
 function App() {
   return (
@@ -43,7 +49,7 @@ function App() {
             <Route path="/inactive" element={<AccountInactive />} />
             <Route path="/pending" element={<AccountPending />} />
 
-            {/* Protected Routes */}
+            {/* Protected Routes (Personal) */}
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
@@ -56,6 +62,16 @@ function App() {
                 <Route path="/indicacoes" element={<IndicacoesPropostas />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
+              </Route>
+            </Route>
+
+            {/* Admin Routes */}
+            <Route element={<ProtectedAdminRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/personais" element={<ManagePersonals />} />
+                <Route path="/admin/pendentes" element={<PendingPersonals />} />
+                <Route path="/admin/planos" element={<ManagePlans />} />
               </Route>
             </Route>
 

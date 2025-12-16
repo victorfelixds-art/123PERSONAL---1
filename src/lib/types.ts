@@ -11,3 +11,16 @@ export interface UserProfile {
   status: UserStatus
   created_at: string
 }
+
+export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELED'
+
+export interface Subscription {
+  id: string
+  user_id: string
+  plan_name: string
+  start_date: string
+  end_date: string
+  status: SubscriptionStatus
+  created_at: string
+  updated_at: string
+}
