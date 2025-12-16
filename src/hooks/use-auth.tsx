@@ -1,9 +1,10 @@
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
   useState,
-  ReactNode,
+  createElement,
+  type ReactNode,
 } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
@@ -49,7 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error fetching profile:', error)
-        // If error (e.g. no profile found yet), we might want to set profile to null
         setProfile(null)
       } else if (data) {
         setProfile(data as UserProfile)
@@ -61,7 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -77,7 +76,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false)
     })
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
@@ -99,13 +97,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          name: name, // Passed to metadata, can be used by trigger
+          name: name,
         },
       },
     })
-
-    // If successful, the trigger will create the profile.
-    // We don't need to manually insert into users_profile.
 
     return { error }
   }
@@ -138,5 +133,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
   }
 
-  return React.createElement(AuthContext.Provider, { value }, children)
+  return createElement(AuthContext.Provider, { value }, children)
 }

@@ -40,15 +40,13 @@ function App() {
             />
             <Route path="/public/student" element={<PublicStudent />} />
 
-            {/* Status Based Routes (Access controlled by ProtectedRoute logic usually, 
-                but available directly if redirected) */}
             <Route path="/inactive" element={<AccountInactive />} />
             <Route path="/pending" element={<AccountPending />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Index />} />
               <Route element={<Layout />}>
+                <Route path="/" element={<Index />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/alunos" element={<Alunos />} />
                 <Route path="/alunos/:id" element={<AlunoDetalhes />} />

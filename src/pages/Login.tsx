@@ -22,7 +22,6 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Redirect if already logged in
   useEffect(() => {
     if (session) {
       navigate('/')
@@ -47,7 +46,6 @@ export default function Login() {
           : error.message || 'Erro ao realizar login',
       )
     } else {
-      // Navigation handled by useEffect or global auth state
       toast.success('Login realizado com sucesso!')
     }
   }
@@ -58,14 +56,14 @@ export default function Login() {
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-2">
             <img
-              src="/logo.png"
+              src="https://img.usecurling.com/i?q=dumbbell&color=blue"
               alt="Logo"
-              className="h-8 w-8 object-contain opacity-80"
+              className="h-8 w-8 object-contain"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
           </div>
           <CardTitle className="text-2xl font-extrabold uppercase tracking-tight">
-            123 Personal
+            Meu Personal
           </CardTitle>
           <CardDescription>
             Entre com suas credenciais para acessar

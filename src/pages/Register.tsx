@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,7 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 export default function Register() {
-  const { signUp } = useAuth()
+  const { signUp, session } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -24,10 +24,15 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (session) {
+      navigate('/')
+    }
+  }, [session, navigate])
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation
     if (!name.trim()) {
       toast.error('O nome é obrigatório')
       return
@@ -53,10 +58,6 @@ export default function Register() {
       toast.error(error.message || 'Erro ao criar conta')
     } else {
       toast.success('Conta criada com sucesso!')
-      // Automatically redirect to pending screen via protected route mechanism
-      // If auto-login works, navigating to / will trigger protection which sends to /pending
-      // If email confirmation is needed, user can't login yet, so send to login.
-      // User Story says "automatically redirected to the 'Conta em Análise' screen", implying logged in state.
       navigate('/pending')
     }
   }
@@ -69,7 +70,7 @@ export default function Register() {
             Criar Conta Personal
           </CardTitle>
           <CardDescription>
-            Comece sua jornada com o 123 Personal
+            Comece sua jornada com o Meu Personal
           </CardDescription>
         </CardHeader>
         <CardContent>

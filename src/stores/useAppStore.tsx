@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, createElement, type ReactNode } from 'react'
 
 interface AppContextType {
   version: string
@@ -19,5 +19,5 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     version: '1.0.0',
   }
 
-  return React.createElement(AppContext.Provider, { value }, children)
+  return createElement(AppContext.Provider, { value }, children)
 }

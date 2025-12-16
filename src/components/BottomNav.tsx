@@ -16,7 +16,11 @@ export function BottomNav() {
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background p-2 md:hidden">
       <div className="flex justify-around items-center">
         {items.map((item) => {
-          const isActive = location.pathname === item.url
+          const isActive =
+            item.url === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(item.url)
+
           return (
             <Link
               key={item.title}
