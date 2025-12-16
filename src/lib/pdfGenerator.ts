@@ -196,154 +196,6 @@ const getBaseStyles = (primaryColor: string) => `
   .footer-left { font-weight: 700; text-transform: uppercase; }
   .footer-right { display: flex; gap: 20px; }
   .contact { display: flex; align-items: center; gap: 6px; font-weight: 500; }
-
-  /* Proposal Specific */
-  .intro-text {
-    font-size: 24px;
-    font-weight: 900;
-    line-height: 1.3;
-    text-transform: uppercase;
-    color: var(--text-primary);
-    text-align: center;
-    margin: 40px 0;
-    padding: 20px;
-    border: 2px dashed var(--primary);
-    background: var(--bg-light);
-  }
-
-  /* Graph */
-  .graph-container {
-    padding: 30px 20px;
-    background: var(--bg-light);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .graph-visual {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    padding: 0 40px;
-  }
-  .graph-line {
-    position: absolute;
-    top: 50%;
-    left: 40px;
-    right: 40px;
-    height: 4px;
-    background: #ddd;
-    z-index: 1;
-  }
-  .graph-point {
-    position: relative;
-    z-index: 2;
-    background: white;
-    border: 3px solid var(--primary);
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-  }
-  .graph-label {
-    margin-top: 15px;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 12px;
-    text-align: center;
-    color: var(--text-secondary);
-  }
-  .graph-val {
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--text-primary);
-    margin-bottom: 5px;
-  }
-
-  /* Service Item */
-  .service-item {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-    align-items: flex-start;
-  }
-  .checkmark {
-    min-width: 24px;
-    height: 24px;
-    background: var(--primary);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    margin-top: 2px;
-  }
-  .service-content { flex: 1; }
-  .service-title { font-weight: 800; text-transform: uppercase; font-size: 14px; margin-bottom: 4px; }
-  .service-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
-
-  /* Investment */
-  .investment-box {
-    text-align: center;
-    padding: 40px;
-    background: #111;
-    color: white;
-    border-radius: 12px;
-    position: relative;
-    overflow: hidden;
-  }
-  .investment-box .bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 8px;
-    background: var(--primary);
-  }
-  .strike-price {
-    text-decoration: line-through;
-    opacity: 0.5;
-    font-size: 18px;
-    margin-bottom: 5px;
-  }
-  .final-price {
-    font-size: 56px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 10px;
-    color: var(--primary);
-  }
-  .investment-meta {
-    font-size: 14px;
-    opacity: 0.8;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  /* CTA */
-  .cta-btn {
-    display: block;
-    width: 100%;
-    background: #25D366;
-    color: white;
-    text-align: center;
-    padding: 15px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 800;
-    font-size: 18px;
-    text-transform: uppercase;
-    margin-top: 20px;
-    letter-spacing: 1px;
-  }
 `
 
 const printHTML = (title: string, content: string, primaryColor: string) => {
@@ -407,15 +259,11 @@ const getHeader = (
   </header>
 `
 
-// ... existing generators for Workout, Diet, Finance, etc ...
-// I will keep existing functions but focus the update on generateProposalPDF
-
 export const generateWorkoutPDF = (
   workout: Workout,
   profile: UserProfile,
   themeColor: string,
 ) => {
-  // Legacy Implementation - Minimally touched to keep functionality
   const primaryColor =
     THEME_COLORS[themeColor as AppTheme]?.primary || '#00E676'
   const content = `
@@ -573,6 +421,171 @@ export const generateProgressReportPDF = (
 // NEW STANDARDIZED PROPOSAL GENERATOR
 // ----------------------------------------------------------------------
 
+const getProposalStyles = () => `
+  #proposal-page {
+    font-family: 'Inter', sans-serif;
+    color: #1f2937;
+    line-height: 1.5;
+  }
+  
+  #proposal-page .primary-text { color: var(--primary); }
+  
+  /* Modern Header */
+  #proposal-page .prop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 30px;
+    border-bottom: 2px solid #f3f4f6;
+    margin-bottom: 40px;
+  }
+  #proposal-page .prop-brand { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; text-transform: uppercase; }
+  #proposal-page .prop-sub { font-size: 14px; color: #6b7280; font-weight: 500; margin-top: 4px; letter-spacing: 0.5px; }
+  
+  /* Hero / Intro */
+  #proposal-page .prop-hero {
+    text-align: center;
+    margin-bottom: 50px;
+    padding: 0 20px;
+  }
+  #proposal-page .prop-hero-title {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.2;
+    background: linear-gradient(135deg, var(--primary) 0%, #111 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  
+  /* Graph Container */
+  #proposal-page .graph-wrapper {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  #proposal-page .graph-title {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #9ca3af;
+    margin-bottom: 20px;
+  }
+  
+  /* Data Grid */
+  #proposal-page .data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 50px;
+  }
+  #proposal-page .data-card {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+  }
+  #proposal-page .data-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+  #proposal-page .data-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  /* Services */
+  #proposal-page .services-list {
+    margin-bottom: 50px;
+  }
+  #proposal-page .service-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding: 20px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #f3f4f6;
+    transition: all 0.2s;
+  }
+  #proposal-page .service-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+  }
+  
+  /* Investment */
+  #proposal-page .investment-card {
+    background: #111;
+    color: white;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2);
+    break-inside: avoid;
+  }
+  #proposal-page .inv-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.6;
+    margin-bottom: 20px;
+  }
+  #proposal-page .inv-price {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 10px;
+    letter-spacing: -2px;
+  }
+  #proposal-page .inv-price span { font-size: 32px; vertical-align: top; margin-right: 4px; }
+  #proposal-page .inv-old {
+    text-decoration: line-through;
+    opacity: 0.5;
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+  
+  /* Button */
+  #proposal-page .btn-accept {
+    display: block;
+    background: #25D366;
+    color: white;
+    text-decoration: none;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-top: 30px;
+    box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4);
+  }
+`
+
 export const generateProposalPDF = (
   proposal: Proposal,
   profile: UserProfile,
@@ -583,171 +596,190 @@ export const generateProposalPDF = (
 
   // Header Data
   const dateStr = format(new Date(), "d 'de' MMMM, yyyy", { locale: ptBR })
-  const validityStr = proposal.validityDate || 'Consulte'
-  const customHeaderTitle =
-    proposal.customHeaderTitle || 'Especialista em Treino e Acompanhamento'
-
-  // Intro
-  const introText =
-    proposal.introText || 'Onde você está hoje vs onde pode chegar'
-
-  // Tech Sheet
-  const clientName = proposal.clientName
-  const age = proposal.clientAge || '-'
-  const height = proposal.clientHeight || '-'
-  const weight = proposal.clientWeight || '-'
-  const objective = proposal.clientObjective || '-'
-  const delivery =
-    proposal.deliveryType === 'hybrid'
-      ? 'Online + Presencial'
-      : proposal.deliveryType === 'presencial'
-        ? 'Presencial'
-        : 'Online'
-
-  // Graph Data
-  const currentWeight = Number(proposal.clientWeight) || 0
+  const startWeight = Number(proposal.clientWeight) || 0
   const targetWeight = Number(proposal.clientTargetWeight) || 0
   const deadline = proposal.deadline || 'Prazo definido'
+  const whatsappLink = `https://wa.me/${profile.phone.replace(/\D/g, '')}?text=Quero%20começar!`
 
-  // Services
-  const servicesHTML =
-    proposal.services && proposal.services.length > 0
-      ? proposal.services
-          .map(
-            (s) => `
-      <div class="service-item">
-        <div class="checkmark">✓</div>
-        <div class="service-content">
-          <div class="service-title">${s.title}</div>
-          <div class="service-desc">${s.description}</div>
-        </div>
-      </div>
-    `,
-          )
-          .join('')
-      : '<p>Serviços sob consulta.</p>'
+  // Graph SVG Logic
+  const width = 600
+  const height = 200
+  const paddingX = 60
+  const paddingY = 40
 
-  // Summary
-  const summaryHTML = proposal.summary
-    ? `
-    <div class="section">
-      <div class="section-title">RESUMO</div>
-      <div class="service-item">
-        <div class="checkmark">✓</div>
-        <div class="service-content">
-          <div class="service-desc" style="font-size: 14px; color: var(--text-primary); font-weight: 500;">
-            ${proposal.summary.replace(/\n/g, '<br>')}
-          </div>
-        </div>
-      </div>
-    </div>
+  const maxW = Math.max(startWeight, targetWeight)
+  const minW = Math.min(startWeight, targetWeight)
+  const diff = maxW - minW || 10
+  const buffer = diff * 0.4
+  const yMin = minW - buffer
+  const yRange = maxW + buffer - yMin
+
+  const getY = (w: number) => {
+    return height - paddingY - ((w - yMin) / yRange) * (height - 2 * paddingY)
+  }
+
+  const startY = getY(startWeight)
+  const endY = getY(targetWeight)
+  const startX = paddingX
+  const endX = width - paddingX
+
+  const cp1X = startX + (endX - startX) * 0.5
+  const cp1Y = startY
+  const cp2X = startX + (endX - startX) * 0.5
+  const cp2Y = endY
+
+  const pathD = `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`
+  const areaD = `${pathD} L ${endX} ${height} L ${startX} ${height} Z`
+
+  const svgGraph = `
+    <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${primaryColor}" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="${primaryColor}" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <line x1="${paddingX}" y1="${height - paddingY}" x2="${width - paddingX}" y2="${height - paddingY}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 4" />
+        <line x1="${paddingX}" y1="${paddingY}" x2="${width - paddingX}" y2="${paddingY}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4 4" />
+        <path d="${areaD}" fill="url(#areaGradient)" />
+        <path d="${pathD}" fill="none" stroke="${primaryColor}" stroke-width="4" stroke-linecap="round" />
+        <circle cx="${startX}" cy="${startY}" r="6" fill="#fff" stroke="${primaryColor}" stroke-width="3" />
+        <circle cx="${endX}" cy="${endY}" r="6" fill="${primaryColor}" stroke="${primaryColor}" stroke-width="3" />
+        <text x="${startX}" y="${startY - 20}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="bold" font-size="14" fill="#374151">${startWeight}kg</text>
+        <text x="${startX}" y="${startY + 25}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600" font-size="10" fill="#9ca3af" text-transform="uppercase">Peso Atual</text>
+        <text x="${endX}" y="${endY - 20}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="bold" font-size="14" fill="${primaryColor}">${targetWeight}kg</text>
+        <text x="${endX}" y="${endY + 25}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600" font-size="10" fill="${primaryColor}" text-transform="uppercase">Meta (${deadline})</text>
+    </svg>
   `
-    : ''
-
-  // Investment
-  const finalValue = proposal.value
-  const originalValue = proposal.discountedValue
-  const duration = proposal.duration
-
-  // CTA Link
-  const phone = profile.phone.replace(/\D/g, '')
-  const whatsappLink = `https://wa.me/${phone}?text=Quero%20começar!`
 
   const content = `
-    <!-- HEADER -->
-    <header class="header">
-      <div class="header-left">
-        ${profile.avatar ? `<img src="${profile.avatar}" class="avatar" alt="Logo" />` : ''}
-        <div class="brand-container">
-          <div class="brand">${profile.name}</div>
-          <div class="specialization">${customHeaderTitle}</div>
+    <style>
+        ${getProposalStyles()}
+    </style>
+    <div id="proposal-page">
+        <!-- Header -->
+        <header class="prop-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                ${profile.avatar ? `<img src="${profile.avatar}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />` : ''}
+                <div>
+                    <div class="prop-brand">${profile.name}</div>
+                    <div class="prop-sub">${proposal.customHeaderTitle || 'Personal Trainer'}</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-weight: 700; color: var(--primary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Proposta Comercial</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">${dateStr}</div>
+            </div>
+        </header>
+
+        <!-- Intro -->
+        <div class="prop-hero">
+            <div class="prop-hero-title">${proposal.introText || 'Onde você está hoje vs onde pode chegar'}</div>
+            <div style="width: 60px; height: 4px; background: var(--primary); margin: 20px auto; border-radius: 2px;"></div>
         </div>
-      </div>
-      <div class="doc-meta">
-        <div class="doc-date">${dateStr}</div>
-        <div class="doc-date" style="margin-top: 4px; color: var(--primary); font-weight: 700;">Validade: ${validityStr}</div>
-      </div>
-    </header>
 
-    <!-- INTRO TEXT -->
-    <div class="intro-text">
-      ${introText}
-    </div>
-
-    <!-- TECH SHEET -->
-    <div class="section">
-      <div class="section-title">FICHA TÉCNICA</div>
-      <div class="grid-3" style="margin-bottom: 20px;">
-        <div class="info-box"><span class="label">Aluno</span><span class="value">${clientName}</span></div>
-        <div class="info-box"><span class="label">Idade</span><span class="value">${age}</span></div>
-        <div class="info-box"><span class="label">Altura</span><span class="value">${height}</span></div>
-      </div>
-      <div class="grid-3">
-        <div class="info-box"><span class="label">Peso Atual</span><span class="value">${weight}</span></div>
-        <div class="info-box"><span class="label">Objetivo</span><span class="value">${objective}</span></div>
-        <div class="info-box"><span class="label">Formato do Serviço</span><span class="value">${delivery}</span></div>
-      </div>
-    </div>
-
-    <!-- GRAPH SECTION -->
-    <div class="section">
-      <div class="graph-container">
-        <div class="graph-visual">
-          <div class="graph-line"></div>
-          
-          <div style="text-align: center; position: relative; z-index: 2;">
-            <div class="graph-val">${weight}kg</div>
-            <div class="graph-point"></div>
-            <div class="graph-label">PESO ATUAL</div>
-          </div>
-          
-          <div style="text-align: center; position: relative; z-index: 2;">
-            <div class="graph-val" style="color: var(--primary);">${targetWeight ? targetWeight + 'kg' : '?'}</div>
-            <div class="graph-point" style="background: var(--primary);"></div>
-            <div class="graph-label">META (${deadline})</div>
-          </div>
+        <!-- Graph -->
+        <div class="graph-wrapper">
+            <div class="graph-title">Projeção de Resultado</div>
+            <div style="width: 100%; height: 200px;">
+                ${svgGraph}
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- SERVICES SECTION -->
-    <div class="section">
-      <div class="section-title">SERVIÇOS</div>
-      ${servicesHTML}
-    </div>
+        <!-- Tech Sheet -->
+        <div class="section-title" style="margin-bottom: 20px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px;">
+            ${ICONS.user} Ficha Técnica
+        </div>
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="data-label">Aluno</div>
+                <div class="data-value">${proposal.clientName}</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Objetivo</div>
+                <div class="data-value">${proposal.clientObjective}</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Formato</div>
+                <div class="data-value">${proposal.deliveryType === 'hybrid' ? 'Online + Presencial' : proposal.deliveryType === 'presencial' ? 'Presencial' : 'Online'}</div>
+            </div>
+             <div class="data-card">
+                <div class="data-label">Idade</div>
+                <div class="data-value">${proposal.clientAge || '-'}</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Altura</div>
+                <div class="data-value">${proposal.clientHeight || '-'}</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Peso Inicial</div>
+                <div class="data-value">${proposal.clientWeight || '-'}</div>
+            </div>
+        </div>
 
-    <!-- SUMMARY SECTION (OPTIONAL) -->
-    ${summaryHTML}
+        <!-- Services -->
+        <div class="section-title" style="margin-bottom: 20px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px;">
+            ${ICONS.dumbbell} SERVIÇOS
+        </div>
+        <div class="services-list">
+            ${
+              proposal.services && proposal.services.length > 0
+                ? proposal.services
+                    .map(
+                      (s) => `
+                <div class="service-row">
+                    <div class="service-icon">${ICONS.check}</div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 14px; text-transform: uppercase; margin-bottom: 5px;">${s.title}</div>
+                        <div style="font-size: 13px; color: #6b7280; line-height: 1.4;">${s.description}</div>
+                    </div>
+                </div>
+            `,
+                    )
+                    .join('')
+                : '<p style="text-align: center; color: #6b7280;">Serviços sob consulta.</p>'
+            }
+        </div>
 
-    <!-- INVESTMENT SECTION -->
-    <div class="section" style="break-inside: avoid;">
-      <div class="section-title">${ICONS.dollar} INVESTIMENTO</div>
-      <div class="investment-box">
-        <div class="bar"></div>
-        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; margin-bottom: 15px;">Valor Total do Projeto</div>
+        <!-- Summary -->
+        ${
+          proposal.summary
+            ? `
+            <div class="section">
+              <div class="section-title">RESUMO</div>
+              <div class="service-row">
+                <div class="service-icon">${ICONS.check}</div>
+                <div>
+                   <div style="font-size: 14px; color: #374151; font-weight: 500;">${proposal.summary.replace(/\n/g, '<br>')}</div>
+                </div>
+              </div>
+            </div>
+        `
+            : ''
+        }
+
+        <!-- Investment -->
+        <div class="investment-card">
+            <div class="inv-label">Valor Total do Projeto</div>
+            ${proposal.discountedValue ? `<div class="inv-old">R$ ${proposal.discountedValue.toFixed(2)}</div>` : ''}
+            <div class="inv-price"><span>R$</span>${proposal.value.toFixed(2)}</div>
+            
+            <div style="font-size: 14px; opacity: 0.8; margin-top: 15px; display: flex; justify-content: center; gap: 20px;">
+                <span>Duração: ${proposal.duration}</span>
+                <span>Validade: ${proposal.validityDate || 'Consulte'}</span>
+            </div>
+            
+            <a href="${whatsappLink}" target="_blank" class="btn-accept">
+                👉 Aceitar e começar!
+            </a>
+        </div>
         
-        ${originalValue ? `<div class="strike-price">R$ ${originalValue.toFixed(2)}</div>` : ''}
-        <div class="final-price">R$ ${finalValue.toFixed(2)}</div>
-        
-        <div class="investment-meta">
-          <span>Duração: ${duration}</span>
-          <span>Validade: ${validityStr}</span>
-        </div>
-      </div>
-      
-      <a href="${whatsappLink}" target="_blank" class="cta-btn">
-        👉 Aceitar e começar!
-      </a>
+        <footer style="margin-top: 50px; text-align: center; color: #9ca3af; font-size: 11px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+            <div style="font-weight: 700; text-transform: uppercase; margin-bottom: 5px;">${profile.name}</div>
+            <div>${profile.email} • ${profile.phone}</div>
+        </footer>
     </div>
-
-    <footer class="footer">
-      <div class="footer-left">Vamos juntos nessa jornada!</div>
-      <div class="footer-right">
-        <span class="contact">${ICONS.phone} ${profile.phone}</span>
-        <span class="contact">${ICONS.mail} ${profile.email}</span>
-      </div>
-    </footer>
   `
 
-  printHTML(`Proposta - ${clientName}`, content, primaryColor)
+  printHTML(`Proposta - ${proposal.clientName}`, content, primaryColor)
 }
