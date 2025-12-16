@@ -225,7 +225,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       'theme-white',
     )
     root.classList.add(`theme-${theme}`)
-    if (theme !== 'white') {
+    if (theme !== 'white' && theme !== 'light-performance') {
       root.classList.add('dark')
     }
   }, [settings.theme])
@@ -624,7 +624,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         clientName: undefined,
         startDate: undefined,
         createdAt: new Date().toISOString(),
-        meals: mealsCopy,
       })
     }
   }

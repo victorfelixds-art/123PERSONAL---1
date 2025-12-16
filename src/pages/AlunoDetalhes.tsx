@@ -70,6 +70,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { useDraggableScroll } from '@/hooks/useDraggableScroll'
 
 const AlunoDetalhes = () => {
   const { id } = useParams()
@@ -110,6 +111,8 @@ const AlunoDetalhes = () => {
   )
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null)
+
+  const { ref: scrollRef } = useDraggableScroll()
 
   const client = clients.find((c) => c.id === id)
   const clientWorkouts = workouts.filter((w) => w.clientId === id)
@@ -389,7 +392,10 @@ const AlunoDetalhes = () => {
         onValueChange={setActiveTab}
         className="w-full space-y-8"
       >
-        <div className="border-b pb-1 overflow-x-auto">
+        <div
+          ref={scrollRef}
+          className="border-b pb-1 overflow-x-auto no-scrollbar"
+        >
           <TabsList className="bg-transparent h-auto p-0 space-x-8 justify-start">
             {[
               'Dados',
