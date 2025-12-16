@@ -86,7 +86,8 @@ const IndicacoesPropostas = () => {
   }
 
   const handleShareProposal = (proposal: Proposal) => {
-    const message = `Olá ${proposal.clientName}, aqui está sua proposta de consultoria: [Link da Proposta]`
+    // Sharing just the text, as we can't share local PDF via link easily without backend
+    const message = `Olá ${proposal.clientName}, preparei uma proposta especial para você: ${proposal.planName}. Vamos agendar para eu te apresentar?`
     shareViaWhatsApp('', message)
   }
 

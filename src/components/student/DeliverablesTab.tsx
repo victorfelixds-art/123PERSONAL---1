@@ -41,12 +41,12 @@ export function DeliverablesTab({
   })
 
   const handleDownloadWorkout = (workout: Workout) => {
-    generateWorkoutPDF(workout, profile, settings.themeColor)
+    generateWorkoutPDF(workout, profile, settings.theme)
     toast.success('PDF do treino gerado!')
   }
 
   const handleDownloadDiet = (diet: Diet) => {
-    generateDietPDF(diet, profile, settings.themeColor)
+    generateDietPDF(diet, profile, settings.theme)
     toast.success('PDF da dieta gerado!')
   }
 
@@ -54,7 +54,7 @@ export function DeliverablesTab({
     generateProgressReportPDF(
       client,
       profile,
-      settings.themeColor,
+      settings.theme,
       reportData.observations,
       reportData.nextStep,
     )
