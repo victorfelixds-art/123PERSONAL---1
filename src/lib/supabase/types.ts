@@ -42,6 +42,47 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          plan_name: string
+          start_date: string
+          status: Database['public']['Enums']['subscription_status']
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          plan_name: string
+          start_date?: string
+          status?: Database['public']['Enums']['subscription_status']
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          plan_name?: string
+          start_date?: string
+          status?: Database['public']['Enums']['subscription_status']
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'subscriptions_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users_profile'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       users_profile: {
         Row: {
           created_at: string
@@ -77,6 +118,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      subscription_status: 'ACTIVE' | 'EXPIRED' | 'CANCELED'
       user_role: 'ADMIN' | 'PERSONAL'
       user_status: 'PENDENTE' | 'ATIVO' | 'INATIVO'
     }
@@ -206,6 +248,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      subscription_status: ['ACTIVE', 'EXPIRED', 'CANCELED'],
       user_role: ['ADMIN', 'PERSONAL'],
       user_status: ['PENDENTE', 'ATIVO', 'INATIVO'],
     },

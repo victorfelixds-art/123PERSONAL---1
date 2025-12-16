@@ -19,8 +19,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, ShieldCheck, Ban, Trash2 } from 'lucide-react'
+import {
+  MoreHorizontal,
+  ShieldCheck,
+  Ban,
+  Trash2,
+  ShieldAlert,
+} from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +49,7 @@ export default function ManagePersonals() {
   const [loading, setLoading] = useState(true)
   const [actionUser, setActionUser] = useState<PersonalWithSub | null>(null)
   const [actionType, setActionType] = useState<
-    'approve' | 'deactivate' | 'reactivate' | 'delete' | null
+    'approve' | 'deactivate' | 'reactivate' | 'delete' | 'promote' | null
   >(null)
 
   const fetchData = async () => {
@@ -95,6 +102,12 @@ export default function ManagePersonals() {
           .delete()
           .eq('id', actionUser.id)
         error = delError
+      } else if (actionType === 'promote') {
+        const { error: promoError } = await supabase
+          .from('users_profile')
+          .update({ role: 'ADMIN' })
+          .eq('id', actionUser.id)
+        error = promoError
       } else {
         const newStatus =
           actionType === 'approve' || actionType === 'reactivate'
@@ -108,9 +121,16 @@ export default function ManagePersonals() {
       }
 
       if (error) throw error
-      toast.success('Ação realizada com sucesso')
+
+      const successMessage =
+        actionType === 'promote'
+          ? 'Usuário promovido a Admin com sucesso'
+          : 'Ação realizada com sucesso'
+
+      toast.success(successMessage)
       fetchData()
     } catch (err) {
+      console.error(err)
       toast.error('Erro ao realizar ação. Verifique suas permissões.')
     } finally {
       setActionUser(null)
@@ -226,6 +246,21 @@ export default function ManagePersonals() {
                             conta
                           </DropdownMenuItem>
                         )}
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setActionUser(user)
+                            setActionType('promote')
+                          }}
+                        >
+                          <ShieldAlert className="mr-2 h-4 w-4 text-orange-500" />{' '}
+                          Promover a Admin
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
                         <DropdownMenuItem
                           onClick={() => {
                             setActionUser(user)
@@ -255,11 +290,13 @@ export default function ManagePersonals() {
             <AlertDialogDescription>
               {actionType === 'delete'
                 ? `Tem certeza que deseja excluir permanentemente a conta de ${actionUser?.name}? Esta ação não pode ser desfeita.`
-                : `Tem certeza que deseja alterar o status de ${actionUser?.name} para ${
-                    actionType === 'approve' || actionType === 'reactivate'
-                      ? 'ATIVO'
-                      : 'INATIVO'
-                  }?`}
+                : actionType === 'promote'
+                  ? `Tem certeza que deseja promover ${actionUser?.name} para ADMIN? O usuário terá acesso administrativo total e não aparecerá mais nesta lista.`
+                  : `Tem certeza que deseja alterar o status de ${actionUser?.name} para ${
+                      actionType === 'approve' || actionType === 'reactivate'
+                        ? 'ATIVO'
+                        : 'INATIVO'
+                    }?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -269,7 +306,9 @@ export default function ManagePersonals() {
               className={
                 actionType === 'delete'
                   ? 'bg-destructive hover:bg-destructive/90'
-                  : ''
+                  : actionType === 'promote'
+                    ? 'bg-orange-600 hover:bg-orange-700'
+                    : ''
               }
             >
               Confirmar
