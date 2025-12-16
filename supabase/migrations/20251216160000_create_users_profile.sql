@@ -1,45 +1,43 @@
--- Create enums for Role and Status
-CREATE TYPE user_role AS ENUM ('ADMIN', 'PERSONAL');
-CREATE TYPE user_status AS ENUM ('PENDENTE', 'ATIVO', 'INATIVO');
-
--- Create users_profile table
-CREATE TABLE public.users_profile (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  role user_role NOT NULL DEFAULT 'PERSONAL',
-  status user_status NOT NULL DEFAULT 'PENDENTE',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+-- Create a table for public profiles
+create table if not exists public.profiles (
+  id uuid references auth.users on delete cascade not null primary key,
+  email text not null,
+  full_name text,
+  avatar_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable Row Level Security
-ALTER TABLE public.users_profile ENABLE ROW LEVEL SECURITY;
+-- Set up Row Level Security (RLS)
+alter table public.profiles enable row level security;
 
--- Policies
--- Users can read their own profile
-CREATE POLICY "Users can read own profile" ON public.users_profile
-  FOR SELECT USING (auth.uid() = id);
+create policy "Public profiles are viewable by everyone."
+  on profiles for select
+  using ( true );
 
--- Users can update their own profile (name)
-CREATE POLICY "Users can update own profile" ON public.users_profile
-  FOR UPDATE USING (auth.uid() = id);
+create policy "Users can insert their own profile."
+  on profiles for insert
+  with check ( auth.uid() = id );
 
--- Trigger to handle new user creation from Supabase Auth
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.users_profile (id, email, name, role, status)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'name', 'Novo Usuário'),
-    'PERSONAL',
-    'PENDENTE'
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+create policy "Users can update own profile."
+  on profiles for update
+  using ( auth.uid() = id );
 
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+-- Function to handle new user signup
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email, full_name, avatar_url)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  return new;
+end;
+$$;
+
+-- Trigger the function every time a user is created
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
