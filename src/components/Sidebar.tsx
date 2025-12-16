@@ -33,9 +33,14 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex h-screen w-64 flex-col fixed inset-y-0 left-0 bg-sidebar border-r border-sidebar-border z-30 shadow-xl transition-colors duration-300">
-      <div className="p-6 flex items-center justify-center">
+      <div className="p-6 flex items-center justify-center gap-3">
+        <img
+          src="/logo.png"
+          alt="123personal Logo"
+          className="h-10 w-auto object-contain"
+        />
         <h1 className="text-2xl font-bold text-sidebar-primary tracking-tight">
-          Meu Personal
+          123personal
         </h1>
       </div>
 
@@ -71,7 +76,7 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center justify-between px-2 py-2 text-sm text-muted-foreground">
-          <span className="text-xs font-medium">v0.0.30</span>
+          <span className="text-xs font-medium">v0.0.31</span>
           <span className="text-[10px] opacity-60">© 2024</span>
         </div>
       </div>

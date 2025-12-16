@@ -364,7 +364,7 @@ export const mockProposals: Proposal[] = [
 export const mockProfile: UserProfile = {
   name: 'Carlos Personal',
   specialization: 'Musculação e Funcional',
-  email: 'carlos@meupersonal.com',
+  email: 'carlos@123personal.com',
   phone: '5511912345678',
   bio: 'Transformando vidas através do movimento há 5 anos.',
   avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=99',
