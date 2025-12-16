@@ -1,5 +1,9 @@
 -- Create Enum for Subscription Status
-CREATE TYPE public.subscription_status AS ENUM ('ACTIVE', 'EXPIRED', 'CANCELED');
+DO $$ BEGIN
+    CREATE TYPE public.subscription_status AS ENUM ('ACTIVE', 'EXPIRED', 'CANCELED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create Subscriptions Table
 CREATE TABLE IF NOT EXISTS public.subscriptions (
@@ -17,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Policies for Subscriptions
+DROP POLICY IF EXISTS "Admins can view all subscriptions" ON public.subscriptions;
 CREATE POLICY "Admins can view all subscriptions"
   ON public.subscriptions FOR SELECT
   USING (
@@ -26,6 +31,7 @@ CREATE POLICY "Admins can view all subscriptions"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can insert subscriptions" ON public.subscriptions;
 CREATE POLICY "Admins can insert subscriptions"
   ON public.subscriptions FOR INSERT
   WITH CHECK (
@@ -35,6 +41,7 @@ CREATE POLICY "Admins can insert subscriptions"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can update subscriptions" ON public.subscriptions;
 CREATE POLICY "Admins can update subscriptions"
   ON public.subscriptions FOR UPDATE
   USING (
@@ -44,6 +51,7 @@ CREATE POLICY "Admins can update subscriptions"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can delete subscriptions" ON public.subscriptions;
 CREATE POLICY "Admins can delete subscriptions"
   ON public.subscriptions FOR DELETE
   USING (
@@ -53,11 +61,13 @@ CREATE POLICY "Admins can delete subscriptions"
     )
   );
 
+DROP POLICY IF EXISTS "Personals can view own subscriptions" ON public.subscriptions;
 CREATE POLICY "Personals can view own subscriptions"
   ON public.subscriptions FOR SELECT
   USING ( auth.uid() = user_id );
 
 -- Ensure Admins can manage users_profile
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.users_profile;
 CREATE POLICY "Admins can view all profiles"
   ON public.users_profile FOR SELECT
   USING (
@@ -67,6 +77,7 @@ CREATE POLICY "Admins can view all profiles"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can update profiles" ON public.users_profile;
 CREATE POLICY "Admins can update profiles"
   ON public.users_profile FOR UPDATE
   USING (
@@ -76,6 +87,7 @@ CREATE POLICY "Admins can update profiles"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can delete profiles" ON public.users_profile;
 CREATE POLICY "Admins can delete profiles"
   ON public.users_profile FOR DELETE
   USING (
@@ -84,4 +96,3 @@ CREATE POLICY "Admins can delete profiles"
       WHERE id = auth.uid() AND role = 'ADMIN'
     )
   );
-
