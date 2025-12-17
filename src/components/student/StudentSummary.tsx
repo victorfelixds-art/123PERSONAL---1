@@ -16,15 +16,17 @@ import { Progress } from '@/components/ui/progress'
 
 interface StudentSummaryProps {
   client: Client
+  onUpdate?: () => void
 }
 
-export function StudentSummary({ client }: StudentSummaryProps) {
+export function StudentSummary({ client, onUpdate }: StudentSummaryProps) {
   const { addWeightEntry } = useAppStore()
   const [isWeightFormOpen, setIsWeightFormOpen] = useState(false)
 
-  const initialWeight = client.initialWeight || 0
+  // Use snake_case properties matching DB/Types
+  const initialWeight = client.initial_weight || 0
   const currentWeight = client.weight || 0
-  const targetWeight = client.targetWeight || 0
+  const targetWeight = client.target_weight || 0
 
   let percentage = 0
   if (initialWeight && targetWeight && initialWeight !== targetWeight) {
@@ -33,14 +35,19 @@ export function StudentSummary({ client }: StudentSummaryProps) {
     percentage = Math.min(Math.round((currentDiff / totalDiff) * 100), 100)
   }
 
-  const handleUpdateWeight = (
+  const handleUpdateWeight = async (
     weight: number,
     date: string,
     observations: string,
   ) => {
-    addWeightEntry(client.id, weight, date, observations)
-    toast.success('Peso atualizado com sucesso!')
-    setIsWeightFormOpen(false)
+    try {
+      await addWeightEntry(client.id, weight, date, observations)
+      toast.success('Peso atualizado com sucesso!')
+      setIsWeightFormOpen(false)
+      if (onUpdate) onUpdate()
+    } catch (error) {
+      toast.error('Erro ao atualizar peso')
+    }
   }
 
   return (

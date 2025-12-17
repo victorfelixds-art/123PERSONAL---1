@@ -39,7 +39,6 @@ const formSchema = z
   })
 
 export default function Register() {
-  const { signUp } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
 
@@ -56,7 +55,6 @@ export default function Register() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
     try {
-      // Pass metadata for the trigger to use
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -89,9 +87,11 @@ export default function Register() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md animate-fade-in-up">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Criar Conta</CardTitle>
+      <Card className="w-full max-w-md animate-fade-in-up border-border/50 shadow-xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center font-bold">
+            Criar Conta
+          </CardTitle>
           <CardDescription className="text-center">
             Cadastre-se como Personal Trainer
           </CardDescription>
@@ -164,7 +164,10 @@ export default function Register() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Já tem uma conta?{' '}
-            <Link to="/login" className="text-primary hover:underline">
+            <Link
+              to="/login"
+              className="text-primary font-medium hover:underline"
+            >
               Fazer login
             </Link>
           </p>

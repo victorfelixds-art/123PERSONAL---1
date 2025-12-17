@@ -63,9 +63,11 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md animate-fade-in-up">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Meu Personal</CardTitle>
+      <Card className="w-full max-w-md animate-fade-in-up border-border/50 shadow-xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center font-bold">
+            Meu Personal
+          </CardTitle>
           <CardDescription className="text-center">
             Entre com suas credenciais para acessar a plataforma
           </CardDescription>
@@ -112,7 +114,10 @@ export default function Login() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Não tem uma conta?{' '}
-            <Link to="/register" className="text-primary hover:underline">
+            <Link
+              to="/register"
+              className="text-primary font-medium hover:underline"
+            >
               Registre-se
             </Link>
           </p>

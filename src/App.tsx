@@ -15,6 +15,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard'
 import PendingPersonals from '@/pages/admin/PendingPersonals'
 import ManagePlans from '@/pages/admin/ManagePlans'
 import Alunos from '@/pages/Alunos'
+import AlunoDetalhes from '@/pages/AlunoDetalhes'
 import Treinos from '@/pages/Treinos'
 import Dieta from '@/pages/Dieta'
 import Agenda from '@/pages/Agenda'
@@ -49,6 +50,7 @@ const App = () => (
 
               {/* Personal Routes */}
               <Route path="/students" element={<Alunos />} />
+              <Route path="/students/:id" element={<AlunoDetalhes />} />
               <Route path="/workouts" element={<Treinos />} />
               <Route path="/diet" element={<Dieta />} />
               <Route path="/agenda" element={<Agenda />} />

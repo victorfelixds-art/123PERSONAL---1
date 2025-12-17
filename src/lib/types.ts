@@ -12,6 +12,13 @@ export interface UserProfile {
   avatar_url?: string | null
   phone?: string | null
   updated_at?: string
+  // Client specific fields
+  personal_id?: string | null
+  height?: number | null
+  weight?: number | null
+  initial_weight?: number | null
+  target_weight?: number | null
+  objective?: string | null
 }
 
 export interface Subscription {
@@ -23,3 +30,5 @@ export interface Subscription {
   end_date: string
   created_at: string
 }
+
+export type Client = UserProfile
