@@ -1,27 +1,26 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import useAppStore from '@/stores/useAppStore'
 import { Loader2 } from 'lucide-react'
 
 export default function Index() {
-  const { user, loading } = useAuth()
-  const { userProfile, isLoadingProfile } = useAppStore()
+  const { user, profile, loading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         navigate('/login')
-      } else if (!isLoadingProfile && userProfile) {
-        if (userProfile.role === 'ADMIN') {
+      } else if (profile) {
+        if (profile.role === 'ADMIN') {
           navigate('/admin/dashboard')
-        } else {
+        } else if (profile.status === 'ATIVO') {
           navigate('/students')
         }
+        // If status is PENDENTE or INATIVO, ProtectedRoute handles redirection
       }
     }
-  }, [user, loading, userProfile, isLoadingProfile, navigate])
+  }, [user, loading, profile, navigate])
 
   return (
     <div className="flex h-screen items-center justify-center">

@@ -1,31 +1,80 @@
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, UserPlus, CreditCard, Activity } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 export default function AdminDashboard() {
-  // TODO: Fetch real stats
-  const stats = [
+  const [stats, setStats] = useState({
+    totalPersonals: 0,
+    activePersonals: 0,
+    pendingPersonals: 0,
+    inactivePersonals: 0,
+    activeSubs: 0,
+    inactiveSubs: 0,
+  })
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch Personals stats
+        const { data: personals, error: personalsError } = await supabase
+          .from('users_profile')
+          .select('status')
+          .eq('role', 'PERSONAL')
+
+        if (personalsError) throw personalsError
+
+        // Fetch Subscriptions stats
+        const { data: subs, error: subsError } = await supabase
+          .from('subscriptions')
+          .select('status')
+
+        if (subsError) throw subsError
+
+        setStats({
+          totalPersonals: personals.length,
+          activePersonals: personals.filter((p) => p.status === 'ATIVO').length,
+          pendingPersonals: personals.filter((p) => p.status === 'PENDENTE')
+            .length,
+          inactivePersonals: personals.filter((p) => p.status === 'INATIVO')
+            .length,
+          activeSubs: subs.filter((s) => s.status === 'ACTIVE').length,
+          inactiveSubs: subs.filter((s) => s.status !== 'ACTIVE').length,
+        })
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error)
+        toast.error('Erro ao carregar estatísticas')
+      }
+    }
+
+    fetchStats()
+  }, [])
+
+  const statCards = [
     {
-      title: 'Personais Ativos',
-      value: '12',
-      description: '+2 no último mês',
+      title: 'Personais',
+      value: stats.totalPersonals.toString(),
+      description: `${stats.activePersonals} ativos, ${stats.inactivePersonals} inativos`,
       icon: Users,
     },
     {
       title: 'Solicitações Pendentes',
-      value: '3',
+      value: stats.pendingPersonals.toString(),
       description: 'Aguardando aprovação',
       icon: UserPlus,
+      alert: stats.pendingPersonals > 0,
     },
     {
       title: 'Assinaturas Ativas',
-      value: '10',
-      description: '85% de conversão',
+      value: stats.activeSubs.toString(),
+      description: 'Total de planos vigentes',
       icon: CreditCard,
     },
     {
-      title: 'Receita Mensal',
-      value: 'R$ 4.500',
-      description: '+12% vs mês anterior',
+      title: 'Planos Encerrados',
+      value: stats.inactiveSubs.toString(),
+      description: 'Cancelados ou expirados',
       icon: Activity,
     },
   ]
@@ -40,16 +89,26 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <stat.icon
+                className={`h-4 w-4 ${
+                  stat.alert ? 'text-orange-500' : 'text-muted-foreground'
+                }`}
+              />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div
+                className={`text-2xl font-bold ${
+                  stat.alert ? 'text-orange-600' : ''
+                }`}
+              >
+                {stat.value}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stat.description}
               </p>

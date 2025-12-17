@@ -9,15 +9,22 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { Lock, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 
 export default function AccountInactive() {
-  const { signOut } = useAuth()
+  const { signOut, profile, loading } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     await signOut()
     navigate('/login')
   }
+
+  useEffect(() => {
+    if (!loading && profile && profile.status === 'ATIVO') {
+      navigate('/')
+    }
+  }, [loading, profile, navigate])
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background p-4 animate-fade-in">

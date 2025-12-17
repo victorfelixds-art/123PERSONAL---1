@@ -1,5 +1,6 @@
 export type UserRole = 'ADMIN' | 'PERSONAL' | 'STUDENT'
 export type UserStatus = 'ATIVO' | 'INATIVO' | 'PENDENTE'
+export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELED'
 
 export interface UserProfile {
   id: string
@@ -17,7 +18,7 @@ export interface Subscription {
   id: string
   user_id: string
   plan_name: string
-  status: 'ACTIVE' | 'INACTIVE' | 'CANCELED'
+  status: SubscriptionStatus
   start_date: string
   end_date: string
   created_at: string

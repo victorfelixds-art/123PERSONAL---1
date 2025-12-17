@@ -18,21 +18,22 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  // Check profile status
-  if (profile) {
-    if (profile.status === 'PENDENTE') {
-      return <Navigate to="/pending" replace />
-    }
-    if (profile.status === 'INATIVO') {
-      return <Navigate to="/inactive" replace />
-    }
-  } else {
-    // If session exists but no profile yet, show loader (profile might be fetching)
+  // If session exists but profile is still loading (auth hook might have session but fetching profile)
+  // We can show loader or wait. If profile is null after loading, it means error or no profile.
+  if (!profile) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
+  }
+
+  if (profile.status === 'PENDENTE') {
+    return <Navigate to="/pending" replace />
+  }
+
+  if (profile.status === 'INATIVO') {
+    return <Navigate to="/inactive" replace />
   }
 
   return <Outlet />

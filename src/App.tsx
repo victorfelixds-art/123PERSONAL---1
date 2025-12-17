@@ -1,12 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from '@/components/Layout'
 import { ProtectedAdminRoute } from '@/components/ProtectedAdminRoute'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import Login from '@/pages/Login'
 import Index from '@/pages/Index'
 import Register from '@/pages/Register'
+import AccountPending from '@/pages/AccountPending'
+import AccountInactive from '@/pages/AccountInactive'
 import ManagePersonals from '@/pages/admin/ManagePersonals'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import PendingPersonals from '@/pages/admin/PendingPersonals'
@@ -29,27 +32,31 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/pending" element={<AccountPending />} />
+          <Route path="/inactive" element={<AccountInactive />} />
 
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Index />} />
 
-            {/* Admin Routes */}
-            <Route element={<ProtectedAdminRoute />}>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/personals" element={<ManagePersonals />} />
-              <Route path="/admin/pending" element={<PendingPersonals />} />
-              <Route path="/admin/plans" element={<ManagePlans />} />
+              {/* Admin Routes */}
+              <Route element={<ProtectedAdminRoute />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/personals" element={<ManagePersonals />} />
+                <Route path="/admin/pending" element={<PendingPersonals />} />
+                <Route path="/admin/plans" element={<ManagePlans />} />
+              </Route>
+
+              {/* Personal Routes */}
+              <Route path="/students" element={<Alunos />} />
+              <Route path="/workouts" element={<Treinos />} />
+              <Route path="/diet" element={<Dieta />} />
+              <Route path="/agenda" element={<Agenda />} />
+              <Route path="/finance" element={<Financeiro />} />
+              <Route path="/referrals" element={<IndicacoesPropostas />} />
+              <Route path="/settings" element={<Configuracoes />} />
+              <Route path="/profile" element={<Perfil />} />
             </Route>
-
-            {/* Personal Routes */}
-            <Route path="/students" element={<Alunos />} />
-            <Route path="/workouts" element={<Treinos />} />
-            <Route path="/diet" element={<Dieta />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/finance" element={<Financeiro />} />
-            <Route path="/referrals" element={<IndicacoesPropostas />} />
-            <Route path="/settings" element={<Configuracoes />} />
-            <Route path="/profile" element={<Perfil />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

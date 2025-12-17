@@ -44,6 +44,7 @@ interface PlanDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   subscription?: Subscription | null
+  userId?: string
   onSuccess: () => void
 }
 
@@ -51,6 +52,7 @@ export function PlanDialog({
   open,
   onOpenChange,
   subscription,
+  userId,
   onSuccess,
 }: PlanDialogProps) {
   const [users, setUsers] = useState<UserProfile[]>([])
@@ -78,14 +80,14 @@ export function PlanDialog({
         })
       } else {
         form.reset({
-          user_id: '',
+          user_id: userId || '',
           plan_name: '',
           start_date: new Date().toISOString().split('T')[0],
           end_date: '',
         })
       }
     }
-  }, [open, subscription, form])
+  }, [open, subscription, userId, form])
 
   const fetchUsers = async () => {
     const { data } = await supabase
@@ -104,7 +106,7 @@ export function PlanDialog({
         plan_name: values.plan_name,
         start_date: new Date(values.start_date).toISOString(),
         end_date: new Date(values.end_date).toISOString(),
-        status: 'ACTIVE' as const,
+        status: subscription ? subscription.status : 'ACTIVE', // Keep status on edit, set ACTIVE on create
       }
 
       let error
@@ -154,7 +156,8 @@ export function PlanDialog({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={!!subscription}
+                    value={field.value}
+                    disabled={!!subscription || !!userId}
                   >
                     <FormControl>
                       <SelectTrigger>
