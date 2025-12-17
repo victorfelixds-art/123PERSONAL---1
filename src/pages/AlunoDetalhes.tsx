@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,7 @@ export default function AlunoDetalhes() {
   const [student, setStudent] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchStudent = async () => {
+  const fetchStudent = useCallback(async () => {
     if (!id) return
     setLoading(true)
     try {
@@ -32,11 +32,11 @@ export default function AlunoDetalhes() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
 
   useEffect(() => {
     fetchStudent()
-  }, [id])
+  }, [fetchStudent])
 
   if (loading) {
     return (

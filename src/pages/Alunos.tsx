@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, UserPlus, Users, ArrowRight } from 'lucide-react'
@@ -17,13 +17,7 @@ export default function Alunos() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
-  useEffect(() => {
-    if (user) {
-      fetchStudents()
-    }
-  }, [user])
-
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -41,7 +35,13 @@ export default function Alunos() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      fetchStudents()
+    }
+  }, [user, fetchStudents])
 
   const filteredStudents = students.filter((student) =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()),
